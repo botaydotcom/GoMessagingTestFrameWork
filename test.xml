@@ -1,0 +1,28 @@
+<TestSuite>
+	<TestSuiteName>First test suite</TestSuiteName>
+	<TestName>First test</TestName>
+	<TargetHost>203.117.155.188</TargetHost>
+	<TargetPort>9100</TargetPort>
+	<TimesToTest>20</TimesToTest>
+	<InputData>
+		<Message type="HelloInfo">
+			<HelloInfo>
+				<ClientType>1</ClientType>
+				<Version>1</Version>
+			</HelloInfo>
+		</Message>
+		<Message type="LoginInfo">			
+			<LoginInfo>
+				<Name>chengw@garena.com</Name>
+				<ClientType>1</ClientType>
+			</LoginInfo>
+		</Message>
+	</InputData>
+	<OutputData>
+		<Message type="HelloInfoResult">
+			<HelloInfoResult>
+				<Token>hello</Token>
+			</HelloInfoResult>
+		</Message>
+	</OutputData>
+</TestSuite>
