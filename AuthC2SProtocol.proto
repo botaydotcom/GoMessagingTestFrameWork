@@ -1,0 +1,31 @@
+package Auth.C2S;
+message LoginInfo {
+    required string Name = 1;
+    required string Passworld = 2;
+    required int32  ClientType = 3;
+    required string MachineId = 4;
+    required int32  SoftwareVersion =5;
+    optional int32  Status = 6;
+}
+
+message HelloInfo {
+    required int32 ClientType = 1;
+    required uint32 Version = 2;
+}
+
+message OAuthLogin {
+    required bytes OAuthInfo = 1;
+    required int32 ClientType = 4;
+    required string MachineId = 5;
+    required int32 SoftwareVersion = 6;
+    optional int32 Status = 7;
+}
+
+message OAuthRawInfo {
+    required string Provider = 1;
+    required string Account = 2;
+    optional bytes  Content = 3;
+}
+
+
+

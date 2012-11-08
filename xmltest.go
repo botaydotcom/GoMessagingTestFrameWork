@@ -15,7 +15,7 @@ import (
 	"encoding/hex"
 	"io"
 	"time"
-
+	"flag"
 	"encoding/xml"
 	"fmt"
 	"io/ioutil"
@@ -65,6 +65,8 @@ const (
 
 type Message struct {
 	MessageType string `xml:"type,attr"`
+	IsPartial 	bool `xml:"isPartial,attr"`
+	PartialField int `xml:"partialField,attr"`
 	Data        string `xml:",innerxml"`
 }
 
@@ -83,8 +85,13 @@ var inputMessages []interface{}
 var outputMessages []interface{}
 
 func main() {
+	var inputFile string
+	flag.StringVar(&inputFile, "in", "test.xml", "The test input file")
+	flag.Parse()
 	// open file
-	data, err := ioutil.ReadFile("test.xml")
+	fmt.Println("Testing file:", inputFile)
+	
+	data, err := ioutil.ReadFile(inputFile)
 	if err != nil {
 		panic(err)
 	}
@@ -97,6 +104,9 @@ func main() {
 
 	fmt.Printf("Readed input %v", ts.InputData)
 
+	var hasPartial bool
+	var rawData []byte
+	var field int
 	for i, v := range ts.InputData {
 		fmt.Printf("Readed input Number %d \n----------------------------\n%v\n---------------------------\n", i, v.Data)
 
@@ -114,8 +124,20 @@ func main() {
 			f := s.Field(i)
 			printValue(f)
 		}
-		inputMessages = append(inputMessages, input)
+		
+		if v.IsPartial {
+			rawData, err = proto.Marshal(input.(proto.Message))
+			field = v.PartialField
+			hasPartial = true
+		} else {
+			if (hasPartial) {
+				s.Field(field).SetBytes(rawData);
+			}
+			inputMessages = append(inputMessages, input)
+			hasPartial = false
+		}		
 		fmt.Println("input", input)
+		
 	}
 
 	for i, v := range ts.OutputData {
@@ -214,7 +236,7 @@ type TestCaseResult struct {
 func PrettyPrint(result TestCaseResult) {
 	fmt.Println("-------------------------TEST RESULT--------------------------------------------")
 	for i := 0; i < result.NumTest; i++ {
-		fmt.Println("Case", i, ":")
+		fmt.Println("Case", i + 1, ":")
 		aResult := result.Results[i]
 		if aResult.IsCorrect {
 			fmt.Println("	CORRECT.   Time taken:", (aResult.TimeTaken / 1000), "us")
@@ -267,10 +289,8 @@ func ExecuteOneTest(addr *net.TCPAddr, inputMessages []interface{}, outputMessag
 		result.Reason = err
 	} else {
 		// no connection error
-		inputMessage := inputMessages[0].(proto.Message)
-		outputMessage := outputMessages[0].(proto.Message)
 		// testLogin(conns[i], chans[i])
-		result = testHello(conn, &inputMessage, &outputMessage)
+		result = test(conn, inputMessages, outputMessages)
 	}
 	resultChan <- result
 }
@@ -303,6 +323,46 @@ func testHello(conn *net.TCPConn, inMessagePtr *proto.Message, outMessagePtr *pr
 		result.IsCorrect = false
 		result.Reason = err
 	}
+	return result
+}
+
+func test(conn *net.TCPConn, inputMessages []interface{}, outputMessages []interface{}) TestResult {
+	fmt.Println("Testing Log in now ! with message: ", inputMessages, " expecting: ", outputMessages)
+	var result = TestResult{
+		IsCorrect: true,
+		Reason:    nil}
+	var totalTime int64 = 0
+
+	for i := 0; i < len(inputMessages); i++ {
+		inMessagePtr := inputMessages[i].(proto.Message)
+		outMessagePtr := outputMessages[i].(proto.Message)
+		begin := time.Now()
+		sendMsg(conn, byte(C2S_HelloInfo_CMD), inMessagePtr)
+		end := time.Now()
+		replyMessage, err := readReply(conn)
+		totalTime += end.Sub(begin).Nanoseconds()
+		if err == nil {
+			if comparedResult, err := compareReply(*replyMessage, outMessagePtr); comparedResult {
+				fmt.Println("CORRECT Reply message.")
+			} else {
+				fmt.Println("INCORRECT Reply message ", err)
+				result.IsCorrect = false
+				errMsg := fmt.Sprintf("Message %d: %s", i + 1, err.Error())
+				result.Reason = errors.New(errMsg)
+				break
+			}
+		} else {
+			fmt.Println("Encounter error while trying to send: ", err)
+			result.IsCorrect = false
+			errMsg := fmt.Sprintf("Message %d: %s", i + 1, err.Error())
+			result.Reason = errors.New(errMsg)				
+			break
+		}
+	}
+
+	log.Print("Hello takes ", totalTime/1000, " us")
+	result.TimeTaken = totalTime
+
 	return result
 }
 
@@ -433,6 +493,7 @@ func readReply(conn *net.TCPConn) (*proto.Message, error) {
 		return nil, errors.New(errMes)
 	}
 
+	log.Print(rbuf)
 	cmd := int(rbuf[0])
 	switch cmd {
 	case S2C_HelloInfoResult_CMD:
@@ -460,7 +521,8 @@ func readReply(conn *net.TCPConn) (*proto.Message, error) {
 		}
 		log.Print("error type: ", res.(*Auth_S2C.ErrorInfo).GetType())
 	default:
-		fmt.Println("cmd = unexpected", cmd)
+		errMsg := fmt.Sprintf("Unexpected CMD %d", cmd)
+		return nil, errors.New(errMsg)
 	}
 	return &res, err
 }

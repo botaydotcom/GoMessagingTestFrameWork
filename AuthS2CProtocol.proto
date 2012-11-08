@@ -1,0 +1,39 @@
+package Auth.S2C;
+import "SimpleTokenProtocol.proto";
+
+message ErrorInfo
+{
+    required int32 Type = 1;
+    optional string Reason = 2;
+}
+
+message CheckVersionErrorInfo
+{
+    required int32 ErrorCode = 1;
+    required int32 ClientType = 2;
+    required int32 ClientVersion = 3;
+    optional string Url = 4;
+}
+
+message HelloInfoResult
+{
+    required string Token = 1;
+}
+
+message LoginUserInfo
+{
+    required .TOKEN.S.UserInfo MyInfo = 1;
+    message LastLoginInfo
+    {
+        optional int32 IP =1;
+        optional int32 Time = 2;
+        optional string Country = 3;
+    }
+    optional LastLoginInfo LastLogin = 2;
+    optional int32 ServerTime = 3;
+}
+
+message LoginTokenInfo
+{
+    required string Token = 1;
+}
