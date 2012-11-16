@@ -1,15 +1,13 @@
 <TestSuite>
 	<TestSuiteName>Registration</TestSuiteName>
-	<TestName>First test</TestName>
 	<TargetHost>203.117.155.188</TargetHost>
 	<TargetPort>9100</TargetPort>
-	<TimesToTest>1</TimesToTest>
 	<VarMap>
 		<Var name="email">
-			<Value>indotest16@test.com</Value>
+			<Value>indotest17@test.com</Value>
 		</Var>		
 		<Var name="name">
-			<Value>indotest16</Value>
+			<Value>indotest17</Value>
 		</Var>			
 		<Var name="avatar">
 			<Value>429933266161898</Value>
@@ -18,52 +16,79 @@
 			<Value>0</Value>
 		</Var>
 	</VarMap>
-	<MessageSequence>
-		<Message type="RegAccount" fromClient="true">
-			<Command>0x03</Command>
-			<Data>
-				<RegAccount>
-					<EMail>{{.email}}</EMail>
-					<Password>e10adc3949ba59abbe56e057f20f883e</Password>
-				</RegAccount>				
-			</Data>
-		</Message>
 
-		<Message type="NeedFinishReg" fromClient="false">
-			<Command>0x04</Command>
+	<ListTest>
+		<TestName skip="false" repeat="20">Registration test</TestName>
+		<TestName skip="false" repeat="1">Chat test</TestName>
+	</ListTest>
+	
+	<Tests>
+		<MessageSequence>
+			<Message type="HelloInfo" fromClient="true">
+			<Command>0x01</Command>
 			<Data>
-				<NeedFinishReg>
-					<UserId>{{.var1}}</UserId>
-				</NeedFinishReg>
-				
+				<HelloInfo>
+					<ClientType>1</ClientType>
+					<Version>2</Version>
+				</HelloInfo>
 			</Data>
-		</Message>		
-		
-		<Message type="FillFinishReg" fromClient="true">		
-			<Command>0x05</Command>
-			<Data>
-				<FillFinishReg>
-					<UserId>{{.var1}}</UserId>
-					<NickName>{{.name}}</NickName>
-					<Gender>{{.gender}}</Gender>
-					<AvatarId>{{.avatar}}</AvatarId>
-				</FillFinishReg>
-			</Data>
-		</Message>
+			</Message>
+			<Message type="HelloInfoResult" fromClient="false">
+				<Command>0x01</Command>
+				<Data>
+					<HelloInfoResult>
+						<Token>hello</Token>
+					</HelloInfoResult>
+				</Data>
+			</Message>
+		</MessageSequence>
 
-		<Message type="LoginUserInfo" fromClient="false">
-			<Command>0x02</Command>
-			<Data>
-				<LoginInfoResult>
-					<MyInfo>
+		<MessageSequence>
+			<Message type="RegAccount" fromClient="true">
+				<Command>0x03</Command>
+				<Data>
+					<RegAccount>
+						<EMail>{{.email}}</EMail>
+						<Password>e10adc3949ba59abbe56e057f20f883e</Password>
+					</RegAccount>				
+				</Data>
+			</Message>
+
+			<Message type="NeedFinishReg" fromClient="false">
+				<Command>0x04</Command>
+				<Data>
+					<NeedFinishReg>
 						<UserId>{{.var1}}</UserId>
-						<Name>{{.email}}</Name>						
+					</NeedFinishReg>				
+				</Data>
+			</Message>		
+			
+			<Message type="FillFinishReg" fromClient="true">		
+				<Command>0x05</Command>
+				<Data>
+					<FillFinishReg>
+						<UserId>{{.var1}}</UserId>
 						<NickName>{{.name}}</NickName>
 						<Gender>{{.gender}}</Gender>
 						<AvatarId>{{.avatar}}</AvatarId>
-					</MyInfo>
-				</LoginInfoResult>
-			</Data>
-		</Message>
-	</MessageSequence>
+					</FillFinishReg>
+				</Data>
+			</Message>
+
+			<Message type="LoginUserInfo" fromClient="false">
+				<Command>0x02</Command>
+				<Data>
+					<LoginInfoResult>
+						<MyInfo>
+							<UserId>{{.var1}}</UserId>
+							<Name>{{.email}}</Name>						
+							<NickName>{{.name}}</NickName>
+							<Gender>{{.gender}}</Gender>
+							<AvatarId>{{.avatar}}</AvatarId>
+						</MyInfo>
+					</LoginInfoResult>
+				</Data>
+			</Message>
+		</MessageSequence>
+	</Tests>
 </TestSuite>

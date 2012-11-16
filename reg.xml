@@ -9,7 +9,7 @@
 			<Command>0x03</Command>
 			<Data>
 				<RegAccount>
-					<EMail>indotest13@test.com</EMail>
+					<EMail>indotest016@test.com</EMail>
 					<Password>e10adc3949ba59abbe56e057f20f883e</Password>
 				</RegAccount>				
 			</Data>
@@ -30,7 +30,7 @@
 			<Data>
 				<FillFinishReg>
 					<UserId>{{.var1}}</UserId>
-					<NickName>indotest13</NickName>
+					<NickName>indotest016</NickName>
 					<Gender>0</Gender>
 					<AvatarId>429933266161898</AvatarId>
 				</FillFinishReg>
@@ -43,8 +43,8 @@
 				<LoginInfoResult>
 					<MyInfo>
 						<UserId>{{.var1}}</UserId>
-						<Name>indotest13@test.com</Name>						
-						<NickName>indotest13</NickName>
+						<Name>indotest016@test.com</Name>						
+						<NickName>indotest016</NickName>
 						<Gender>0</Gender>
 						<AvatarId>429933266161898</AvatarId>
 					</MyInfo>
