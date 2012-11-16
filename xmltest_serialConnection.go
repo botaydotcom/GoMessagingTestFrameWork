@@ -137,7 +137,7 @@ func main() {
 		outputMessages = append(outputMessages, message)
 	}
 	fmt.Println(inputMessages, outputMessages)
-	Execute(ts.TargetHost, ts.TargetPort, ts.TimesToTest, inputMessages, outputMessages)
+	execute(ts.TargetHost, ts.TargetPort, ts.TimesToTest, inputMessages, outputMessages)
 
 }
 
@@ -211,7 +211,7 @@ type TestCaseResult struct {
 	Results    []TestResult
 }
 
-func PrettyPrint(result TestCaseResult) {
+func prettyPrint(result TestCaseResult) {
 	fmt.Println("-------------------------TEST RESULT--------------------------------------")
 	for i := 0; i < result.NumTest; i++ {
 		fmt.Println("Case", i, ":")
@@ -227,7 +227,7 @@ func PrettyPrint(result TestCaseResult) {
 	fmt.Println("-------------------------END OF TEST RESULT-------------------------------")
 }
 
-func Execute(targetHost string, targetPort string, timesToTest int, inputMessages []interface{}, outputMessages []interface{}) {
+func execute(targetHost string, targetPort string, timesToTest int, inputMessages []interface{}, outputMessages []interface{}) {
 	var testCaseResult TestCaseResult
 
 	targetAddr := targetHost + ":" + targetPort
@@ -254,7 +254,7 @@ func Execute(targetHost string, targetPort string, timesToTest int, inputMessage
 	}
 
 	for i := 0; i < timesToTest; i++ {
-		go ExecuteOneTest(conns[i], inputMessages, outputMessages, chans[i])
+		go executeOneTest(conns[i], inputMessages, outputMessages, chans[i])
 	}
 
 	for i := 0; i < timesToTest; i++ {
@@ -264,10 +264,10 @@ func Execute(targetHost string, targetPort string, timesToTest int, inputMessage
 		}
 	}
 	fmt.Println(testCaseResult)
-	PrettyPrint(testCaseResult)
+	prettyPrint(testCaseResult)
 }
 
-func ExecuteOneTest(conn *net.TCPConn, inputMessages []interface{}, outputMessages []interface{}, resultChan chan TestResult) {
+func executeOneTest(conn *net.TCPConn, inputMessages []interface{}, outputMessages []interface{}, resultChan chan TestResult) {
 	var result TestResult
 	// no connection error
 	inputMessage := inputMessages[0].(proto.Message)

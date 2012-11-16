@@ -1,26 +1,33 @@
 package main
 
 import (
+	"strconv"
 	"errors"
-
+	"regexp"
 	"code.google.com/p/goprotobuf/proto"
 	"log"
 	"net"
-	"xmltest/btalkTest/Auth_C2S"
+	//"xmltest/btalkTest/Auth_C2S"
 	"xmltest/btalkTest/Auth_S2C"
 	//"garena.com/btalkTest/TOKEN_S"
 	"bytes"
-	"crypto/md5"
+	//"crypto/md5"
 	"encoding/binary"
-	"encoding/hex"
-	"io"
-	"time"
-	"flag"
+	//"encoding/hex"
 	"encoding/xml"
+	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"reflect"
+	"time"
+	"text/template"
 	"xmltest/btalkTest/GeneratedDataStructure"
+	"os"
+)
+
+const (
+	START_MARK_VALUE = -732235123
 )
 
 const (
@@ -63,11 +70,16 @@ const (
 	CONN_NUM = 3 //has to be even
 )
 
+type InnerXml struct {
+	Xml 		string `xml:",innerxml"`
+}
+
 type Message struct {
-	MessageType string `xml:"type,attr"`
-	IsPartial 	bool `xml:"isPartial,attr"`
-	PartialField int `xml:"partialField,attr"`
-	Data        string `xml:",innerxml"`
+	MessageType  string `xml:"type,attr"`
+	IsPartial    bool   `xml:"isPartial,attr"`
+	PartialField int    `xml:"partialField,attr"`
+	Command      string 
+	Data         InnerXml 
 }
 
 type TestSuite struct {
@@ -81,87 +93,645 @@ type TestSuite struct {
 	OutputData    []Message `xml:"OutputData>Message"`
 }
 
+
+var keyMap 		  map[string] string
+
+var valueMap 	  map[string] interface{}
+
+var defaultMap    map[string] string
+
+
+var ts TestSuite
+
+var inputCommands  []int
 var inputMessages []interface{}
+
+var outputCommands []int
 var outputMessages []interface{}
 
-func main() {
-	var inputFile string
-	flag.StringVar(&inputFile, "in", "test.xml", "The test input file")
-	flag.Parse()
-	// open file
-	fmt.Println("Testing file:", inputFile)
+var hasPartial bool
+var rawData []byte
+var field int
 	
+var regVar *regexp.Regexp
+
+var numVar int = 0
+	
+/*
+func parseAMessage(v Message) (interface{}, int, error) {
+	message := magicVarFunc(v.MessageType)
+	err = xml.Unmarshal([]byte(v.Data.Xml), message)
+
+	if err != nil {
+		fmt.Printf("error: %v\n", err)
+	}
+	s := reflect.ValueOf(message).Elem()
+	for i := 0; i < s.NumField(); i++ {
+		f := s.Field(i)
+		printValue(f)
+	}
+		
+	cmd, _ := strconv.ParseInt(v.Command, 0, 0)
+	outputMessages = append(outputMessages, message)
+	outputCommands = append(outputCommands, int(cmd))
+	return message, cmd, err
+}*/
+
+func readXmlInput(inputFile string) {
 	data, err := ioutil.ReadFile(inputFile)
 	if err != nil {
 		panic(err)
 	}
 
-	var ts TestSuite
 	err = xml.Unmarshal(data, &ts)
 	if err != nil {
 		fmt.Printf("error: %v\n", err)
 	}
+	
+	
 
-	fmt.Printf("Readed input %v", ts.InputData)
-
-	var hasPartial bool
-	var rawData []byte
-	var field int
-	for i, v := range ts.InputData {
-		fmt.Printf("Readed input Number %d \n----------------------------\n%v\n---------------------------\n", i, v.Data)
-
-		input := MagicVarFunc(v.MessageType)
-
-		err = xml.Unmarshal([]byte(v.Data), input)
+	if true {
+		return
+	}
+	
+	for _, v := range ts.InputData {
+		input := magicVarFunc(v.MessageType)
+		err = xml.Unmarshal([]byte(v.Data.Xml), input)
 
 		if err != nil {
 			fmt.Printf("error: %v\n", err)
 		}
-		fmt.Printf("\n----------------------------\n Parsed input %v\n---------------------------\n", input)
 
 		s := reflect.ValueOf(input).Elem()
 		for i := 0; i < s.NumField(); i++ {
 			f := s.Field(i)
 			printValue(f)
 		}
-		
+
 		if v.IsPartial {
 			rawData, err = proto.Marshal(input.(proto.Message))
 			field = v.PartialField
 			hasPartial = true
 		} else {
-			if (hasPartial) {
-				s.Field(field).SetBytes(rawData);
+			if hasPartial {
+				s.Field(field).SetBytes(rawData)
 			}
 			inputMessages = append(inputMessages, input)
+			
+			cmd, _ := strconv.ParseInt(v.Command, 0, 0)
+			inputCommands = append(inputCommands, int(cmd))
 			hasPartial = false
-		}		
-		fmt.Println("input", input)
-		
+		}	
 	}
 
-	for i, v := range ts.OutputData {
-		fmt.Printf("Readed output Number %d \n----------------------------\n%v\n---------------------------\n", i, v.Data)
-
-		message := MagicVarFunc(v.MessageType)
-
-		err = xml.Unmarshal([]byte(v.Data), message)
+	for _, v := range ts.OutputData {
+		message := magicVarFunc(v.MessageType)
+		err = xml.Unmarshal([]byte(v.Data.Xml), message)
 
 		if err != nil {
 			fmt.Printf("error: %v\n", err)
 		}
-		fmt.Printf("\n----------------------------\n Parsed output %v\n---------------------------\n", message)
 		s := reflect.ValueOf(message).Elem()
 		for i := 0; i < s.NumField(); i++ {
 			f := s.Field(i)
 			printValue(f)
 		}
+		
+		cmd, _ := strconv.ParseInt(v.Command, 0, 0)
 		outputMessages = append(outputMessages, message)
+		outputCommands = append(outputCommands, int(cmd))
 	}
-	fmt.Println(inputMessages, outputMessages)
-	Execute(ts.TargetHost, ts.TargetPort, ts.TimesToTest, inputMessages, outputMessages)
+	
+	fmt.Println(inputCommands, "\n Messages:\n", inputMessages)
+	fmt.Println(outputCommands, "\n Messages:\n", outputMessages)
+}
+
+func main() {	
+	var inputFile string
+	flag.StringVar(&inputFile, "in", "test.xml", "The test input file")
+	flag.Parse()
+	// open file
+	fmt.Println("Testing file:", inputFile)
+
+	keyMap = make(map[string] string)
+	valueMap = make(map[string] interface{})
+	defaultMap = make(map[string] string)
+	
+	readXmlInput(inputFile)
+
+	fmt.Println(inputMessages, outputMessages, inputCommands, outputCommands)
+	executeTestSuite(ts.TargetHost, ts.TargetPort, ts.TimesToTest, inputMessages, outputMessages, inputCommands, outputCommands)
+}
+
+func magicVarFunc(action string) interface{} {
+	return reflect.New(GeneratedDataStructure.Map[action]).Interface()
+}
+
+/******************************************************************************/
+
+type TestResult struct {
+	IsCorrect bool
+	Reason    error
+	TimeTaken int64
+}
+
+type TestCaseResult struct {
+	NumTest    int
+	NumCorrect int
+	Results    []TestResult
+}
+
+func prettyPrint(result TestCaseResult) {
+	fmt.Println("-------------------------TEST RESULT--------------------------------------------")
+	for i := 0; i < result.NumTest; i++ {
+		fmt.Println("Case", i+1, ":")
+		aResult := result.Results[i]
+		if aResult.IsCorrect {
+			fmt.Println("	CORRECT.   Time taken:", (aResult.TimeTaken / 1000), "us")
+		} else {
+			fmt.Println("   INCORRECT. Reason: ", aResult.Reason)
+		}
+	}
+	fmt.Println("--------------------------------------------------------------------------------")
+	fmt.Println("Total result: ", result.NumCorrect, "/", result.NumTest, " = ", (result.NumCorrect * 100.0 / result.NumTest), "%")
+	fmt.Println("-------------------------END OF TEST RESULT-------------------------------------")
+}
+
+func executeTestSuite(targetHost string, targetPort string, timesToTest int, inputMessages []interface{}, outputMessages []interface{},
+			inputCommands []int, outputCommands []int) {
+	var testCaseResult TestCaseResult
+
+	targetAddr := targetHost + ":" + targetPort
+	addr, err := net.ResolveTCPAddr("tcp", targetAddr)
+	if err != nil {
+		log.Fatal("Cannot resolve address")
+	}
+
+	testCaseResult.Results = make([]TestResult, timesToTest)
+	testCaseResult.NumTest = timesToTest
+	testCaseResult.NumCorrect = 0
+	chans := make([]chan TestResult, timesToTest)
+	for i := 0; i < timesToTest; i++ {
+		chans[i] = make(chan TestResult)
+	}
+
+	for i := 0; i < timesToTest; i++ {
+		go executeOneTest(addr, inputMessages, outputMessages, inputCommands, outputCommands, chans[i])
+	}
+
+	for i := 0; i < timesToTest; i++ {
+		testCaseResult.Results[i] = <-chans[i]
+		if testCaseResult.Results[i].IsCorrect {
+			testCaseResult.NumCorrect++
+		}
+	}
+
+	fmt.Println(testCaseResult)
+	prettyPrint(testCaseResult)
+}
+
+func executeOneTest(addr *net.TCPAddr, inputMessages []interface{}, outputMessages []interface{}, 
+					inputCommands []int, outputCommands []int, resultChan chan TestResult) {
+	var result TestResult
+	conn, err := net.DialTCP("tcp", nil, addr)
+	if err != nil {
+		//log.Fatal("connect error: ", err)
+		fmt.Println(err)
+		log.Print("connect error: ", err)
+		result.IsCorrect = false
+		result.Reason = err
+	} else {
+		fmt.Println("Successfully establish connection")
+		// no connection error
+		// testLogin(conns[i], chans[i])
+		result = test(conn, inputMessages, outputMessages, inputCommands, outputCommands)
+	}
+	resultChan <- result
+}
+
+func plugValue(message string) (string, error) {
+	fmt.Println("Plug in value to template now!")
+	t := template.Must(template.New("Xml Message").Parse(message))
+	var buffer bytes.Buffer 
+	err := t.Execute(os.Stdout, valueMap)
+	err = t.Execute(&buffer, valueMap)
+	fmt.Println("----------------------------------------")
+	return buffer.String(), err
+}
+
+func plugDefaultValue(message string) (string, error) {
+	fmt.Println("Plug in value to template now!")
+	t := template.Must(template.New("Xml Message").Parse(message))
+	var buffer bytes.Buffer 
+	err := t.Execute(os.Stdout, defaultMap)
+	err = t.Execute(&buffer, defaultMap)
+	fmt.Println("----------------------------------------")
+	return buffer.String(), err
+}
+
+
+func parseAMessage(v Message) (interface{}, int, error) {
+	message := magicVarFunc(v.MessageType)
+	addedXmlMessage, err := plugValue(v.Data.Xml)
+	err =  xml.Unmarshal([]byte(addedXmlMessage), message)
+
+	if err != nil {
+		fmt.Printf("error: %v\n", err)
+	}
+	s := reflect.ValueOf(message).Elem()
+	for i := 0; i < s.NumField(); i++ {
+		f := s.Field(i)
+		printValue(f)
+	}
+		
+	cmd, _ := strconv.ParseInt(v.Command, 0, 0)
+	outputMessages = append(outputMessages, message)
+	outputCommands = append(outputCommands, int(cmd))
+	//visitStruct(message)
+	return message, int(cmd), err
+}
+
+//(interface{}, int, error)
+func preProcess(v Message)  {
+	regVar = regexp.MustCompile("{{.([a-zA-Z0-9]*)}}")
+	var rawData = v.Data.Xml
+	var processedData = rawData
+	fmt.Println("Matching ", rawData)
+	listVar := regVar.FindAllStringSubmatch(rawData, -1)
+	for _, matchedValue := range listVar {
+		fmt.Print(matchedValue[1])
+		key := matchedValue[1]
+		strMarkValue := ""
+
+		_, present := defaultMap[key]
+		fmt.Println(" key present: ", present)
+		if !present {
+			newMarkValue := START_MARK_VALUE - numVar
+			numVar++
+			strMarkValue = strconv.Itoa(newMarkValue)
+			keyMap[strMarkValue] = key
+			defaultMap[key] = strMarkValue
+			valueMap[key] = strMarkValue
+			// now replace
+			reg, _ := regexp.Compile("{{." + key + "}}")
+			processedData = reg.ReplaceAllString(processedData, defaultMap[key])
+		}
+	}	
+	fmt.Println("After matching to value", processedData)
+}
+
+func compareGetValueForPointer(expPtr reflect.Value, repPtr reflect.Value) (bool, error){
+	fmt.Println("Comparing pointers", expPtr.Elem().IsValid(), repPtr.Elem().IsValid())	
+	// if pointer of expected value is null, just dont compare
+	if !expPtr.Elem().IsValid() {
+		return true, nil
+	}
+	expValue := reflect.Indirect(reflect.ValueOf(expPtr.Interface()))
+
+	// if pointer of reply value is null, return false
+	if !repPtr.Elem().IsValid() {
+		errorMsg := fmt.Sprintf("Reply has no value while expected value is %v", expValue.Interface())
+		return false, errors.New(errorMsg)
+	}
+	repValue := reflect.Indirect(reflect.ValueOf(repPtr.Interface()))
+	
+	strVar := fmt.Sprintf("%v", expValue.Interface())
+	fmt.Println("Expected pointer in message has value: ", strVar)
+
+	result := true
+	var err error
+
+	// if the expected field is a variable field that's not bound, bind the value of the key now
+	key, present := keyMap[strVar]
+	if present {
+		fmt.Println("Bound value to map")
+		// bound variable to value, return true
+		valueMap[key] = repValue.Interface()
+	} else {
+		// compare the two value of pointer
+		// if they are not struct, just compare
+		if (expValue.Kind() != reflect.Struct) {
+			isEqual := (expValue.Interface() == repValue.Interface())
+			fmt.Println("Comparing: ", expValue.Interface(), repValue.Interface(), " result ", isEqual)
+			
+			if !isEqual {
+				errorMsg := fmt.Sprintf("Reply field value is different from expected field value. Expect: %v, get: %v",
+					expValue, repValue)
+				result = false
+				err = errors.New(errorMsg)
+			}
+		} else { // compare struct
+			return compareGetValueForStruct(expValue, repValue)
+		}
+	}
+	return result, err
+}
+
+func compareGetValueForSlice(expSlice reflect.Value, repSlice reflect.Value) (bool, error){
+	fmt.Println("Comparing slices")
+	result := true
+	var err error
+	dif := false
+	if expSlice.Cap() != repSlice.Cap() {
+		dif = true
+	} else {
+		for index := 0; index < expSlice.Cap(); index++ {
+			isEqual := (expSlice.Index(index) == repSlice.Index(index))
+			if !isEqual {
+				dif = true
+				break
+			}
+		}
+	}
+	if dif {
+		errorMsg := fmt.Sprintf("Reply field value is different from expected field value. Expect: %v, get: %v",
+			reflect.ValueOf(expSlice).Interface(), reflect.ValueOf(repSlice).Interface())
+		err = errors.New(errorMsg)
+		result = false
+	}
+	return result, err
+}
+
+func compareGetValueForStruct(expStruct reflect.Value, repStruct reflect.Value) (bool, error){
+	fmt.Println("Comparing structs")
+	result := true
+	var err error
+	for i := 0; i < expStruct.NumField(); i++ {
+		fmt.Println("Comparing field", i)
+		expStructField := expStruct.Field(i) 	// pointer
+		repStructField := repStruct.Field(i)  	// pointer
+		
+		fmt.Println(expStructField, repStructField, expStructField.Kind())
+		var err1 error
+		var isEqual bool
+		if (expStructField.Kind() == reflect.Ptr) {
+			isEqual, err1 = compareGetValueForPointer(expStructField, repStructField)			
+		} else if expStructField.Kind() == reflect.Slice {
+			isEqual, err1 = compareGetValueForSlice(expStructField, repStructField)			
+		} else if expStructField.Kind() == reflect.Struct {
+			isEqual, err1 = compareGetValueForStruct(expStructField, repStructField)
+		}
+		if !isEqual {
+			result = false
+			errorMsg := fmt.Sprintf(" Field %d: %s", i, err1.Error())
+			err = errors.New(errorMsg)
+			break;
+		}
+	}
+	return result, err
+}
+
+func compareGetValueForProtoMessage(protoExp proto.Message, protoRep proto.Message) (bool, error) {
+	result := true
+	var err error
+
+	if reflect.ValueOf(protoExp).Type() != reflect.ValueOf(protoRep).Type() {
+		errorMsg := fmt.Sprintf("Reply has different type from expected. Expect: %d, get: %d", 
+			reflect.ValueOf(protoExp).Type(), reflect.ValueOf(protoRep).Type())
+		return false, errors.New(errorMsg)
+	}
+
+	expMessage := reflect.ValueOf(protoExp).Elem()
+	repMessage := reflect.ValueOf(protoRep).Elem()
+
+	result, err = compareGetValueForStruct(expMessage, repMessage)
+	return result, err
 
 }
+
+func test(conn *net.TCPConn, inputMessages []interface{}, outputMessages []interface{},
+		inputCommands []int, outputCommands []int) TestResult {
+	fmt.Println("Testing Log in now ! with message: ", inputMessages, " expecting: ", outputMessages)
+	var result = TestResult{
+		IsCorrect: true,
+		Reason:    nil}
+	var totalTime int64 = 0
+
+	for i, v := range ts.InputData {
+		fmt.Println("Sending message index: ", i, " in total of: ", len(inputMessages))
+			
+		//preProcessedMessage := preProcess(v)
+
+		preProcess(v)
+
+		inMessage, comm, err := parseAMessage(v)
+		protoInMessage := inMessage.(proto.Message)
+
+		expOut := ts.OutputData[i]
+
+		preProcess(expOut)
+		expOutMessage, commOut, err := parseAMessage(expOut)
+		protoOutMessage := expOutMessage.(proto.Message)
+
+
+		fmt.Println("Message to be sent: ", protoInMessage)
+		begin := time.Now()
+		sendMsg(byte(comm), protoInMessage, conn)
+		end := time.Now()
+		replyMessage, err := readReply(byte(commOut), protoOutMessage, conn)
+		totalTime += end.Sub(begin).Nanoseconds()
+		
+		if err == nil {
+			fmt.Println("Correctly received: ", replyMessage)
+
+			fmt.Println("Comparing received message now! ");
+			if comparedResult, err := compareGetValueForProtoMessage(protoOutMessage, *replyMessage); comparedResult {
+				fmt.Println("CORRECT Reply message.")
+			} else {
+				fmt.Println("INCORRECT Reply message ", err)
+				result.IsCorrect = false
+				errMsg := fmt.Sprintf("Message %d: %s", i+1, err.Error())
+				result.Reason = errors.New(errMsg)
+				break
+			}
+		} else {
+			fmt.Println("Encounter error while trying to parse reply message: ", err)
+			result.IsCorrect = false
+			errMsg := fmt.Sprintf("Message %d: %s", i+1, err.Error())
+			result.Reason = errors.New(errMsg)
+			break
+		}
+	}
+
+	log.Print("Hello takes ", totalTime/1000, " us")
+	result.TimeTaken = totalTime
+
+	return result
+}
+
+func sendMsg(cmd byte, msg proto.Message, conn *net.TCPConn) {
+	log.Print("sending message command: ", cmd)
+	data, err := proto.Marshal(msg)
+	if err != nil {
+		log.Fatal("marchaling error: ", err)
+	}
+	length := int32(len(data)) + 1
+	log.Print("sending message length: ", length)
+
+	buf := new(bytes.Buffer)
+
+	binary.Write(buf, binary.LittleEndian, length)
+	binary.Write(buf, binary.LittleEndian, cmd)
+	//binary.Write(buf, binary.LittleEndian, int64(0))
+	buf.Write(data)
+	conn.Write(buf.Bytes())
+	log.Print("sending message buffer: ", buf.Bytes())
+}
+
+// read reply to a buffer
+func readReply(expCmd byte, expMsg proto.Message, conn *net.TCPConn) (*proto.Message, error) {
+	length := int32(0)
+	binary.Read(conn, binary.LittleEndian, &length)
+	rbuf := make([]byte, length)
+	io.ReadFull(conn, rbuf)
+	var err error
+	var res proto.Message
+	if len(rbuf) < 1 {
+		errMes := fmt.Sprintf("Reply message is too short: %d", len(rbuf))
+		return nil, errors.New(errMes)
+	}
+
+	log.Print("Buffer read from network: ", rbuf)
+	
+	cmd := rbuf[0]
+	// command needs to be equal to expected command
+	if cmd != expCmd {
+		errMsg := fmt.Sprintf("Unexpected CMD %d", cmd)
+		return nil, errors.New(errMsg)
+	}
+	fmt.Println("CMD is CORRECT, expected message type: ", reflect.ValueOf(expMsg).Type())
+	newValue := reflect.New(reflect.ValueOf(expMsg).Elem().Type()).Interface()
+	res = newValue.(proto.Message)
+	err = proto.Unmarshal(rbuf[1:], res)
+		
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("Successfully receive message", res)
+	return &res, err
+	
+	
+	
+	
+	
+	
+	
+	switch cmd {
+	case S2C_HelloInfoResult_CMD:
+		fmt.Println("cmd = helloinforresult")
+		res = &Auth_S2C.HelloInfoResult{}
+		err = proto.Unmarshal(rbuf[1:], res)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Print(res.(*Auth_S2C.HelloInfoResult).GetToken())
+	case S2C_LoginUserInfo_CMD:
+		fmt.Println("cmd = login user info")
+		res = &Auth_S2C.LoginUserInfo{}
+		err = proto.Unmarshal(rbuf[1:], res)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Print(res.(*Auth_S2C.LoginUserInfo).GetMyInfo(), res.(*Auth_S2C.LoginUserInfo).GetServerTime())
+	case ERROR_ErrorInfo_CMD:
+		fmt.Println("cmd = error info")
+		res = &Auth_S2C.ErrorInfo{}
+		err = proto.Unmarshal(rbuf[1:], res)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Print("error type: ", res.(*Auth_S2C.ErrorInfo).GetType())
+	default:
+		errMsg := fmt.Sprintf("Unexpected CMD %d", cmd)
+		return nil, errors.New(errMsg)
+	}
+	return &res, err
+}
+
+func compareReply(rep proto.Message, out proto.Message) (bool, error) {
+	var errorMsg string
+	//fmt.Println(rep, "|", out)
+
+	replyMessage := reflect.ValueOf(rep).Elem()
+	outputMessage := reflect.ValueOf(out).Elem()
+
+	if reflect.ValueOf(rep).Type() != reflect.ValueOf(out).Type() {
+		errorMsg = fmt.Sprintf("Reply has different type from expected. Expect: %d, get: %d", reflect.ValueOf(rep).Type(), reflect.ValueOf(out).Type())
+		return false, errors.New(errorMsg)
+	}
+
+	for i := 0; i < outputMessage.NumField(); i++ {
+		//fmt.Println("Comparing field ", i)
+		var dif bool = false
+		ptrOut := outputMessage.Field(i) // pointer
+		ptrRep := replyMessage.Field(i)  // pointer
+		//fmt.Println(ptrOut, ptrRep, ptrOut.Kind())
+
+		if ptrOut.Kind() == reflect.Ptr {
+			outValue := reflect.Indirect(reflect.ValueOf(ptrOut.Interface()))
+			repValue := reflect.Indirect(reflect.ValueOf(ptrRep.Interface()))
+			compare := (outValue.Interface() == repValue.Interface())
+			//fmt.Println("Comparing: ", outValue.Interface(), repValue.Interface(), " result ", compare)
+			if !compare {
+				dif = true
+				//fmt.Println(outValue, repValue)
+			}
+			if dif {
+				errorMsg = fmt.Sprintf("Reply field value is different from expected field value. Expect: %v, get: %v",
+					outValue, repValue)
+			}
+		} else if ptrOut.Kind() == reflect.Slice {
+			if ptrOut.Cap() != ptrRep.Cap() {
+				dif = true
+			} else {
+				for index := 0; index < ptrOut.Cap(); index++ {
+					compare := (ptrOut.Index(index) == ptrRep.Index(index))
+					//fmt.Println("Comparing: ", ptrOut.Index(index), ptrRep.Index(index), " result ", compare)
+
+					if !compare {
+						dif = true
+						break
+					}
+				}
+			}
+			if dif {
+				errorMsg = fmt.Sprintf("Reply field value is different from expected field value. Expect: %v, get: %v",
+					reflect.ValueOf(ptrOut).Interface(), reflect.ValueOf(ptrRep).Interface())
+			}
+		}
+
+		if dif {
+			return false, errors.New(errorMsg)
+		} else {
+			//fmt.Println("They are the same")
+		}
+	}
+
+	return true, nil
+}
+
+func getKindForPointer(ptrValue reflect.Value) reflect.Kind {
+	if ptrValue.Kind() == reflect.Ptr {
+		if ptrValue.Elem().IsValid() {
+			value := reflect.Indirect(reflect.ValueOf(ptrValue.Interface()))
+			return value.Kind()
+		}
+	}
+
+	return reflect.Invalid
+}
+
+func getValueForPointer(ptrValue reflect.Value) reflect.Value {
+	if ptrValue.Kind() == reflect.Ptr {
+		if ptrValue.Elem().IsValid() {
+			value := reflect.Indirect(reflect.ValueOf(ptrValue.Interface()))
+			return value
+		}
+	}
+	
+	return ptrValue
+}
+
 
 func getValue(ptrValue reflect.Value) (interface{}, error) {
 	if ptrValue.Kind() == reflect.Ptr {
@@ -213,401 +783,4 @@ func printValue(ptrValue reflect.Value) {
 	} else {
 		fmt.Println("Not a pointer")
 	}
-}
-
-func MagicVarFunc(action string) interface{} {
-	return reflect.New(GeneratedDataStructure.Map[action]).Interface()
-}
-
-/******************************************************************************/
-
-type TestResult struct {
-	IsCorrect bool
-	Reason    error
-	TimeTaken int64
-}
-
-type TestCaseResult struct {
-	NumTest    int
-	NumCorrect int
-	Results    []TestResult
-}
-
-func PrettyPrint(result TestCaseResult) {
-	fmt.Println("-------------------------TEST RESULT--------------------------------------------")
-	for i := 0; i < result.NumTest; i++ {
-		fmt.Println("Case", i + 1, ":")
-		aResult := result.Results[i]
-		if aResult.IsCorrect {
-			fmt.Println("	CORRECT.   Time taken:", (aResult.TimeTaken / 1000), "us")
-		} else {
-			fmt.Println("   INCORRECT. Reason: ", aResult.Reason)
-		}
-	}
-	fmt.Println("--------------------------------------------------------------------------------")
-	fmt.Println("Total result: ", result.NumCorrect, "/", result.NumTest, " = ", (result.NumCorrect * 100.0 / result.NumTest), "%")
-	fmt.Println("-------------------------END OF TEST RESULT-------------------------------------")
-}
-
-func Execute(targetHost string, targetPort string, timesToTest int, inputMessages []interface{}, outputMessages []interface{}) {
-	var testCaseResult TestCaseResult
-
-	targetAddr := targetHost + ":" + targetPort
-	addr, err := net.ResolveTCPAddr("tcp", targetAddr)
-	if err != nil {
-		log.Fatal("Cannot resolve address")
-	}
-
-	testCaseResult.Results = make([]TestResult, timesToTest)
-	testCaseResult.NumTest = timesToTest
-	testCaseResult.NumCorrect = 0
-	chans := make([]chan TestResult, timesToTest)
-	for i := 0; i < timesToTest; i++ {
-		chans[i] = make(chan TestResult)
-	}
-
-	for i := 0; i < timesToTest; i++ {
-		go ExecuteOneTest(addr, inputMessages, outputMessages, chans[i])
-	}
-
-	for i := 0; i < timesToTest; i++ {
-		testCaseResult.Results[i] = <-chans[i]
-		if testCaseResult.Results[i].IsCorrect {
-			testCaseResult.NumCorrect++
-		}
-	}
-	fmt.Println(testCaseResult)
-	PrettyPrint(testCaseResult)
-}
-
-func ExecuteOneTest(addr *net.TCPAddr, inputMessages []interface{}, outputMessages []interface{}, resultChan chan TestResult) {
-	var result TestResult
-	conn, err := net.DialTCP("tcp", nil, addr)
-	if err != nil {
-		//log.Fatal("connect error: ", err)
-		result.IsCorrect = false
-		result.Reason = err
-	} else {
-		// no connection error
-		// testLogin(conns[i], chans[i])
-		result = test(conn, inputMessages, outputMessages)
-	}
-	resultChan <- result
-}
-
-func testHello(conn *net.TCPConn, inMessagePtr *proto.Message, outMessagePtr *proto.Message) TestResult {
-	fmt.Println("Testing Log in now ! with message: ", *inMessagePtr, " expecting: ", *outMessagePtr)
-	var result TestResult
-
-	begin := time.Now()
-	sendMsg(conn, byte(C2S_HelloInfo_CMD), *inMessagePtr)
-	end := time.Now()
-	replyMessage, err := readReply(conn)
-
-	log.Print("Hello takes ", end.Sub(begin).Nanoseconds()/1000, " us")
-
-	result.TimeTaken = end.Sub(begin).Nanoseconds()
-
-	if err == nil {
-		if comparedResult, err := compareReply(*replyMessage, *outMessagePtr); comparedResult {
-			fmt.Println("CORRECT reply.")
-			result.IsCorrect = true
-			result.Reason = nil
-		} else {
-			fmt.Println("INCORRECT reply! Reason: ", err)
-			result.IsCorrect = false
-			result.Reason = err
-		}
-	} else {
-		fmt.Println("Encounter error while trying to send: ", err)
-		result.IsCorrect = false
-		result.Reason = err
-	}
-	return result
-}
-
-func test(conn *net.TCPConn, inputMessages []interface{}, outputMessages []interface{}) TestResult {
-	fmt.Println("Testing Log in now ! with message: ", inputMessages, " expecting: ", outputMessages)
-	var result = TestResult{
-		IsCorrect: true,
-		Reason:    nil}
-	var totalTime int64 = 0
-
-	for i := 0; i < len(inputMessages); i++ {
-		inMessagePtr := inputMessages[i].(proto.Message)
-		outMessagePtr := outputMessages[i].(proto.Message)
-		begin := time.Now()
-		sendMsg(conn, byte(C2S_HelloInfo_CMD), inMessagePtr)
-		end := time.Now()
-		replyMessage, err := readReply(conn)
-		totalTime += end.Sub(begin).Nanoseconds()
-		if err == nil {
-			if comparedResult, err := compareReply(*replyMessage, outMessagePtr); comparedResult {
-				fmt.Println("CORRECT Reply message.")
-			} else {
-				fmt.Println("INCORRECT Reply message ", err)
-				result.IsCorrect = false
-				errMsg := fmt.Sprintf("Message %d: %s", i + 1, err.Error())
-				result.Reason = errors.New(errMsg)
-				break
-			}
-		} else {
-			fmt.Println("Encounter error while trying to send: ", err)
-			result.IsCorrect = false
-			errMsg := fmt.Sprintf("Message %d: %s", i + 1, err.Error())
-			result.Reason = errors.New(errMsg)				
-			break
-		}
-	}
-
-	log.Print("Hello takes ", totalTime/1000, " us")
-	result.TimeTaken = totalTime
-
-	return result
-}
-
-func testLogin(conn *net.TCPConn, endSignal chan bool) {
-	for i := 0; i < 20; i++ {
-		begin := time.Now()
-		sendHello(conn)
-		readReply(conn)
-		//sendLogin(conn)
-		//readReply(conn)
-		end := time.Now()
-		log.Print("login takes ", end.Sub(begin).Nanoseconds()/1000, " us")
-	}
-	endSignal <- true
-}
-
-func testGarena(conn *net.TCPConn, endSignal chan bool) {
-	for i := 0; i < 1; i++ {
-		begin := time.Now()
-		sendHello(conn)
-		readReply(conn)
-		sendGarenaAuth(conn)
-		readReply(conn)
-		end := time.Now()
-		log.Print("garena login takes ", end.Sub(begin).Nanoseconds()/1000, " us")
-	}
-	endSignal <- true
-}
-
-func testOAuth(conn *net.TCPConn, endSignal chan bool) {
-	for i := 0; i < 20; i++ {
-		begin := time.Now()
-		sendHello(conn)
-		readReply(conn)
-		sendOAuth(conn)
-		readReply(conn)
-		end := time.Now()
-		log.Print("login takes ", end.Sub(begin).Nanoseconds()/1000, " us")
-	}
-	endSignal <- true
-}
-
-func sendMsg(conn *net.TCPConn, cmd byte, msg proto.Message) {
-	data, err := proto.Marshal(msg)
-	if err != nil {
-		log.Fatal("marchaling error: ", err)
-	}
-	length := int32(len(data)) + 1
-	buf := new(bytes.Buffer)
-	binary.Write(buf, binary.LittleEndian, length)
-	binary.Write(buf, binary.LittleEndian, cmd)
-	//binary.Write(buf, binary.LittleEndian, int64(0))
-	buf.Write(data)
-	conn.Write(buf.Bytes())
-}
-
-func sendLogin(conn *net.TCPConn) {
-	m := md5.New()
-	io.WriteString(m, "123456")
-	password := string(m.Sum(nil))
-	password = hex.EncodeToString([]byte(password))
-	loginInfo := &Auth_C2S.LoginInfo{
-		Name: proto.String("	"),
-		Passworld:       proto.String(password),
-		ClientType:      proto.Int32(1),
-		MachineId:       proto.String("ddd"),
-		SoftwareVersion: proto.Int32(1),
-	}
-	sendMsg(conn, byte(C2S_LoginInfo_CMD), loginInfo)
-}
-
-func sendHello(conn *net.TCPConn) {
-	helloInfo := &Auth_C2S.HelloInfo{
-		ClientType: proto.Int32(1),
-		Version:    proto.Uint32(1),
-	}
-	sendMsg(conn, byte(C2S_HelloInfo_CMD), helloInfo)
-}
-
-func sendOAuth(conn *net.TCPConn) {
-	oauthInfo := &Auth_C2S.OAuthRawInfo{
-		Provider: proto.String("facebook"),
-		Account:  proto.String("579766697@facebook"),
-		Content:  []byte("BAAFUf1RW0coBAHDc4d3ZCmJD86miGqJd6egnmDqJUEsJkVYlQZC30CP0TqbCa7ZAWZA4lYZAnQATvpwbc1LNWtfMJW6HeoJQAgDiUESS2ttZCmasMDGrIqDzVHbTNPCaoZD"),
-	}
-	data, err := proto.Marshal(oauthInfo)
-	if err != nil {
-		log.Fatal("marshal error: ", err)
-	}
-	oauth := &Auth_C2S.OAuthLogin{
-		OAuthInfo:       data,
-		ClientType:      proto.Int32(1),
-		MachineId:       proto.String("ddd"),
-		SoftwareVersion: proto.Int32(1),
-	}
-	sendMsg(conn, byte(C2S_OAuthLogin_CMD), oauth)
-}
-
-func sendGarenaAuth(conn *net.TCPConn) {
-	oauthInfo := &Auth_C2S.OAuthRawInfo{
-		Provider: proto.String("garena"),
-		Account:  proto.String("Cheng.Wei@garena"),
-		Content:  []byte("bb334276b3d83e7dcf64632ee027e0e1"),
-	}
-	data, err := proto.Marshal(oauthInfo)
-	if err != nil {
-		log.Fatal("marshal error: ", err)
-	}
-	oauth := &Auth_C2S.OAuthLogin{
-		OAuthInfo:       data,
-		ClientType:      proto.Int32(1),
-		MachineId:       proto.String("ddd"),
-		SoftwareVersion: proto.Int32(1),
-	}
-	sendMsg(conn, byte(C2S_OAuthLogin_CMD), oauth)
-}
-
-// read reply to a buffer
-func readReply(conn *net.TCPConn) (*proto.Message, error) {
-	length := int32(0)
-	binary.Read(conn, binary.LittleEndian, &length)
-	rbuf := make([]byte, length)
-	io.ReadFull(conn, rbuf)
-	var err error
-	var res proto.Message
-	if len(rbuf) < 1 {
-		errMes := fmt.Sprintf("Reply message is too short: %d", len(rbuf))
-		return nil, errors.New(errMes)
-	}
-
-	log.Print(rbuf)
-	cmd := int(rbuf[0])
-	switch cmd {
-	case S2C_HelloInfoResult_CMD:
-		fmt.Println("cmd = helloinforresult")
-		res = &Auth_S2C.HelloInfoResult{}
-		err = proto.Unmarshal(rbuf[1:], res)
-		if err != nil {
-			log.Fatal(err)
-		}
-		log.Print(res.(*Auth_S2C.HelloInfoResult).GetToken())
-	case S2C_LoginUserInfo_CMD:
-		fmt.Println("cmd = login user info")
-		res = &Auth_S2C.LoginUserInfo{}
-		err = proto.Unmarshal(rbuf[1:], res)
-		if err != nil {
-			log.Fatal(err)
-		}
-		log.Print(res.(*Auth_S2C.LoginUserInfo).GetMyInfo(), res.(*Auth_S2C.LoginUserInfo).GetServerTime())
-	case ERROR_ErrorInfo_CMD:
-		fmt.Println("cmd = error info")
-		res = &Auth_S2C.ErrorInfo{}
-		err = proto.Unmarshal(rbuf[1:], res)
-		if err != nil {
-			log.Fatal(err)
-		}
-		log.Print("error type: ", res.(*Auth_S2C.ErrorInfo).GetType())
-	default:
-		errMsg := fmt.Sprintf("Unexpected CMD %d", cmd)
-		return nil, errors.New(errMsg)
-	}
-	return &res, err
-}
-
-func compareReply(rep proto.Message, out proto.Message) (bool, error) {
-	var errorMsg string
-	fmt.Println(rep, "|", out)
-
-	replyMessage := reflect.ValueOf(rep).Elem()
-	outputMessage := reflect.ValueOf(out).Elem()
-
-	if reflect.ValueOf(rep).Type() != reflect.ValueOf(out).Type() {
-		errorMsg = fmt.Sprintf("Reply has different type from expected. Expect: %d, get: %d", reflect.ValueOf(rep).Type(), reflect.ValueOf(out).Type())
-		return false, errors.New(errorMsg)
-	}
-
-	for i := 0; i < outputMessage.NumField(); i++ {
-		fmt.Println("Comparing field ", i)
-		var dif bool = false
-		ptrOut := outputMessage.Field(i) // pointer
-		ptrRep := replyMessage.Field(i)  // pointer
-		fmt.Println(ptrOut, ptrRep, ptrOut.Kind())
-
-		if ptrOut.Kind() == reflect.Ptr {
-			outValue := reflect.Indirect(reflect.ValueOf(ptrOut.Interface()))
-			repValue := reflect.Indirect(reflect.ValueOf(ptrRep.Interface()))
-			compare := (outValue.Interface() == repValue.Interface())
-			fmt.Println("Comparing: ", outValue.Interface(), repValue.Interface(), " result ", compare)
-			if !compare {
-				dif = true
-				fmt.Println(outValue, repValue)
-			}
-			if dif {
-				errorMsg = fmt.Sprintf("Reply field value is different from expected field value. Expect: %v, get: %v",
-					outValue, repValue)
-			}
-		} else if ptrOut.Kind() == reflect.Slice {
-			if ptrOut.Cap() != ptrRep.Cap() {
-				dif = true
-			} else {
-				for index := 0; index < ptrOut.Cap(); index++ {
-					compare := (ptrOut.Index(index) == ptrRep.Index(index))
-					fmt.Println("Comparing: ", ptrOut.Index(index), ptrRep.Index(index), " result ", compare)
-
-					if !compare {
-						dif = true
-						break
-					}
-				}
-			}
-			if dif {
-				errorMsg = fmt.Sprintf("Reply field value is different from expected field value. Expect: %v, get: %v",
-					reflect.ValueOf(ptrOut).Interface(), reflect.ValueOf(ptrRep).Interface())
-			}
-		}
-
-		if dif {
-			return false, errors.New(errorMsg)
-		} else {
-			fmt.Println("They are the same")
-		}
-	}
-
-	return true, nil
-}
-
-func getKindForPointer(ptrValue reflect.Value) reflect.Kind {
-	if ptrValue.Kind() == reflect.Ptr {
-		if ptrValue.Elem().IsValid() {
-			value := reflect.Indirect(reflect.ValueOf(ptrValue.Interface()))
-			return value.Kind()
-		}
-	}
-
-	return reflect.Invalid
-}
-
-func getValueForPointer(ptrValue reflect.Value) reflect.Value {
-	if ptrValue.Kind() == reflect.Ptr {
-		//fmt.Println(value.Kind(), value.Elem())
-		if ptrValue.Elem().IsValid() {
-			value := reflect.Indirect(reflect.ValueOf(ptrValue.Interface()))
-			return value
-		}
-	}
-
-	return ptrValue
 }

@@ -1,0 +1,57 @@
+<TestSuite>
+	<TestSuiteName>First test suite</TestSuiteName>
+	<TestName>First test</TestName>
+	<TargetHost>203.117.155.188</TargetHost>
+	<TargetPort>9100</TargetPort>
+	<TimesToTest>1</TimesToTest>
+	<InputData>
+		<Message type="RegAccount">
+			<Command>0x03</Command>
+			<Data>
+				<RegAccount>
+					<EMail>indotest007@test.com</EMail>
+					<Password>e10adc3949ba59abbe56e057f20f883e</Password>
+				</RegAccount>				
+			</Data>
+		</Message>
+		
+		<Message type="FillFinishReg">		
+			<Command>0x05</Command>
+			<Data>
+				<FillFinishReg>
+					<UserId>{{.var1}}</UserId>
+					<NickName>indotest007</NickName>
+					<Gender>0</Gender>
+					<AvatarId>429933266161898</AvatarId>
+				</FillFinishReg>
+				
+				
+			</Data>
+		</Message>
+	</InputData>
+	<OutputData>
+		<Message type="NeedFinishReg">
+			<Command>0x04</Command>
+			<Data>
+				<NeedFinishReg>
+					<UserId>{{.var1}}</UserId>
+				</NeedFinishReg>
+				
+			</Data>
+		</Message>
+		<Message type="LoginUserInfo">
+			<Command>0x02</Command>
+			<Data>
+				<LoginInfoResult>
+					<MyInfo>
+						<UserId>{{.var1}}</UserId>
+						<Name>indotest007@test.com</Name>						
+						<NickName>indotest007</NickName>
+						<Gender>0</Gender>
+						<AvatarId>429933266161898</AvatarId>
+					</MyInfo>
+				</LoginInfoResult>
+			</Data>
+		</Message>
+	</OutputData>
+</TestSuite>

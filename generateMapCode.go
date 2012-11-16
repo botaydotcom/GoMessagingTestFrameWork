@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"strings"
 	"text/template"
+	"go/ast"
 )
 
 const (
@@ -94,14 +95,18 @@ func parseProtobufFile(inputFilePath string, importPath string) FileDataType {
 	fmt.Println(parsedFile.Name)
 	data.PackageName = parsedFile.Name.Name
 	data.ImportPath = cleanImportPath(importPath)
+	
 	fmt.Println("---Import Path: ", data.ImportPath)
+	
 	data.Types = make(map[string]DataType)
 
-	for typeName := range parsedFile.Scope.Objects {
-		key := data.PackageName + "_" + typeName
-		fmt.Println(key)
-		newType := DataType{TypeName: typeName, PackageName: data.PackageName}
-		data.Types[key] = newType
+	for typeName, objType := range parsedFile.Scope.Objects {
+		if objType.Kind == ast.Typ {
+			key := data.PackageName + "_" + typeName
+			fmt.Println(key)
+			newType := DataType{TypeName: typeName, PackageName: data.PackageName}
+			data.Types[key] = newType
+		}
 	}
 	return data
 }

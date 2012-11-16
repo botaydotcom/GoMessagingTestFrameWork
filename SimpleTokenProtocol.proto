@@ -1,15 +1,31 @@
 package TOKEN.S;
-
 message UserInfo
 {
-    required int32 UserId = 1;
-    required string Name = 2;
-    optional int32 Level = 3;
-    optional int32 UserType = 4;
-    optional int32 ClientType = 5;
-    optional int32 Status = 6;
-    required uint64 Icon = 7;
-    optional string NickName = 8;
-    optional int32 Gender = 9;
-    optional int32 Birthday = 10;
+	required int32 UserId = 1;
+	required string Name = 2;
+	optional int32 Level = 3;
+	optional int32 UserType = 4;
+	optional int32 ClientType = 5;
+	optional int32 Status = 6;
+	required uint64 Icon = 7;
+	optional string NickName = 8;
+	optional int32 Gender = 9;
+	optional int32 Birthday = 10;
+}
+message RawLoginTokenInfo
+{
+	required .TOKEN.S.UserInfo User = 1;
+	required uint32 ExpiredDate = 2;
+	required uint32 IP = 3;
+}
+message P2PServerTokenInfo
+{
+	required int32 UserId = 1;
+	required uint32 ExpiredDate = 2;
+}
+message RASATokenInfo
+{
+	required int32 UserId = 1;
+	required string Name = 2;
+	required uint32 ExpiredDate = 3;
 }

@@ -7,12 +7,52 @@ package Auth_S2C
 import proto "code.google.com/p/goprotobuf/proto"
 import json "encoding/json"
 import math "math"
-import TOKEN_S "garena.com/btalkTest/TOKEN_S"
+import P_Common "CommonProtocol.pb"
+import TOKEN_S "SimpleTokenProtocol.pb"
 
 // Reference proto, json, and math imports to suppress error if they are not otherwise used.
 var _ = proto.Marshal
 var _ = &json.SyntaxError{}
 var _ = math.Inf
+
+type CreateChannelFailed_ErrorCodeType int32
+
+const (
+	CreateChannelFailed_Unknown     CreateChannelFailed_ErrorCodeType = 0
+	CreateChannelFailed_NoSlot      CreateChannelFailed_ErrorCodeType = 1
+	CreateChannelFailed_SystemError CreateChannelFailed_ErrorCodeType = 2
+)
+
+var CreateChannelFailed_ErrorCodeType_name = map[int32]string{
+	0: "Unknown",
+	1: "NoSlot",
+	2: "SystemError",
+}
+var CreateChannelFailed_ErrorCodeType_value = map[string]int32{
+	"Unknown":     0,
+	"NoSlot":      1,
+	"SystemError": 2,
+}
+
+func (x CreateChannelFailed_ErrorCodeType) Enum() *CreateChannelFailed_ErrorCodeType {
+	p := new(CreateChannelFailed_ErrorCodeType)
+	*p = x
+	return p
+}
+func (x CreateChannelFailed_ErrorCodeType) String() string {
+	return proto.EnumName(CreateChannelFailed_ErrorCodeType_name, int32(x))
+}
+func (x CreateChannelFailed_ErrorCodeType) MarshalJSON() ([]byte, error) {
+	return json.Marshal(x.String())
+}
+func (x *CreateChannelFailed_ErrorCodeType) UnmarshalJSON(data []byte) error {
+	value, err := proto.UnmarshalJSONEnum(CreateChannelFailed_ErrorCodeType_value, data, "CreateChannelFailed_ErrorCodeType")
+	if err != nil {
+		return err
+	}
+	*x = CreateChannelFailed_ErrorCodeType(value)
+	return nil
+}
 
 type ErrorInfo struct {
 	Type             *int32  `protobuf:"varint,1,req" json:"Type,omitempty"`
@@ -74,6 +114,22 @@ func (this *CheckVersionErrorInfo) GetClientVersion() int32 {
 func (this *CheckVersionErrorInfo) GetUrl() string {
 	if this != nil && this.Url != nil {
 		return *this.Url
+	}
+	return ""
+}
+
+type RequestTokenResult struct {
+	Token            *string `protobuf:"bytes,1,req" json:"Token,omitempty"`
+	XXX_unrecognized []byte  `json:"-"`
+}
+
+func (this *RequestTokenResult) Reset()         { *this = RequestTokenResult{} }
+func (this *RequestTokenResult) String() string { return proto.CompactTextString(this) }
+func (*RequestTokenResult) ProtoMessage()       {}
+
+func (this *RequestTokenResult) GetToken() string {
+	if this != nil && this.Token != nil {
+		return *this.Token
 	}
 	return ""
 }
@@ -174,5 +230,393 @@ func (this *LoginTokenInfo) GetToken() string {
 	return ""
 }
 
+type ChannelIdInfo struct {
+	ChannelId        *int32  `protobuf:"varint,1,req" json:"ChannelId,omitempty"`
+	Version          *uint32 `protobuf:"varint,2,req" json:"Version,omitempty"`
+	XXX_unrecognized []byte  `json:"-"`
+}
+
+func (this *ChannelIdInfo) Reset()         { *this = ChannelIdInfo{} }
+func (this *ChannelIdInfo) String() string { return proto.CompactTextString(this) }
+func (*ChannelIdInfo) ProtoMessage()       {}
+
+func (this *ChannelIdInfo) GetChannelId() int32 {
+	if this != nil && this.ChannelId != nil {
+		return *this.ChannelId
+	}
+	return 0
+}
+
+func (this *ChannelIdInfo) GetVersion() uint32 {
+	if this != nil && this.Version != nil {
+		return *this.Version
+	}
+	return 0
+}
+
+type ChannelIdInfoList struct {
+	Type             *int32           `protobuf:"varint,1,req" json:"Type,omitempty"`
+	Channels         []*ChannelIdInfo `protobuf:"bytes,2,rep" json:"Channels,omitempty"`
+	XXX_unrecognized []byte           `json:"-"`
+}
+
+func (this *ChannelIdInfoList) Reset()         { *this = ChannelIdInfoList{} }
+func (this *ChannelIdInfoList) String() string { return proto.CompactTextString(this) }
+func (*ChannelIdInfoList) ProtoMessage()       {}
+
+func (this *ChannelIdInfoList) GetType() int32 {
+	if this != nil && this.Type != nil {
+		return *this.Type
+	}
+	return 0
+}
+
+type ChannelSimpleInfoList struct {
+	Channels         []*P_Common.ChannelSimpleInfo `protobuf:"bytes,1,rep" json:"Channels,omitempty"`
+	Option           *int32                        `protobuf:"varint,2,opt" json:"Option,omitempty"`
+	XXX_unrecognized []byte                        `json:"-"`
+}
+
+func (this *ChannelSimpleInfoList) Reset()         { *this = ChannelSimpleInfoList{} }
+func (this *ChannelSimpleInfoList) String() string { return proto.CompactTextString(this) }
+func (*ChannelSimpleInfoList) ProtoMessage()       {}
+
+func (this *ChannelSimpleInfoList) GetOption() int32 {
+	if this != nil && this.Option != nil {
+		return *this.Option
+	}
+	return 0
+}
+
+type ChannelUserInfo struct {
+	UserId           *int32  `protobuf:"varint,1,req" json:"UserId,omitempty"`
+	UserType         *int32  `protobuf:"varint,2,req" json:"UserType,omitempty"`
+	Contribution     *int32  `protobuf:"varint,3,req,name=contribution" json:"contribution,omitempty"`
+	JoinDate         *uint32 `protobuf:"varint,4,opt" json:"JoinDate,omitempty"`
+	XXX_unrecognized []byte  `json:"-"`
+}
+
+func (this *ChannelUserInfo) Reset()         { *this = ChannelUserInfo{} }
+func (this *ChannelUserInfo) String() string { return proto.CompactTextString(this) }
+func (*ChannelUserInfo) ProtoMessage()       {}
+
+func (this *ChannelUserInfo) GetUserId() int32 {
+	if this != nil && this.UserId != nil {
+		return *this.UserId
+	}
+	return 0
+}
+
+func (this *ChannelUserInfo) GetUserType() int32 {
+	if this != nil && this.UserType != nil {
+		return *this.UserType
+	}
+	return 0
+}
+
+func (this *ChannelUserInfo) GetContribution() int32 {
+	if this != nil && this.Contribution != nil {
+		return *this.Contribution
+	}
+	return 0
+}
+
+func (this *ChannelUserInfo) GetJoinDate() uint32 {
+	if this != nil && this.JoinDate != nil {
+		return *this.JoinDate
+	}
+	return 0
+}
+
+type CreateChannelResult struct {
+	ChannelId        *int32 `protobuf:"varint,1,req" json:"ChannelId,omitempty"`
+	XXX_unrecognized []byte `json:"-"`
+}
+
+func (this *CreateChannelResult) Reset()         { *this = CreateChannelResult{} }
+func (this *CreateChannelResult) String() string { return proto.CompactTextString(this) }
+func (*CreateChannelResult) ProtoMessage()       {}
+
+func (this *CreateChannelResult) GetChannelId() int32 {
+	if this != nil && this.ChannelId != nil {
+		return *this.ChannelId
+	}
+	return 0
+}
+
+type CreateChannelFailed struct {
+	Error            *CreateChannelFailed_ErrorCodeType `protobuf:"varint,1,req,enum=Auth.S2C.CreateChannelFailed_ErrorCodeType" json:"Error,omitempty"`
+	XXX_unrecognized []byte                             `json:"-"`
+}
+
+func (this *CreateChannelFailed) Reset()         { *this = CreateChannelFailed{} }
+func (this *CreateChannelFailed) String() string { return proto.CompactTextString(this) }
+func (*CreateChannelFailed) ProtoMessage()       {}
+
+func (this *CreateChannelFailed) GetError() CreateChannelFailed_ErrorCodeType {
+	if this != nil && this.Error != nil {
+		return *this.Error
+	}
+	return 0
+}
+
+type ChannelUserNum struct {
+	ChannelId        *int32 `protobuf:"varint,1,req" json:"ChannelId,omitempty"`
+	Num              *int32 `protobuf:"varint,2,req" json:"Num,omitempty"`
+	XXX_unrecognized []byte `json:"-"`
+}
+
+func (this *ChannelUserNum) Reset()         { *this = ChannelUserNum{} }
+func (this *ChannelUserNum) String() string { return proto.CompactTextString(this) }
+func (*ChannelUserNum) ProtoMessage()       {}
+
+func (this *ChannelUserNum) GetChannelId() int32 {
+	if this != nil && this.ChannelId != nil {
+		return *this.ChannelId
+	}
+	return 0
+}
+
+func (this *ChannelUserNum) GetNum() int32 {
+	if this != nil && this.Num != nil {
+		return *this.Num
+	}
+	return 0
+}
+
+type ChannelUserNumList struct {
+	ChannelNum       []*ChannelUserNum `protobuf:"bytes,1,rep" json:"ChannelNum,omitempty"`
+	XXX_unrecognized []byte            `json:"-"`
+}
+
+func (this *ChannelUserNumList) Reset()         { *this = ChannelUserNumList{} }
+func (this *ChannelUserNumList) String() string { return proto.CompactTextString(this) }
+func (*ChannelUserNumList) ProtoMessage()       {}
+
+type ChangeMyInfoResult struct {
+	UserId           *int32              `protobuf:"varint,1,req" json:"UserId,omitempty"`
+	Token            *RequestTokenResult `protobuf:"bytes,2,req" json:"Token,omitempty"`
+	XXX_unrecognized []byte              `json:"-"`
+}
+
+func (this *ChangeMyInfoResult) Reset()         { *this = ChangeMyInfoResult{} }
+func (this *ChangeMyInfoResult) String() string { return proto.CompactTextString(this) }
+func (*ChangeMyInfoResult) ProtoMessage()       {}
+
+func (this *ChangeMyInfoResult) GetUserId() int32 {
+	if this != nil && this.UserId != nil {
+		return *this.UserId
+	}
+	return 0
+}
+
+func (this *ChangeMyInfoResult) GetToken() *RequestTokenResult {
+	if this != nil {
+		return this.Token
+	}
+	return nil
+}
+
+type NeedFinishReg struct {
+	UserId           *int32 `protobuf:"varint,1,req" json:"UserId,omitempty"`
+	XXX_unrecognized []byte `json:"-"`
+}
+
+func (this *NeedFinishReg) Reset()         { *this = NeedFinishReg{} }
+func (this *NeedFinishReg) String() string { return proto.CompactTextString(this) }
+func (*NeedFinishReg) ProtoMessage()       {}
+
+func (this *NeedFinishReg) GetUserId() int32 {
+	if this != nil && this.UserId != nil {
+		return *this.UserId
+	}
+	return 0
+}
+
+type KeepAliveAck struct {
+	Requestid        []byte `protobuf:"bytes,1,req,name=requestid" json:"requestid,omitempty"`
+	XXX_unrecognized []byte `json:"-"`
+}
+
+func (this *KeepAliveAck) Reset()         { *this = KeepAliveAck{} }
+func (this *KeepAliveAck) String() string { return proto.CompactTextString(this) }
+func (*KeepAliveAck) ProtoMessage()       {}
+
+func (this *KeepAliveAck) GetRequestid() []byte {
+	if this != nil {
+		return this.Requestid
+	}
+	return nil
+}
+
+type RequestAckInfo struct {
+	Requestid        []byte `protobuf:"bytes,1,req,name=requestid" json:"requestid,omitempty"`
+	ErrorCode        *int32 `protobuf:"varint,2,opt" json:"ErrorCode,omitempty"`
+	XXX_unrecognized []byte `json:"-"`
+}
+
+func (this *RequestAckInfo) Reset()         { *this = RequestAckInfo{} }
+func (this *RequestAckInfo) String() string { return proto.CompactTextString(this) }
+func (*RequestAckInfo) ProtoMessage()       {}
+
+func (this *RequestAckInfo) GetRequestid() []byte {
+	if this != nil {
+		return this.Requestid
+	}
+	return nil
+}
+
+func (this *RequestAckInfo) GetErrorCode() int32 {
+	if this != nil && this.ErrorCode != nil {
+		return *this.ErrorCode
+	}
+	return 0
+}
+
+type UserNotificationInfo struct {
+	Enabled          *bool  `protobuf:"varint,1,req" json:"Enabled,omitempty"`
+	TimeSilence      *bool  `protobuf:"varint,2,opt" json:"TimeSilence,omitempty"`
+	StartTime        *int32 `protobuf:"varint,3,opt" json:"StartTime,omitempty"`
+	EndTime          *int32 `protobuf:"varint,4,opt" json:"EndTime,omitempty"`
+	Language         *int32 `protobuf:"varint,5,opt" json:"Language,omitempty"`
+	Timezone         *int32 `protobuf:"varint,6,opt" json:"Timezone,omitempty"`
+	XXX_unrecognized []byte `json:"-"`
+}
+
+func (this *UserNotificationInfo) Reset()         { *this = UserNotificationInfo{} }
+func (this *UserNotificationInfo) String() string { return proto.CompactTextString(this) }
+func (*UserNotificationInfo) ProtoMessage()       {}
+
+func (this *UserNotificationInfo) GetEnabled() bool {
+	if this != nil && this.Enabled != nil {
+		return *this.Enabled
+	}
+	return false
+}
+
+func (this *UserNotificationInfo) GetTimeSilence() bool {
+	if this != nil && this.TimeSilence != nil {
+		return *this.TimeSilence
+	}
+	return false
+}
+
+func (this *UserNotificationInfo) GetStartTime() int32 {
+	if this != nil && this.StartTime != nil {
+		return *this.StartTime
+	}
+	return 0
+}
+
+func (this *UserNotificationInfo) GetEndTime() int32 {
+	if this != nil && this.EndTime != nil {
+		return *this.EndTime
+	}
+	return 0
+}
+
+func (this *UserNotificationInfo) GetLanguage() int32 {
+	if this != nil && this.Language != nil {
+		return *this.Language
+	}
+	return 0
+}
+
+func (this *UserNotificationInfo) GetTimezone() int32 {
+	if this != nil && this.Timezone != nil {
+		return *this.Timezone
+	}
+	return 0
+}
+
+type ChangeNotificationResult struct {
+	Notification     *UserNotificationInfo `protobuf:"bytes,1,opt" json:"Notification,omitempty"`
+	RequestId        []byte                `protobuf:"bytes,2,opt" json:"RequestId,omitempty"`
+	XXX_unrecognized []byte                `json:"-"`
+}
+
+func (this *ChangeNotificationResult) Reset()         { *this = ChangeNotificationResult{} }
+func (this *ChangeNotificationResult) String() string { return proto.CompactTextString(this) }
+func (*ChangeNotificationResult) ProtoMessage()       {}
+
+func (this *ChangeNotificationResult) GetNotification() *UserNotificationInfo {
+	if this != nil {
+		return this.Notification
+	}
+	return nil
+}
+
+func (this *ChangeNotificationResult) GetRequestId() []byte {
+	if this != nil {
+		return this.RequestId
+	}
+	return nil
+}
+
+type ChangePasswordResult struct {
+	RequestId        []byte `protobuf:"bytes,1,req" json:"RequestId,omitempty"`
+	ErrorCode        *int32 `protobuf:"varint,2,opt" json:"ErrorCode,omitempty"`
+	XXX_unrecognized []byte `json:"-"`
+}
+
+func (this *ChangePasswordResult) Reset()         { *this = ChangePasswordResult{} }
+func (this *ChangePasswordResult) String() string { return proto.CompactTextString(this) }
+func (*ChangePasswordResult) ProtoMessage()       {}
+
+func (this *ChangePasswordResult) GetRequestId() []byte {
+	if this != nil {
+		return this.RequestId
+	}
+	return nil
+}
+
+func (this *ChangePasswordResult) GetErrorCode() int32 {
+	if this != nil && this.ErrorCode != nil {
+		return *this.ErrorCode
+	}
+	return 0
+}
+
+type MonitorResult struct {
+	Id               *int64 `protobuf:"varint,1,req,name=id" json:"id,omitempty"`
+	Type             *int32 `protobuf:"varint,2,req,name=type" json:"type,omitempty"`
+	Result           *int32 `protobuf:"varint,3,req,name=result" json:"result,omitempty"`
+	Parameter        []byte `protobuf:"bytes,4,opt,name=parameter" json:"parameter,omitempty"`
+	XXX_unrecognized []byte `json:"-"`
+}
+
+func (this *MonitorResult) Reset()         { *this = MonitorResult{} }
+func (this *MonitorResult) String() string { return proto.CompactTextString(this) }
+func (*MonitorResult) ProtoMessage()       {}
+
+func (this *MonitorResult) GetId() int64 {
+	if this != nil && this.Id != nil {
+		return *this.Id
+	}
+	return 0
+}
+
+func (this *MonitorResult) GetType() int32 {
+	if this != nil && this.Type != nil {
+		return *this.Type
+	}
+	return 0
+}
+
+func (this *MonitorResult) GetResult() int32 {
+	if this != nil && this.Result != nil {
+		return *this.Result
+	}
+	return 0
+}
+
+func (this *MonitorResult) GetParameter() []byte {
+	if this != nil {
+		return this.Parameter
+	}
+	return nil
+}
+
 func init() {
+	proto.RegisterEnum("Auth.S2C.CreateChannelFailed_ErrorCodeType", CreateChannelFailed_ErrorCodeType_name, CreateChannelFailed_ErrorCodeType_value)
 }

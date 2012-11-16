@@ -10,8 +10,21 @@
 			<Data>
 				<HelloInfo>
 					<ClientType>1</ClientType>
-					<Version>2</Version>
+					<Version>1</Version>
 				</HelloInfo>
+			</Data>
+		</Message>
+		
+		<Message type="LoginInfo">		
+			<Command>0x02</Command>
+			<Data>
+				<LoginInfo>
+					<Name>	</Name>
+					<Passworld>e10adc3949ba59abbe56e057f20f883e</Passworld>
+					<ClientType>1</ClientType>
+					<MachineId>ddd</MachineId>
+					<SoftwareVersion>1</SoftwareVersion>
+				</LoginInfo>
 			</Data>
 		</Message>
 	</InputData>
@@ -22,6 +35,13 @@
 				<HelloInfoResult>
 					<Token>hello</Token>
 				</HelloInfoResult>
+			</Data>
+		</Message>
+		<Message type="LoginUserInfo">
+			<Command>0x02</Command>
+			<Data>
+				<LoginInfoResult>
+				</LoginInfoResult>
 			</Data>
 		</Message>
 	</OutputData>
