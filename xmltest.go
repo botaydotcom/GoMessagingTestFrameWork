@@ -1,12 +1,12 @@
 package main
 
 import (
-	"strconv"
-	"errors"
-	"regexp"
 	"code.google.com/p/goprotobuf/proto"
+	"errors"
 	"log"
 	"net"
+	"regexp"
+	"strconv"
 	//"xmltest/btalkTest/Auth_C2S"
 	"xmltest/btalkTest/Auth_S2C"
 	//"garena.com/btalkTest/TOKEN_S"
@@ -19,11 +19,11 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"reflect"
-	"time"
-	"text/template"
-	"xmltest/btalkTest/GeneratedDataStructure"
 	"os"
+	"reflect"
+	"text/template"
+	"time"
+	"xmltest/btalkTest/GeneratedDataStructure"
 )
 
 const (
@@ -71,7 +71,7 @@ const (
 )
 
 type InnerXml struct {
-	Xml 		string `xml:",innerxml"`
+	Xml string `xml:",innerxml"`
 }
 
 type Message struct {
@@ -79,27 +79,30 @@ type Message struct {
 	FromClient   bool   `xml:"fromClient,attr"`
 	IsPartial    bool   `xml:"isPartial,attr"`
 	PartialField int    `xml:"partialField,attr"`
-	Command      string 
-	Data         InnerXml 
+	Command      string
+	Data         InnerXml
+}
+
+type Var struct {
+	Name  string `xml:"name,attr"`
+	Value string
 }
 
 type TestSuite struct {
-	TestSuiteName string
-	TestName      string
-	TargetHost    string
-	TargetPort    string
-	TimesToTest   int
-	InputType     string
-	MessageSequence     []Message `xml:"MessageSequence>Message"`
+	TestSuiteName   string
+	TestName        string
+	TargetHost      string
+	TargetPort      string
+	TimesToTest     int
+	VarMap          []Var     `xml:"VarMap>Var"`
+	MessageSequence []Message `xml:"MessageSequence>Message"`
 }
 
+var keyMap map[string]string
 
-var keyMap 		  map[string] string
+var valueMap map[string]interface{}
 
-var valueMap 	  map[string] interface{}
-
-var defaultMap    map[string] string
-
+var defaultMap map[string]string
 
 var ts TestSuite
 
@@ -108,30 +111,10 @@ var messageSequence []interface{}
 var hasPartial bool
 var rawData []byte
 var field int
-	
+
 var regVar *regexp.Regexp
 
 var numVar int = 0
-	
-/*
-func parseAMessage(v Message) (interface{}, int, error) {
-	message := magicVarFunc(v.MessageType)
-	err = xml.Unmarshal([]byte(v.Data.Xml), message)
-
-	if err != nil {
-		fmt.Printf("error: %v\n", err)
-	}
-	s := reflect.ValueOf(message).Elem()
-	for i := 0; i < s.NumField(); i++ {
-		f := s.Field(i)
-		printValue(f)
-	}
-		
-	cmd, _ := strconv.ParseInt(v.Command, 0, 0)
-	outputMessages = append(outputMessages, message)
-	outputCommands = append(outputCommands, int(cmd))
-	return message, cmd, err
-}*/
 
 func readXmlInput(inputFile string) {
 	data, err := ioutil.ReadFile(inputFile)
@@ -145,19 +128,19 @@ func readXmlInput(inputFile string) {
 	}
 }
 
-func main() {	
+func main() {
 	var inputFile string
 	flag.StringVar(&inputFile, "in", "test.xml", "The test input file")
 	flag.Parse()
 	// open file
 	fmt.Println("Testing file:", inputFile)
 
-	keyMap = make(map[string] string)
-	valueMap = make(map[string] interface{})
-	defaultMap = make(map[string] string)
-	
-	readXmlInput(inputFile)
+	keyMap = make(map[string]string)
+	valueMap = make(map[string]interface{})
+	defaultMap = make(map[string]string)
 
+	readXmlInput(inputFile)
+	parseVarMap()
 	executeTestSuite(ts.TargetHost, ts.TargetPort, ts.TimesToTest)
 }
 
@@ -248,7 +231,7 @@ func executeOneTest(addr *net.TCPAddr, resultChan chan TestResult) {
 func plugValue(message string) (string, error) {
 	fmt.Println("Plug in value to template now!")
 	t := template.Must(template.New("Xml Message").Parse(message))
-	var buffer bytes.Buffer 
+	var buffer bytes.Buffer
 	err := t.Execute(os.Stdout, valueMap)
 	err = t.Execute(&buffer, valueMap)
 	fmt.Println("----------------------------------------")
@@ -258,18 +241,23 @@ func plugValue(message string) (string, error) {
 func plugDefaultValue(message string) (string, error) {
 	fmt.Println("Plug in value to template now!")
 	t := template.Must(template.New("Xml Message").Parse(message))
-	var buffer bytes.Buffer 
+	var buffer bytes.Buffer
 	err := t.Execute(os.Stdout, defaultMap)
 	err = t.Execute(&buffer, defaultMap)
 	fmt.Println("----------------------------------------")
 	return buffer.String(), err
 }
 
-
 func parseAMessage(v Message) (interface{}, int, error) {
-	message := magicVarFunc(v.MessageType)
+	// first pass: parse the message and put new var to map
+	preProcess(v.Data.Xml)
+	// second pass: plug all default value to the remaining var in the raw string 
 	addedXmlMessage, err := plugValue(v.Data.Xml)
-	err =  xml.Unmarshal([]byte(addedXmlMessage), message)
+
+	fmt.Println("After second pass, message = ", addedXmlMessage)
+
+	message := magicVarFunc(v.MessageType)	
+	err = xml.Unmarshal([]byte(addedXmlMessage), message)
 
 	if err != nil {
 		fmt.Printf("error: %v\n", err)
@@ -279,15 +267,14 @@ func parseAMessage(v Message) (interface{}, int, error) {
 		f := s.Field(i)
 		printValue(f)
 	}
-		
+
 	cmd, _ := strconv.ParseInt(v.Command, 0, 0)
 	return message, int(cmd), err
 }
 
 //(interface{}, int, error)
-func preProcess(v Message)  {
+func preProcess(rawData string) {
 	regVar = regexp.MustCompile("{{.([a-zA-Z0-9]*)}}")
-	var rawData = v.Data.Xml
 	var processedData = rawData
 	fmt.Println("Matching ", rawData)
 	listVar := regVar.FindAllStringSubmatch(rawData, -1)
@@ -309,12 +296,19 @@ func preProcess(v Message)  {
 			reg, _ := regexp.Compile("{{." + key + "}}")
 			processedData = reg.ReplaceAllString(processedData, defaultMap[key])
 		}
-	}	
+	}
 	fmt.Println("After matching to value", processedData)
 }
 
-func compareGetValueForPointer(expPtr reflect.Value, repPtr reflect.Value) (bool, error){
-	fmt.Println("Comparing pointers", expPtr.Elem().IsValid(), repPtr.Elem().IsValid())	
+func parseVarMap() {
+	for _, newVar := range ts.VarMap {
+		defaultMap[newVar.Name] = newVar.Value			
+		valueMap[newVar.Name] = newVar.Value
+	}
+}
+
+func compareGetValueForPointer(expPtr reflect.Value, repPtr reflect.Value) (bool, error) {
+	fmt.Println("Comparing pointers", expPtr.Elem().IsValid(), repPtr.Elem().IsValid())
 	// if pointer of expected value is null, just dont compare
 	if !expPtr.Elem().IsValid() {
 		return true, nil
@@ -327,7 +321,7 @@ func compareGetValueForPointer(expPtr reflect.Value, repPtr reflect.Value) (bool
 		return false, errors.New(errorMsg)
 	}
 	repValue := reflect.Indirect(reflect.ValueOf(repPtr.Interface()))
-	
+
 	strVar := fmt.Sprintf("%v", expValue.Interface())
 	fmt.Println("Expected pointer in message has value: ", strVar)
 
@@ -343,10 +337,10 @@ func compareGetValueForPointer(expPtr reflect.Value, repPtr reflect.Value) (bool
 	} else {
 		// compare the two value of pointer
 		// if they are not struct, just compare
-		if (expValue.Kind() != reflect.Struct) {
+		if expValue.Kind() != reflect.Struct {
 			isEqual := (expValue.Interface() == repValue.Interface())
 			fmt.Println("Comparing: ", expValue.Interface(), repValue.Interface(), " result ", isEqual)
-			
+
 			if !isEqual {
 				errorMsg := fmt.Sprintf("Reply field value is different from expected field value. Expect: %v, get: %v",
 					expValue, repValue)
@@ -360,7 +354,7 @@ func compareGetValueForPointer(expPtr reflect.Value, repPtr reflect.Value) (bool
 	return result, err
 }
 
-func compareGetValueForSlice(expSlice reflect.Value, repSlice reflect.Value) (bool, error){
+func compareGetValueForSlice(expSlice reflect.Value, repSlice reflect.Value) (bool, error) {
 	fmt.Println("Comparing slices")
 	result := true
 	var err error
@@ -385,22 +379,22 @@ func compareGetValueForSlice(expSlice reflect.Value, repSlice reflect.Value) (bo
 	return result, err
 }
 
-func compareGetValueForStruct(expStruct reflect.Value, repStruct reflect.Value) (bool, error){
+func compareGetValueForStruct(expStruct reflect.Value, repStruct reflect.Value) (bool, error) {
 	fmt.Println("Comparing structs")
 	result := true
 	var err error
 	for i := 0; i < expStruct.NumField(); i++ {
 		fmt.Println("Comparing field", i)
-		expStructField := expStruct.Field(i) 	// pointer
-		repStructField := repStruct.Field(i)  	// pointer
-		
+		expStructField := expStruct.Field(i) // pointer
+		repStructField := repStruct.Field(i) // pointer
+
 		fmt.Println(expStructField, repStructField, expStructField.Kind())
 		var err1 error
 		var isEqual bool
-		if (expStructField.Kind() == reflect.Ptr) {
-			isEqual, err1 = compareGetValueForPointer(expStructField, repStructField)			
+		if expStructField.Kind() == reflect.Ptr {
+			isEqual, err1 = compareGetValueForPointer(expStructField, repStructField)
 		} else if expStructField.Kind() == reflect.Slice {
-			isEqual, err1 = compareGetValueForSlice(expStructField, repStructField)			
+			isEqual, err1 = compareGetValueForSlice(expStructField, repStructField)
 		} else if expStructField.Kind() == reflect.Struct {
 			isEqual, err1 = compareGetValueForStruct(expStructField, repStructField)
 		}
@@ -408,7 +402,7 @@ func compareGetValueForStruct(expStruct reflect.Value, repStruct reflect.Value) 
 			result = false
 			errorMsg := fmt.Sprintf(" Field %d: %s", i, err1.Error())
 			err = errors.New(errorMsg)
-			break;
+			break
 		}
 	}
 	return result, err
@@ -419,7 +413,7 @@ func compareGetValueForProtoMessage(protoExp proto.Message, protoRep proto.Messa
 	var err error
 
 	if reflect.ValueOf(protoExp).Type() != reflect.ValueOf(protoRep).Type() {
-		errorMsg := fmt.Sprintf("Reply has different type from expected. Expect: %d, get: %d", 
+		errorMsg := fmt.Sprintf("Reply has different type from expected. Expect: %d, get: %d",
 			reflect.ValueOf(protoExp).Type(), reflect.ValueOf(protoRep).Type())
 		return false, errors.New(errorMsg)
 	}
@@ -440,9 +434,8 @@ func test(conn *net.TCPConn) TestResult {
 	var totalTime int64 = 0
 
 	for i, message := range ts.MessageSequence {
-		preProcess(message)
 		parsedMessage, comm, err := parseAMessage(message)
-		
+
 		if err != nil {
 			result.IsCorrect = false
 			errMsg := fmt.Sprintf("Cannot parse message %d", i)
@@ -456,13 +449,13 @@ func test(conn *net.TCPConn) TestResult {
 			fmt.Println("Message to be sent: ", protoParsedMessage)
 			begin := time.Now()
 			sendMsg(byte(comm), protoParsedMessage, conn)
-			end := time.Now()		
+			end := time.Now()
 			totalTime += end.Sub(begin).Nanoseconds()
 		} else { // message from server, so read from buffer now
-			replyMessage, err := readReply(byte(comm), protoParsedMessage, conn)	
+			replyMessage, err := readReply(byte(comm), protoParsedMessage, conn)
 			if err == nil {
 				fmt.Println("Correctly received: ", replyMessage)
-				fmt.Println("Comparing received message now! ");
+				fmt.Println("Comparing received message now! ")
 				if comparedResult, err := compareGetValueForProtoMessage(protoParsedMessage, *replyMessage); comparedResult {
 					fmt.Println("CORRECT Reply message.")
 				} else {
@@ -479,7 +472,7 @@ func test(conn *net.TCPConn) TestResult {
 				result.Reason = errors.New(errMsg)
 				break
 			}
-		}		
+		}
 	}
 
 	logMsg := fmt.Sprintf("Test suite %s - Test %s takes %d us", ts.TestSuiteName, ts.TestName, totalTime/1000)
@@ -522,7 +515,7 @@ func readReply(expCmd byte, expMsg proto.Message, conn *net.TCPConn) (*proto.Mes
 	}
 
 	log.Print("Buffer read from network: ", rbuf)
-	
+
 	cmd := rbuf[0]
 	// command needs to be equal to expected command
 	if cmd != expCmd {
@@ -533,19 +526,13 @@ func readReply(expCmd byte, expMsg proto.Message, conn *net.TCPConn) (*proto.Mes
 	newValue := reflect.New(reflect.ValueOf(expMsg).Elem().Type()).Interface()
 	res = newValue.(proto.Message)
 	err = proto.Unmarshal(rbuf[1:], res)
-		
+
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Println("Successfully receive message", res)
 	return &res, err
-	
-	
-	
-	
-	
-	
-	
+
 	switch cmd {
 	case S2C_HelloInfoResult_CMD:
 		fmt.Println("cmd = helloinforresult")
@@ -658,10 +645,9 @@ func getValueForPointer(ptrValue reflect.Value) reflect.Value {
 			return value
 		}
 	}
-	
+
 	return ptrValue
 }
-
 
 func getValue(ptrValue reflect.Value) (interface{}, error) {
 	if ptrValue.Kind() == reflect.Ptr {

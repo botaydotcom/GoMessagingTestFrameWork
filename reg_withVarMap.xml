@@ -4,12 +4,26 @@
 	<TargetHost>203.117.155.188</TargetHost>
 	<TargetPort>9100</TargetPort>
 	<TimesToTest>1</TimesToTest>
+	<VarMap>
+		<Var name="email">
+			<Value>indotest16@test.com</Value>
+		</Var>		
+		<Var name="name">
+			<Value>indotest16</Value>
+		</Var>			
+		<Var name="avatar">
+			<Value>429933266161898</Value>
+		</Var>
+		<Var name="gender">
+			<Value>0</Value>
+		</Var>
+	</VarMap>
 	<MessageSequence>
 		<Message type="RegAccount" fromClient="true">
 			<Command>0x03</Command>
 			<Data>
 				<RegAccount>
-					<EMail>indotest13@test.com</EMail>
+					<EMail>{{.email}}</EMail>
 					<Password>e10adc3949ba59abbe56e057f20f883e</Password>
 				</RegAccount>				
 			</Data>
@@ -30,9 +44,9 @@
 			<Data>
 				<FillFinishReg>
 					<UserId>{{.var1}}</UserId>
-					<NickName>indotest13</NickName>
-					<Gender>0</Gender>
-					<AvatarId>429933266161898</AvatarId>
+					<NickName>{{.name}}</NickName>
+					<Gender>{{.gender}}</Gender>
+					<AvatarId>{{.avatar}}</AvatarId>
 				</FillFinishReg>
 			</Data>
 		</Message>
@@ -43,10 +57,10 @@
 				<LoginInfoResult>
 					<MyInfo>
 						<UserId>{{.var1}}</UserId>
-						<Name>indotest13@test.com</Name>						
-						<NickName>indotest13</NickName>
-						<Gender>0</Gender>
-						<AvatarId>429933266161898</AvatarId>
+						<Name>{{.email}}</Name>						
+						<NickName>{{.name}}</NickName>
+						<Gender>{{.gender}}</Gender>
+						<AvatarId>{{.avatar}}</AvatarId>
 					</MyInfo>
 				</LoginInfoResult>
 			</Data>
