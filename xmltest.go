@@ -76,6 +76,7 @@ type InnerXml struct {
 
 type Message struct {
 	MessageType  string `xml:"type,attr"`
+	FromClient   bool   `xml:"fromClient,attr"`
 	IsPartial    bool   `xml:"isPartial,attr"`
 	PartialField int    `xml:"partialField,attr"`
 	Command      string 
@@ -89,8 +90,7 @@ type TestSuite struct {
 	TargetPort    string
 	TimesToTest   int
 	InputType     string
-	InputData     []Message `xml:"InputData>Message"`
-	OutputData    []Message `xml:"OutputData>Message"`
+	MessageSequence     []Message `xml:"MessageSequence>Message"`
 }
 
 
@@ -103,11 +103,7 @@ var defaultMap    map[string] string
 
 var ts TestSuite
 
-var inputCommands  []int
-var inputMessages []interface{}
-
-var outputCommands []int
-var outputMessages []interface{}
+var messageSequence []interface{}
 
 var hasPartial bool
 var rawData []byte
@@ -147,63 +143,6 @@ func readXmlInput(inputFile string) {
 	if err != nil {
 		fmt.Printf("error: %v\n", err)
 	}
-	
-	
-
-	if true {
-		return
-	}
-	
-	for _, v := range ts.InputData {
-		input := magicVarFunc(v.MessageType)
-		err = xml.Unmarshal([]byte(v.Data.Xml), input)
-
-		if err != nil {
-			fmt.Printf("error: %v\n", err)
-		}
-
-		s := reflect.ValueOf(input).Elem()
-		for i := 0; i < s.NumField(); i++ {
-			f := s.Field(i)
-			printValue(f)
-		}
-
-		if v.IsPartial {
-			rawData, err = proto.Marshal(input.(proto.Message))
-			field = v.PartialField
-			hasPartial = true
-		} else {
-			if hasPartial {
-				s.Field(field).SetBytes(rawData)
-			}
-			inputMessages = append(inputMessages, input)
-			
-			cmd, _ := strconv.ParseInt(v.Command, 0, 0)
-			inputCommands = append(inputCommands, int(cmd))
-			hasPartial = false
-		}	
-	}
-
-	for _, v := range ts.OutputData {
-		message := magicVarFunc(v.MessageType)
-		err = xml.Unmarshal([]byte(v.Data.Xml), message)
-
-		if err != nil {
-			fmt.Printf("error: %v\n", err)
-		}
-		s := reflect.ValueOf(message).Elem()
-		for i := 0; i < s.NumField(); i++ {
-			f := s.Field(i)
-			printValue(f)
-		}
-		
-		cmd, _ := strconv.ParseInt(v.Command, 0, 0)
-		outputMessages = append(outputMessages, message)
-		outputCommands = append(outputCommands, int(cmd))
-	}
-	
-	fmt.Println(inputCommands, "\n Messages:\n", inputMessages)
-	fmt.Println(outputCommands, "\n Messages:\n", outputMessages)
 }
 
 func main() {	
@@ -219,8 +158,7 @@ func main() {
 	
 	readXmlInput(inputFile)
 
-	fmt.Println(inputMessages, outputMessages, inputCommands, outputCommands)
-	executeTestSuite(ts.TargetHost, ts.TargetPort, ts.TimesToTest, inputMessages, outputMessages, inputCommands, outputCommands)
+	executeTestSuite(ts.TargetHost, ts.TargetPort, ts.TimesToTest)
 }
 
 func magicVarFunc(action string) interface{} {
@@ -257,8 +195,7 @@ func prettyPrint(result TestCaseResult) {
 	fmt.Println("-------------------------END OF TEST RESULT-------------------------------------")
 }
 
-func executeTestSuite(targetHost string, targetPort string, timesToTest int, inputMessages []interface{}, outputMessages []interface{},
-			inputCommands []int, outputCommands []int) {
+func executeTestSuite(targetHost string, targetPort string, timesToTest int) {
 	var testCaseResult TestCaseResult
 
 	targetAddr := targetHost + ":" + targetPort
@@ -276,7 +213,7 @@ func executeTestSuite(targetHost string, targetPort string, timesToTest int, inp
 	}
 
 	for i := 0; i < timesToTest; i++ {
-		go executeOneTest(addr, inputMessages, outputMessages, inputCommands, outputCommands, chans[i])
+		go executeOneTest(addr, chans[i])
 	}
 
 	for i := 0; i < timesToTest; i++ {
@@ -290,8 +227,7 @@ func executeTestSuite(targetHost string, targetPort string, timesToTest int, inp
 	prettyPrint(testCaseResult)
 }
 
-func executeOneTest(addr *net.TCPAddr, inputMessages []interface{}, outputMessages []interface{}, 
-					inputCommands []int, outputCommands []int, resultChan chan TestResult) {
+func executeOneTest(addr *net.TCPAddr, resultChan chan TestResult) {
 	var result TestResult
 	conn, err := net.DialTCP("tcp", nil, addr)
 	if err != nil {
@@ -304,7 +240,7 @@ func executeOneTest(addr *net.TCPAddr, inputMessages []interface{}, outputMessag
 		fmt.Println("Successfully establish connection")
 		// no connection error
 		// testLogin(conns[i], chans[i])
-		result = test(conn, inputMessages, outputMessages, inputCommands, outputCommands)
+		result = test(conn)
 	}
 	resultChan <- result
 }
@@ -345,9 +281,6 @@ func parseAMessage(v Message) (interface{}, int, error) {
 	}
 		
 	cmd, _ := strconv.ParseInt(v.Command, 0, 0)
-	outputMessages = append(outputMessages, message)
-	outputCommands = append(outputCommands, int(cmd))
-	//visitStruct(message)
 	return message, int(cmd), err
 }
 
@@ -499,61 +432,58 @@ func compareGetValueForProtoMessage(protoExp proto.Message, protoRep proto.Messa
 
 }
 
-func test(conn *net.TCPConn, inputMessages []interface{}, outputMessages []interface{},
-		inputCommands []int, outputCommands []int) TestResult {
-	fmt.Println("Testing Log in now ! with message: ", inputMessages, " expecting: ", outputMessages)
+func test(conn *net.TCPConn) TestResult {
+	fmt.Println("Start test now!!!")
 	var result = TestResult{
 		IsCorrect: true,
 		Reason:    nil}
 	var totalTime int64 = 0
 
-	for i, v := range ts.InputData {
-		fmt.Println("Sending message index: ", i, " in total of: ", len(inputMessages))
-			
-		//preProcessedMessage := preProcess(v)
-
-		preProcess(v)
-
-		inMessage, comm, err := parseAMessage(v)
-		protoInMessage := inMessage.(proto.Message)
-
-		expOut := ts.OutputData[i]
-
-		preProcess(expOut)
-		expOutMessage, commOut, err := parseAMessage(expOut)
-		protoOutMessage := expOutMessage.(proto.Message)
-
-
-		fmt.Println("Message to be sent: ", protoInMessage)
-		begin := time.Now()
-		sendMsg(byte(comm), protoInMessage, conn)
-		end := time.Now()
-		replyMessage, err := readReply(byte(commOut), protoOutMessage, conn)
-		totalTime += end.Sub(begin).Nanoseconds()
+	for i, message := range ts.MessageSequence {
+		preProcess(message)
+		parsedMessage, comm, err := parseAMessage(message)
 		
-		if err == nil {
-			fmt.Println("Correctly received: ", replyMessage)
+		if err != nil {
+			result.IsCorrect = false
+			errMsg := fmt.Sprintf("Cannot parse message %d", i)
+			result.Reason = errors.New(errMsg)
+			break
+		}
 
-			fmt.Println("Comparing received message now! ");
-			if comparedResult, err := compareGetValueForProtoMessage(protoOutMessage, *replyMessage); comparedResult {
-				fmt.Println("CORRECT Reply message.")
+		protoParsedMessage := parsedMessage.(proto.Message)
+
+		if message.FromClient { // message from client, so send to server now
+			fmt.Println("Message to be sent: ", protoParsedMessage)
+			begin := time.Now()
+			sendMsg(byte(comm), protoParsedMessage, conn)
+			end := time.Now()		
+			totalTime += end.Sub(begin).Nanoseconds()
+		} else { // message from server, so read from buffer now
+			replyMessage, err := readReply(byte(comm), protoParsedMessage, conn)	
+			if err == nil {
+				fmt.Println("Correctly received: ", replyMessage)
+				fmt.Println("Comparing received message now! ");
+				if comparedResult, err := compareGetValueForProtoMessage(protoParsedMessage, *replyMessage); comparedResult {
+					fmt.Println("CORRECT Reply message.")
+				} else {
+					fmt.Println("INCORRECT Reply message ", err)
+					result.IsCorrect = false
+					errMsg := fmt.Sprintf("Message %d: %s", i+1, err.Error())
+					result.Reason = errors.New(errMsg)
+					break
+				}
 			} else {
-				fmt.Println("INCORRECT Reply message ", err)
+				fmt.Println("Encounter error while trying to parse reply message: ", err)
 				result.IsCorrect = false
 				errMsg := fmt.Sprintf("Message %d: %s", i+1, err.Error())
 				result.Reason = errors.New(errMsg)
 				break
 			}
-		} else {
-			fmt.Println("Encounter error while trying to parse reply message: ", err)
-			result.IsCorrect = false
-			errMsg := fmt.Sprintf("Message %d: %s", i+1, err.Error())
-			result.Reason = errors.New(errMsg)
-			break
-		}
+		}		
 	}
 
-	log.Print("Hello takes ", totalTime/1000, " us")
+	logMsg := fmt.Sprintf("Test suite %s - Test %s takes %d us", ts.TestSuiteName, ts.TestName, totalTime/1000)
+	log.Print(logMsg)
 	result.TimeTaken = totalTime
 
 	return result
