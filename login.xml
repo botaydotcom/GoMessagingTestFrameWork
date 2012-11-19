@@ -4,10 +4,13 @@
 	<TargetPort>9100</TargetPort>
 	<VarMap>
 		<Var name="email">
-			<Value>indotest17@test.com</Value>
+			<Value>indotest20@test.com</Value>
 		</Var>		
+		<Var name="password">
+			<Value>e10adc3949ba59abbe56e057f20f883e</Value>
+		</Var>
 		<Var name="name">
-			<Value>indotest17</Value>
+			<Value>indotest20</Value>
 		</Var>			
 		<Var name="avatar">
 			<Value>429933266161898</Value>
@@ -21,10 +24,10 @@
 		<TestInfo skip="false" repeat="1">
 			<Name>Hello test</Name>
 		</TestInfo>
-		<TestInfo skip="false" repeat="1">
+		<TestInfo skip="true" repeat="1">
 			<Name>Registration test</Name>
 		</TestInfo>
-		<TestInfo skip="false" repeat="1">
+		<TestInfo skip="false" repeat="20">
 			<Name>Login test</Name>
 		</TestInfo>
 	</ListTest>
@@ -59,7 +62,7 @@
 					<Data>
 						<RegAccount>
 							<EMail>{{.email}}</EMail>
-							<Password>e10adc3949ba59abbe56e057f20f883e</Password>
+							<Password>{{.password}}</Password>
 						</RegAccount>				
 					</Data>
 				</Message>
@@ -82,6 +85,55 @@
 							<Gender>{{.gender}}</Gender>
 							<AvatarId>{{.avatar}}</AvatarId>
 						</FillFinishReg>
+					</Data>
+				</Message>
+
+				<Message type="LoginUserInfo" fromClient="false">
+					<Command>0x02</Command>
+					<Data>
+						<LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.var1}}</UserId>
+								<Name>{{.email}}</Name>						
+								<NickName>{{.name}}</NickName>
+								<Gender>{{.gender}}</Gender>
+								<AvatarId>{{.avatar}}</AvatarId>
+							</MyInfo>
+						</LoginInfoResult>
+					</Data>
+				</Message>
+			</MessageSequence>
+		</Test>
+
+		<Test>
+			<MessageSequence>
+				<Message type="HelloInfo" fromClient="true">
+					<Command>0x01</Command>
+					<Data>
+						<HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</HelloInfo>
+					</Data>
+				</Message>
+				<Message type="HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<HelloInfoResult>
+							<Token>hello</Token>
+						</HelloInfoResult>
+					</Data>
+				</Message>
+				<Message type="LoginInfo" fromClient="true">		
+					<Command>0x02</Command>
+					<Data>
+						<LoginInfo>
+							<Name>{{.email}}</Name>						
+							<Password>{{.password}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</LoginInfo>
 					</Data>
 				</Message>
 

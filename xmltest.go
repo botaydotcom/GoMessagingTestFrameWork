@@ -81,6 +81,7 @@ type InnerXml struct {
 type Message struct {
 	MessageType string `xml:"type,attr"`
 	FromClient  bool   `xml:"fromClient,attr"`
+	Connection  int    `xml:"connection,attr"`
 	Command     string
 	Data        InnerXml
 }
@@ -212,24 +213,26 @@ func performTestCaseOnce(addr *net.TCPAddr, testCase *TestCase, resultChan chan 
 		IsCorrect: true,
 		Reason:    nil}
 
-	conn, err := net.DialTCP("tcp", nil, addr)
-	if err != nil {
-		//log.Fatal("connect error: ", err)
-		fmt.Println(err)
-		log.Print("connect error: ", err)
-		result.IsCorrect = false
-		result.Reason = err
-		resultChan <- result
-		return
-	} else {
-		fmt.Println("Successfully establish connection")
-	}
+	var listConnection = make(map[int] *net.TCPConn)
 
 	fmt.Println("Start test now!!!")
 	var totalTime int64 = 0
 	for i, message := range testCase.MessageSequence {
-		parsedMessage, comm, err := parseAMessage(message)
+		// get connection from list or make one if it does not exist yet
+		connectionId := message.Connection
+		if _, exist := listConnection[connectionId]; !exist {
+			conn, err := net.DialTCP("tcp", nil, addr)
+			if err != nil {
+				result.IsCorrect = false
+				result.Reason = err
+				break
+			} else {
+				listConnection[connectionId] = conn
+			}
+		} 
+		conn := listConnection[connectionId]
 
+		parsedMessage, comm, err := parseAMessage(message)
 		if err != nil {
 			result.IsCorrect = false
 			errMsg := fmt.Sprintf("Cannot parse message %d", i)
@@ -619,7 +622,7 @@ func prettyPrintTestCase(testCaseInfo *TestInfo, isSkipped bool, result *TestCas
 	var offset = "     "
 	fmt.Printf(" %sTEST CASE: %s\n", offset, testCaseInfo.Name)
 	if isSkipped {
-		fmt.Println(offset, "Skipped!")
+		fmt.Println(offset, "    Skipped!")
 	} else {
 		totalTime := 0
 		for i := 0; i < result.NumTest; i++ {
