@@ -1,28 +1,33 @@
 <TestSuite>
-	<TestSuiteName>First test suite</TestSuiteName>
-	<TestName>First test</TestName>
+	<TestSuiteName>Hello test suite</TestSuiteName>
 	<TargetHost>203.117.155.188</TargetHost>
 	<TargetPort>9100</TargetPort>
-	<TimesToTest>1</TimesToTest>
-	<InputData>
-		<Message type="HelloInfo">
-			<Command>0x01</Command>
-			<Data>
-				<HelloInfo>
-					<ClientType>1</ClientType>
-					<Version>2</Version>
-				</HelloInfo>
-			</Data>
-		</Message>
-	</InputData>
-	<OutputData>
-		<Message type="HelloInfoResult">
-			<Command>0x01</Command>
-			<Data>
-				<HelloInfoResult>
-					<Token>hello</Token>
-				</HelloInfoResult>
-			</Data>
-		</Message>
-	</OutputData>
+	<ListTest>
+		<TestInfo skip="false" repeat='20'>
+			<Name>Hello test</Name>
+		</TestInfo>
+	</ListTest>
+	<Tests>
+		<Test>
+			<MessageSequence>
+				<Message type="HelloInfo" fromClient="true">
+					<Command>0x01</Command>
+					<Data>
+						<HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</HelloInfo>
+					</Data>
+				</Message>
+				<Message type="HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<HelloInfoResult>
+							<Token>hello</Token>
+						</HelloInfoResult>
+					</Data>
+				</Message>
+			</MessageSequence>
+		</Test>
+	</Tests>
 </TestSuite>

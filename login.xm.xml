@@ -24,6 +24,9 @@
 		<TestInfo skip="false" repeat="1">
 			<Name>Registration test</Name>
 		</TestInfo>
+		<TestInfo skip="false" repeat="1">
+			<Name>Login test</Name>
+		</TestInfo>
 	</ListTest>
 
 	<Tests>

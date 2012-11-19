@@ -67,20 +67,22 @@ const (
 )
 
 const (
-	CONN_NUM = 3 
+	CONN_NUM = 3
 )
 
 type InnerXml struct {
 	Xml string `xml:",innerxml"`
 }
 
-type Message struct {
-	MessageType  string `xml:"type,attr"`
-	FromClient   bool   `xml:"fromClient,attr"`
+/*
 	IsPartial    bool   `xml:"isPartial,attr"`
 	PartialField int    `xml:"partialField,attr"`
-	Command      string
-	Data         InnerXml
+*/
+type Message struct {
+	MessageType string `xml:"type,attr"`
+	FromClient  bool   `xml:"fromClient,attr"`
+	Command     string
+	Data        InnerXml
 }
 
 type Var struct {
@@ -88,14 +90,24 @@ type Var struct {
 	Value string
 }
 
-type TestSuite struct {
-	TestSuiteName   string
-	TestName        string
-	TargetHost      string
-	TargetPort      string
-	TimesToTest     int
+type TestInfo struct {
+	Skip   bool `xml:"skip,attr"`
+	Repeat int  `xml:"repeat,attr"`
+	Name   string
+}
+
+type TestCase struct {
 	VarMap          []Var     `xml:"VarMap>Var"`
 	MessageSequence []Message `xml:"MessageSequence>Message"`
+}
+
+type TestSuite struct {
+	TestSuiteName string
+	TargetHost    string
+	TargetPort    string
+	GlobalVarMap  []Var      `xml:"VarMap>Var"`
+	ListTestInfos []TestInfo `xml:"ListTest>TestInfo"`
+	ListTestCases []TestCase `xml:"Tests>Test"`
 }
 
 type TestResult struct {
@@ -110,13 +122,13 @@ type TestCaseResult struct {
 	Results    []TestResult
 }
 
+type TestSuiteResult struct {
+	Skip            []bool
+	TestCaseResults []TestCaseResult
+}
 
 var keyMap map[string]string
 var valueMap map[string]interface{}
-
-var ts TestSuite
-
-var messageSequence []interface{}
 
 var hasPartial bool
 var rawData []byte
@@ -134,35 +146,57 @@ func main() {
 	keyMap = make(map[string]string)
 	valueMap = make(map[string]interface{})
 
-	readXmlInput(inputFile)
-	executeTestSuite(ts.TargetHost, ts.TargetPort, ts.TimesToTest)
+	ts, err := readXmlInput(inputFile)
+	fmt.Println(*ts)
+	if err != nil {
+		errorMsg := fmt.Sprintf("Cannot read input file because %v", err)
+		log.Fatal(errorMsg)
+	} else {
+		executeTestSuite(ts)
+	}
+
 }
 
 /******************* steps in test ****************************************/
-func executeTestSuite(targetHost string, targetPort string, timesToTest int) {
-	var testCaseResult TestCaseResult
-
-	targetAddr := targetHost + ":" + targetPort
+func executeTestSuite(testSuite *TestSuite) {
+	targetAddr := testSuite.TargetHost + ":" + testSuite.TargetPort
 	addr, err := net.ResolveTCPAddr("tcp", targetAddr)
 	if err != nil {
 		log.Fatal("Cannot resolve address")
 	}
 
-	testCaseResult.Results = make([]TestResult, timesToTest)
-	testCaseResult.NumTest = timesToTest
-	testCaseResult.NumCorrect = 0
-	chans := make([]chan TestResult, timesToTest)
-	for i := 0; i < timesToTest; i++ {
-		chans[i] = make(chan TestResult)
-	}
-
 	// parse test-suite varmap first
-	parseVarMap()
-	for i := 0; i < timesToTest; i++ {
-		go executeOneTest(addr, chans[i])
+	parseVarMap(testSuite.GlobalVarMap)
+
+	var testSuiteResult TestSuiteResult
+	testSuiteResult.Skip = make([]bool, len(testSuite.ListTestInfos))
+	testSuiteResult.TestCaseResults = make([]TestCaseResult, len(testSuite.ListTestInfos))
+	for i := range testSuite.ListTestInfos {
+		if !testSuite.ListTestInfos[i].Skip {
+			testSuiteResult.Skip[i] = false
+			testSuiteResult.TestCaseResults[i] = executeTestCase(addr, &(testSuite.ListTestInfos[i]), &(testSuite.ListTestCases[i]))
+		} else {
+			testSuiteResult.Skip[i] = true
+		}
+	}
+	fmt.Println()
+	prettyPrintTestSuite(testSuite, &testSuiteResult)
+}
+
+func executeTestCase(addr *net.TCPAddr, testInfo *TestInfo, testCase *TestCase) TestCaseResult {
+	var testCaseResult TestCaseResult
+
+	testCaseResult.Results = make([]TestResult, testInfo.Repeat)
+	testCaseResult.NumTest = testInfo.Repeat
+	testCaseResult.NumCorrect = 0
+
+	chans := make([]chan TestResult, testInfo.Repeat)
+	for i := 0; i < testInfo.Repeat; i++ {
+		chans[i] = make(chan TestResult)
+		go performTestCaseOnce(addr, testCase, chans[i])
 	}
 
-	for i := 0; i < timesToTest; i++ {
+	for i := 0; i < testInfo.Repeat; i++ {
 		testCaseResult.Results[i] = <-chans[i]
 		if testCaseResult.Results[i].IsCorrect {
 			testCaseResult.NumCorrect++
@@ -170,11 +204,14 @@ func executeTestSuite(targetHost string, targetPort string, timesToTest int) {
 	}
 
 	fmt.Println(testCaseResult)
-	prettyPrint(testCaseResult)
+	return testCaseResult
 }
 
-func executeOneTest(addr *net.TCPAddr, resultChan chan TestResult) {
-	var result TestResult
+func performTestCaseOnce(addr *net.TCPAddr, testCase *TestCase, resultChan chan TestResult) {
+	var result = TestResult{
+		IsCorrect: true,
+		Reason:    nil}
+
 	conn, err := net.DialTCP("tcp", nil, addr)
 	if err != nil {
 		//log.Fatal("connect error: ", err)
@@ -182,23 +219,15 @@ func executeOneTest(addr *net.TCPAddr, resultChan chan TestResult) {
 		log.Print("connect error: ", err)
 		result.IsCorrect = false
 		result.Reason = err
+		resultChan <- result
+		return
 	} else {
 		fmt.Println("Successfully establish connection")
-		// no connection error
-		// testLogin(conns[i], chans[i])
-		result = test(conn)
 	}
-	resultChan <- result
-}
 
-func test(conn *net.TCPConn) TestResult {
 	fmt.Println("Start test now!!!")
-	var result = TestResult{
-		IsCorrect: true,
-		Reason:    nil}
 	var totalTime int64 = 0
-
-	for i, message := range ts.MessageSequence {
+	for i, message := range testCase.MessageSequence {
 		parsedMessage, comm, err := parseAMessage(message)
 
 		if err != nil {
@@ -240,11 +269,8 @@ func test(conn *net.TCPConn) TestResult {
 		}
 	}
 
-	logMsg := fmt.Sprintf("Test suite %s - Test %s takes %d us", ts.TestSuiteName, ts.TestName, totalTime/1000)
-	log.Print(logMsg)
 	result.TimeTaken = totalTime
-
-	return result
+	resultChan <- result
 }
 
 /***************Send and Receive Messages********************************/
@@ -424,8 +450,8 @@ func compareGetValueForProtoMessage(protoExp proto.Message, protoRep proto.Messa
 
 /************************* Parse message ****************************/
 // parse varMap from input and put value to the value map
-func parseVarMap() {
-	for _, newVar := range ts.VarMap {		
+func parseVarMap(varMap []Var) {
+	for _, newVar := range varMap {
 		valueMap[newVar.Name] = newVar.Value
 	}
 }
@@ -475,7 +501,7 @@ func parseAMessage(v Message) (interface{}, int, error) {
 	addedXmlMessage, err := plugValue(v.Data.Xml)
 
 	fmt.Println("After second pass, message = ", addedXmlMessage)
-	message := magicVarFunc(v.MessageType)	
+	message := magicVarFunc(v.MessageType)
 	err = xml.Unmarshal([]byte(addedXmlMessage), message)
 
 	if err != nil {
@@ -496,7 +522,6 @@ func parseAMessage(v Message) (interface{}, int, error) {
 func magicVarFunc(typeName string) interface{} {
 	return reflect.New(GeneratedDataStructure.Map[typeName]).Interface()
 }
-
 
 func getKindForPointer(ptrValue reflect.Value) reflect.Kind {
 	if ptrValue.Kind() == reflect.Ptr {
@@ -573,33 +598,55 @@ func printValue(ptrValue reflect.Value) {
 	}
 }
 
-
 /********************* Input - output helper *********************************/
 
-func readXmlInput(inputFile string) {
+func readXmlInput(inputFile string) (*TestSuite, error) {
 	data, err := ioutil.ReadFile(inputFile)
 	if err != nil {
 		panic(err)
 	}
 
-	err = xml.Unmarshal(data, &ts)
+	var testSuite TestSuite
+	err = xml.Unmarshal(data, &testSuite)
 	if err != nil {
 		fmt.Printf("error: %v\n", err)
+		return nil, err
 	}
+	return &testSuite, nil
 }
 
-func prettyPrint(result TestCaseResult) {
-	fmt.Println("-------------------------TEST RESULT--------------------------------------------")
-	for i := 0; i < result.NumTest; i++ {
-		fmt.Println("Case", i+1, ":")
-		aResult := result.Results[i]
-		if aResult.IsCorrect {
-			fmt.Println("	CORRECT.   Time taken:", (aResult.TimeTaken / 1000), "us")
-		} else {
-			fmt.Println("   INCORRECT. Reason: ", aResult.Reason)
+func prettyPrintTestCase(testCaseInfo *TestInfo, isSkipped bool, result *TestCaseResult) {
+	var offset = "     "
+	fmt.Printf(" %sTEST CASE: %s\n", offset, testCaseInfo.Name)
+	if isSkipped {
+		fmt.Println(offset, "Skipped!")
+	} else {
+		totalTime := 0
+		for i := 0; i < result.NumTest; i++ {
+			fmt.Print(offset, "    Repeat time ", i+1, ": ")
+			aResult := result.Results[i]
+			if aResult.IsCorrect {
+				fmt.Printf("	CORRECT.   Time taken: %5d us \n", (aResult.TimeTaken / 1000))
+				totalTime += int(aResult.TimeTaken / 1000)
+			} else {
+				fmt.Println("   INCORRECT. Reason: ", aResult.Reason)
+				totalTime += int(aResult.TimeTaken / 1000)
+			}
 		}
+		fmt.Println(offset, "---------------------------")
+		fmt.Printf("%s    Total result:      %2d/%2d = %3d%%   Time taken: %5d us\n", offset,
+			result.NumCorrect, result.NumTest,
+			(result.NumCorrect * 100.0 / result.NumTest), totalTime)
 	}
-	fmt.Println("--------------------------------------------------------------------------------")
-	fmt.Println("Total result: ", result.NumCorrect, "/", result.NumTest, " = ", (result.NumCorrect * 100.0 / result.NumTest), "%")
-	fmt.Println("-------------------------END OF TEST RESULT-------------------------------------")
+	fmt.Println(offset, "END OF TEST CASE RESULT")
+}
+
+func prettyPrintTestSuite(testSuite *TestSuite, result *TestSuiteResult) {
+	fmt.Printf("TEST SUITE: %s\n", testSuite.TestSuiteName)
+	for i := 0; i < len(testSuite.ListTestInfos); i++ {
+		fmt.Println()
+		prettyPrintTestCase(&(testSuite.ListTestInfos[i]), result.Skip[i], &(result.TestCaseResults[i]))
+		fmt.Println()
+	}
+	fmt.Println("END OF TEST SUITE RESULT------------------------------------------------------")
 }
