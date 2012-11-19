@@ -36,7 +36,7 @@ func init() {
 	Map = make(map[string] reflect.Type)
 	{{range $index, $dataType:= .Types}}
 	var a{{$index}} {{$dataType.PackageName}}.{{$dataType.TypeName}}
-	Map["{{$dataType.TypeName}}"] = reflect.TypeOf(a{{$index}})
+	Map["{{$dataType.PackageName}}_{{$dataType.TypeName}}"] = reflect.TypeOf(a{{$index}})
 	{{end}}
 }
 `

@@ -1,0 +1,77 @@
+<TestSuite>
+	<TestSuiteName>Chat</TestSuiteName>
+	<TargetHost>203.117.155.188</TargetHost>
+	<TargetPort>9100</TargetPort>
+	<VarMap>
+		<Var name="email1">
+			<Value>indotest20@test.com</Value>
+		</Var>		
+		<Var name="password1">
+			<Value>e10adc3949ba59abbe56e057f20f883e</Value>
+		</Var>
+		<Var name="name1">
+			<Value>indotest20</Value>
+		</Var>			
+		<Var name="email2">
+			<Value>indotest15@test.com</Value>
+		</Var>		
+		<Var name="password2">
+			<Value>e10adc3949ba59abbe56e057f20f883e</Value>
+		</Var>
+		<Var name="name2">
+			<Value>indotest15</Value>
+		</Var>			
+	</VarMap>
+
+	<ListTest>
+		<TestInfo skip="false" repeat="1">
+			<Name>Chat test Online</Name>
+		</TestInfo>
+	</ListTest>
+
+	<Tests>
+		<Test>
+			<MessageSequence>
+				<Message type="LoginInfo" fromClient="true">		
+					<Command>0x02</Command>
+					<Data>
+						<LoginInfo>
+							<Name>{{.email1}}</Name>						
+							<Password>{{.password1}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</LoginInfo>
+					</Data>
+				</Message>
+
+				<Message type="LoginUserInfo" fromClient="false">
+					<Command>0x02</Command>
+					<Data>
+						<LoginInfoResult>
+							<MyInfo>
+								<Name>{{.email1}}</Name>						
+								<NickName>{{.name}}</NickName>
+							</MyInfo>
+						</LoginInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="LoginUserInfo" fromClient="false">
+					<Command>0x02</Command>
+					<Data>
+						<LoginInfoResult>
+							<MyInfo>
+								<Name>{{.email1}}</Name>						
+								<NickName>{{.name}}</NickName>
+							</MyInfo>
+						</LoginInfoResult>
+					</Data>
+				</Message>
+
+
+
+			</MessageSequence>
+		</Test>
+	</Tests>
+</TestSuite>

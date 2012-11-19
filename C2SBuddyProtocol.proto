@@ -1,0 +1,183 @@
+import "CommonBuddyProtocol.proto";
+import "CommonProtocol.proto";
+package Auth.Buddy.C2S;
+message RequestCategoryList
+{
+	optional int32 RequestId = 1;
+	required int32 Version = 2;
+}
+message EditCategory
+{
+	optional int32 CateId = 1;
+	required string Name = 2;
+}
+message DeleteCategory
+{
+	required int32 CateId = 1;
+}
+message RequestBuddyOnlineList
+{
+	optional int32 RequestId = 1;
+}
+message RequestBuddySimpleInfoList
+{
+	optional int32 RequestId = 1;
+}
+message RequestAddBuddy
+{
+	required int32 UserId = 1;
+	optional string Message = 2;
+}
+message AddBuddyResult
+{
+	required int32 UserId = 1;
+	required int32 Action = 2;
+}
+message DeleteBuddy
+{
+	repeated int32 UserId = 1;
+}
+message RequestBuddyInfo
+{
+	message Request
+	{
+		required int32 UserId = 1;
+		required int32 Type = 2;
+	}
+	repeated .Auth.Buddy.C2S.RequestBuddyInfo.Request Requests = 1;
+	optional int32 RequestId = 2;
+}
+message RequestSignature
+{
+	repeated int32 UserId = 1;
+}
+message RequestBuddySignature
+{
+	required int32 Version = 1;
+}
+message ChangeUserInfo
+{
+	message ChangeSignature
+	{
+		optional bytes Signature = 1;
+	}
+	message ChangeOnlineStatus
+	{
+		required .Auth.Buddy.Common.UserOnlineStatus Status = 1;
+		optional string Memo = 2;
+	}
+	message ChangeInfo
+	{
+		optional string Nickname = 1;
+		optional int64 Icon = 2;
+	}
+	optional .Auth.Buddy.C2S.ChangeUserInfo.ChangeSignature NewSignature = 1;
+	optional .Auth.Buddy.C2S.ChangeUserInfo.ChangeOnlineStatus NewStatus = 2;
+	optional .Auth.Buddy.C2S.ChangeUserInfo.ChangeInfo NewInfo = 3;
+}
+message ChatInfo
+{
+	required int32 UserId = 1;
+	required int32 MsgId = 2;
+	required bytes Message = 3;
+	optional .P.Common.FontStyleInfo Font = 4;
+}
+message ChatAckRemote
+{
+	required int32 UserId = 1;
+	required int32 MsgId = 2;
+}
+message ChatMediaInfo
+{
+	required int32 UserId = 1;
+	required int32 MsgId = 2;
+	required bytes Message = 3;
+}
+message ChatInfo2
+{
+	required int32 UserId = 1;
+	required int64 MsgId = 2;
+	optional string MetaTag = 3;
+	required bytes Message = 4;
+}
+message Chat2AckRemote
+{
+	required int32 UserId = 1;
+	required int64 MsgId = 2;
+}
+message RequestUserInfo
+{
+	optional string Name = 1;
+	optional int32 UserId = 2;
+	optional int32 RequestId = 3;
+	optional bool NoSignature = 4;
+}
+message ChangeBuddyCategory
+{
+	required int32 CateId = 1;
+	repeated int32 BuddyId = 2;
+}
+message P2PRequest
+{
+	required int32 UserId = 1;
+	required string Action = 2;
+	optional bytes Parameter = 3;
+	optional string Token = 4;
+}
+message P2PResponse
+{
+	required int32 UserId = 1;
+	required string Action = 2;
+	optional bytes Parameter = 3;
+	optional string Token = 4;
+	optional bool NeedAck = 5;
+}
+message DoActionCode
+{
+	required int32 UserId = 1;
+	required string Action = 2;
+	optional bytes Parameter = 3;
+}
+message ChangeMeMemData
+{
+	required string Tag = 1;
+	optional bytes Content = 2;
+	optional bytes RequestId = 3;
+}
+message RequestAllBuddyMemData
+{
+	optional string Tag = 1;
+	optional int32 Version = 2;
+}
+message RequestOneBuddyMemData
+{
+	optional string Tag = 1;
+	required int32 UserId = 2;
+}
+message ChangeMyCurrChannel
+{
+	required int32 ChannelId = 1;
+	required int32 SubChannelId = 2;
+	optional string DisplayName = 3;
+}
+message RequestBuddyCurrChannelList
+{
+	optional int32 RequestId = 1;
+}
+message RequestSyncBuddy
+{
+	optional int32 RequestId = 1;
+}
+message MobileFeatureAction
+{
+	required string Action = 1;
+	optional float Latitude = 2;
+	optional float Longitude = 3;
+	optional bytes Param = 4;
+	optional string RequestId = 5;
+}
+message MobileClearAction
+{
+	optional bool Location = 1;
+	optional bool LoginType = 2;
+}
