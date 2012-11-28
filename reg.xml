@@ -5,42 +5,42 @@
 	<TargetPort>9100</TargetPort>
 	<TimesToTest>1</TimesToTest>
 	<MessageSequence>
-		<Message type="RegAccount" fromClient="true">
+		<Message type="Auth_C2S_RegAccount" fromClient="true">
 			<Command>0x03</Command>
 			<Data>
-				<RegAccount>
+				<Auth_C2S_RegAccount>
 					<EMail>indotest016@test.com</EMail>
 					<Password>e10adc3949ba59abbe56e057f20f883e</Password>
-				</RegAccount>				
+				</Auth_C2S_RegAccount>				
 			</Data>
 		</Message>
 
-		<Message type="NeedFinishReg" fromClient="false">
+		<Message type="Auth_S2C_NeedFinishReg" fromClient="false">
 			<Command>0x04</Command>
 			<Data>
-				<NeedFinishReg>
+				<Auth_S2C_NeedFinishReg>
 					<UserId>{{.var1}}</UserId>
-				</NeedFinishReg>
+				</Auth_S2C_NeedFinishReg>
 				
 			</Data>
 		</Message>		
 		
-		<Message type="FillFinishReg" fromClient="true">		
+		<Message type="Auth_C2S_FillFinishReg" fromClient="true">		
 			<Command>0x05</Command>
 			<Data>
-				<FillFinishReg>
+				<Auth_C2S_FillFinishReg>
 					<UserId>{{.var1}}</UserId>
 					<NickName>indotest016</NickName>
 					<Gender>0</Gender>
 					<AvatarId>429933266161898</AvatarId>
-				</FillFinishReg>
+				</Auth_C2S_FillFinishReg>
 			</Data>
 		</Message>
 
-		<Message type="LoginUserInfo" fromClient="false">
+		<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
 			<Command>0x02</Command>
 			<Data>
-				<LoginInfoResult>
+				<Auth_S2C_LoginInfoResult>
 					<MyInfo>
 						<UserId>{{.var1}}</UserId>
 						<Name>indotest016@test.com</Name>						
@@ -48,7 +48,7 @@
 						<Gender>0</Gender>
 						<AvatarId>429933266161898</AvatarId>
 					</MyInfo>
-				</LoginInfoResult>
+				</Auth_S2C_LoginInfoResult>
 			</Data>
 		</Message>
 	</MessageSequence>

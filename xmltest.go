@@ -82,6 +82,7 @@ type Message struct {
 	MessageType string `xml:"type,attr"`
 	FromClient  bool   `xml:"fromClient,attr"`
 	Connection  int    `xml:"connection,attr"`
+	Close       bool   `xml:"close,attr"`
 	Command     string
 	Data        InnerXml
 }
@@ -213,25 +214,16 @@ func performTestCaseOnce(addr *net.TCPAddr, testCase *TestCase, resultChan chan 
 		IsCorrect: true,
 		Reason:    nil}
 
-	var listConnection = make(map[int] *net.TCPConn)
+	var listConnection = make(map[int]*net.TCPConn)
+	var connectionState = make(map[int]bool)
+	for i := range connectionState {
+		connectionState[i] = false // all closed
+	}
 
 	fmt.Println("Start test now!!!")
 	var totalTime int64 = 0
 	for i, message := range testCase.MessageSequence {
-		// get connection from list or make one if it does not exist yet
-		connectionId := message.Connection
-		if _, exist := listConnection[connectionId]; !exist {
-			conn, err := net.DialTCP("tcp", nil, addr)
-			if err != nil {
-				result.IsCorrect = false
-				result.Reason = err
-				break
-			} else {
-				listConnection[connectionId] = conn
-			}
-		} 
-		conn := listConnection[connectionId]
-
+		// parse message (plug in values if necessary)
 		parsedMessage, comm, err := parseAMessage(message)
 		if err != nil {
 			result.IsCorrect = false
@@ -239,9 +231,25 @@ func performTestCaseOnce(addr *net.TCPAddr, testCase *TestCase, resultChan chan 
 			result.Reason = errors.New(errMsg)
 			break
 		}
-
 		protoParsedMessage := parsedMessage.(proto.Message)
 
+		// get connection from list or make one if it does not exist yet
+		connectionId := message.Connection
+		if _, exist := connectionState[connectionId]; !exist {
+			fmt.Println("Connection does not exist or closed, create new connection for connection ", connectionId)
+			conn, err := net.DialTCP("tcp", nil, addr)
+			if err != nil {
+				result.IsCorrect = false
+				result.Reason = err
+				break
+			} else {
+				listConnection[connectionId] = conn
+				connectionState[connectionId] = true
+			}
+		} else {
+			fmt.Println("Connection ", connectionId, " exists, reuse")
+		}
+		conn := listConnection[connectionId]
 		if message.FromClient { // message from client, so send to server now
 			fmt.Println("Message to be sent: ", protoParsedMessage)
 			begin := time.Now()
@@ -249,6 +257,7 @@ func performTestCaseOnce(addr *net.TCPAddr, testCase *TestCase, resultChan chan 
 			end := time.Now()
 			totalTime += end.Sub(begin).Nanoseconds()
 		} else { // message from server, so read from buffer now
+			fmt.Println("Expecting to receive a message from server ", message.MessageType)
 			replyMessage, err := readReply(byte(comm), protoParsedMessage, conn)
 			if err == nil {
 				fmt.Println("Correctly received: ", replyMessage)
@@ -269,6 +278,16 @@ func performTestCaseOnce(addr *net.TCPAddr, testCase *TestCase, resultChan chan 
 				result.Reason = errors.New(errMsg)
 				break
 			}
+		}
+		if message.Close {
+			connectionState[connectionId] = false
+			conn.Close()
+		}
+	}
+
+	for i := range listConnection {
+		if connectionState[i] {
+			listConnection[i].Close()
 		}
 	}
 
@@ -384,12 +403,27 @@ func compareGetValueForSlice(expSlice reflect.Value, repSlice reflect.Value) (bo
 	result := true
 	var err error
 	dif := false
-	if expSlice.Cap() != repSlice.Cap() {
+	if expSlice.Len() != repSlice.Len() {
+		fmt.Println("Comparing slices different len, expect:", expSlice.Len(), " got: ", repSlice.Len())
 		dif = true
 	} else {
-		for index := 0; index < expSlice.Cap(); index++ {
-			isEqual := (expSlice.Index(index) == repSlice.Index(index))
+		for index := 0; index < expSlice.Len(); index++ {
+			value1 := expSlice.Index(index)
+			value2 := repSlice.Index(index)
+			var isEqual bool
+			fmt.Println("Kind of element", index, "is:", value1.Kind())
+			if value1.Kind() == reflect.Ptr {
+				isEqual, err = compareGetValueForPointer(value1, value2)
+			} else if value1.Kind() == reflect.Slice {
+				isEqual, err = compareGetValueForSlice(value1, value2)
+			} else if value1.Kind() == reflect.Struct {
+				isEqual, err = compareGetValueForStruct(value1, value2)
+			} else {
+				isEqual = (value1.Interface() == value2.Interface())
+			}
 			if !isEqual {
+				fmt.Printf("Reply field in slice has different value from expected field value. Expect: %v, get: %v",
+					value1.Interface(), value2.Interface())
 				dif = true
 				break
 			}

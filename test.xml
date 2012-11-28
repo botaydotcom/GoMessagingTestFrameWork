@@ -10,21 +10,21 @@
 	<Tests>
 		<Test>
 			<MessageSequence>
-				<Message type="HelloInfo" fromClient="true">
+				<Message type="Auth_C2S_HelloInfo" fromClient="true">
 					<Command>0x01</Command>
 					<Data>
-						<HelloInfo>
+						<Auth_C2S_HelloInfo>
 							<ClientType>1</ClientType>
 							<Version>2</Version>
-						</HelloInfo>
+						</Auth_C2S_HelloInfo>
 					</Data>
 				</Message>
-				<Message type="HelloInfoResult" fromClient="false">
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
 					<Command>0x01</Command>
 					<Data>
-						<HelloInfoResult>
+						<Auth_S2C_HelloInfoResult>
 							<Token>hello</Token>
-						</HelloInfoResult>
+						</Auth_S2C_HelloInfoResult>
 					</Data>
 				</Message>
 			</MessageSequence>
