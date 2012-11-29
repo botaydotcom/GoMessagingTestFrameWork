@@ -39,6 +39,8 @@ const (
 	C2S_KeepAlive_CMD                   = 0x06
 	C2S_ChangeNotification_CMD          = 0x07
 	C2S_RequestUserNotificationInfo_CMD = 0x08
+	C2S_AddBuddyResult                  = 0x66
+	C2S_Chat2AckRemote                  = 0x82
 )
 
 const (
@@ -48,6 +50,9 @@ const (
 	S2C_NeedFinishReg_CMD         = 0x04
 	S2C_KeepAliveAck_CMD          = 0x05
 	S2C_NotificationInfo_CMD      = 0x06
+
+	S2C_ChatInfo2_CMD       = 0x82
+	S2C_RequestAddBuddy_CMD = 0x65
 )
 
 const (
@@ -67,7 +72,8 @@ const (
 )
 
 const (
-	CONN_NUM = 3
+	CONN_NUM     = 3
+	READ_TIMEOUT = "3s"
 )
 
 type InnerXml struct {
@@ -101,6 +107,7 @@ type TestInfo struct {
 type TestCase struct {
 	VarMap          []Var     `xml:"VarMap>Var"`
 	MessageSequence []Message `xml:"MessageSequence>Message"`
+	CleanUpSequence []Message `xml:"CleanUpSequence>Message"`
 }
 
 type TestSuite struct {
@@ -292,6 +299,9 @@ func performTestCaseOnce(addr *net.TCPAddr, testCase *TestCase, resultChan chan 
 	}
 
 	result.TimeTaken = totalTime
+
+	cleanUpAfterTest(addr, testCase)
+
 	resultChan <- result
 }
 
@@ -320,10 +330,25 @@ func sendMsg(cmd byte, msg proto.Message, conn *net.TCPConn) {
 // return error if reply message has different type of command than expected
 func readReply(expCmd byte, expMsg proto.Message, conn *net.TCPConn) (*proto.Message, error) {
 	length := int32(0)
-	binary.Read(conn, binary.LittleEndian, &length)
+	duration, err := time.ParseDuration(READ_TIMEOUT)
+	timeNow := time.Now()
+
+	err = conn.SetReadDeadline(timeNow.Add(duration))
+	if err != nil {
+		return nil, err
+	}
+
+	err = binary.Read(conn, binary.LittleEndian, &length)
+	if err != nil {
+		return nil, err
+	}
+
 	rbuf := make([]byte, length)
-	io.ReadFull(conn, rbuf)
-	var err error
+	_, err = io.ReadFull(conn, rbuf)
+	if err != nil {
+		return nil, err
+	}
+
 	var res proto.Message
 	if len(rbuf) < 1 {
 		errMes := fmt.Sprintf("Reply message is too short: %d", len(rbuf))
@@ -387,7 +412,7 @@ func compareGetValueForPointer(expPtr reflect.Value, repPtr reflect.Value) (bool
 
 			if !isEqual {
 				errorMsg := fmt.Sprintf("Reply field value is different from expected field value. Expect: %v, get: %v",
-					expValue, repValue)
+					expValue.Interface(), repValue.Interface())
 				result = false
 				err = errors.New(errorMsg)
 			}
@@ -686,4 +711,151 @@ func prettyPrintTestSuite(testSuite *TestSuite, result *TestSuiteResult) {
 		fmt.Println()
 	}
 	fmt.Println("END OF TEST SUITE RESULT------------------------------------------------------")
+}
+
+func cleanUpAfterTest(addr *net.TCPAddr, testCase *TestCase) {
+	fmt.Println("Start cleaning up now!!!")
+	var listConnection = make(map[int]*net.TCPConn)
+
+	// these messages are supposed to be login messages !
+	for i, message := range testCase.CleanUpSequence {
+		// parse message (plug in values if necessary)
+		parsedMessage, comm, err := parseAMessage(message)
+		if err != nil {
+			fmt.Println("Error in parsing clean up message at message:", i)
+			continue
+		}
+		protoParsedMessage := parsedMessage.(proto.Message)
+
+		// get connection from list or make one if it does not exist yet
+		connectionId := message.Connection
+		if _, exist := listConnection[connectionId]; !exist {
+			fmt.Println("Connection does not exist or closed, create new connection for connection ", connectionId)
+			conn, err := net.DialTCP("tcp", nil, addr)
+			if err != nil {
+				fmt.Println("Cannot establish connection for clean up:", connectionId)
+				continue
+			} else {
+				listConnection[connectionId] = conn
+			}
+		} else {
+			fmt.Println("Connection ", connectionId, " exists, reuse")
+		}
+		conn := listConnection[connectionId]
+		if message.FromClient {
+			// message from client, so send to server now
+			sendMsg(byte(comm), protoParsedMessage, conn)
+		} else {
+			// message from server, so read from buffer now
+			readReply(byte(comm), protoParsedMessage, conn)
+		}
+		if err != nil {
+			continue
+		}
+	}
+
+	pending := true
+	for pending {
+		pending = false
+		for i, conn := range listConnection {
+			fmt.Println("Trying to read from connection", i, "and ack all pending messages")
+			// now all the established connections are the one to be clean up
+			for {
+				pendingMessage, err, comm := readPendingMessage(conn)
+				if err != nil {
+					break
+				}
+				if pendingMessage != nil {
+					// ack server
+					ackPendingMessageToServer(pendingMessage, comm, conn)
+					pending = true
+				}
+			}
+			conn.Close()
+		}
+	}
+}
+
+// read a reply to a buffer WITHOUT knowing the message type before hand
+// the message can only be in one of the few types: 
+// AddBuddyRequest
+// ChatInfo
+// this is only used for cleaning up phase
+// return error if cannot read a message in these type
+func readPendingMessage(conn *net.TCPConn) (*proto.Message, error, byte) {
+	length := int32(0)
+	duration, err := time.ParseDuration(READ_TIMEOUT)
+	timeNow := time.Now()
+
+	err = conn.SetReadDeadline(timeNow.Add(duration))
+	if err != nil {
+		return nil, err, 0
+	}
+
+	err = binary.Read(conn, binary.LittleEndian, &length)
+	if err != nil {
+		return nil, err, 0
+	}
+
+	rbuf := make([]byte, length)
+	_, err = io.ReadFull(conn, rbuf)
+	if err != nil {
+		return nil, err, 0
+	}
+
+	var res proto.Message
+	if len(rbuf) < 1 {
+		errMes := fmt.Sprintf("Reply message is too short: %d", len(rbuf))
+		return nil, errors.New(errMes), 0
+	}
+
+	log.Print("Buffer read from network: ", rbuf)
+
+	var newValue interface{}
+	cmd := rbuf[0]
+	switch cmd {
+	case S2C_RequestAddBuddy_CMD:
+		fmt.Println("Found a request add buddy message, respond now: ")
+		newValue = magicVarFunc("Auth_Buddy_S2C_RemoteRequestAddBuddy")
+	case S2C_ChatInfo2_CMD:
+		fmt.Println("Found a chat message, respond now: ")
+		newValue = magicVarFunc("Auth_Buddy_S2C_ChatInfo2")
+	default:
+		return nil, nil, 0 // receive a non-offline message
+	}
+
+	res = newValue.(proto.Message)
+	err = proto.Unmarshal(rbuf[1:], res)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	return &res, err, cmd
+}
+
+func ackPendingMessageToServer(pendingMessage *proto.Message, comm byte, conn *net.TCPConn) {
+	var replyMessage interface{}
+	var res proto.Message
+	var structValue reflect.Value
+	var replyComm byte
+	switch comm {
+	case S2C_RequestAddBuddy_CMD:
+		replyMessage = magicVarFunc("Auth_Buddy_C2S_AddBuddyResult")
+		res = replyMessage.(proto.Message)
+		structValue = reflect.Indirect(reflect.ValueOf(replyMessage))
+		userId := reflect.Indirect(reflect.ValueOf(*pendingMessage)).FieldByName("FromId")
+		structValue.FieldByName("UserId").Set(userId)
+		structValue.FieldByName("Action").SetInt(2)
+		replyComm = C2S_AddBuddyResult
+	case S2C_ChatInfo2_CMD:
+		replyMessage = magicVarFunc("Auth_Buddy_C2S_Chat2AckRemote")
+		res = replyMessage.(proto.Message)
+		structValue = reflect.Indirect(reflect.ValueOf(replyMessage))
+		userId := reflect.Indirect(reflect.ValueOf(*pendingMessage)).FieldByName("FromId")
+		msgId := reflect.Indirect(reflect.ValueOf(*pendingMessage)).FieldByName("MsgId")
+		structValue.FieldByName("UserId").Set(userId)
+		structValue.FieldByName("MsgId").Set(msgId)
+		replyComm = C2S_Chat2AckRemote
+	}
+	sendMsg(replyComm, res, conn)
 }
