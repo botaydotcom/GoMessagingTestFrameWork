@@ -76,6 +76,9 @@
 		<TestInfo skip="false" repeat="1">
 			<Name>B checking buddy list - does not see A as buddy</Name>
 		</TestInfo>
+		<TestInfo skip="false" repeat="1">
+			<Name>Clean up</Name>
+		</TestInfo>
 		
 	</ListTest>
 
@@ -1048,16 +1051,7 @@
 					</Data>
 				</Message>
 
-				<!--A send reject message to Server -->
-				<Message type="Auth_Buddy_C2S_AddBuddyResult" fromClient="true" connection="1">
-					<Command>0x66</Command>
-					<Data>
-						<Auth_Buddy_C2S_AddBuddyResult>
-							<UserId>{{.userId2}}</UserId>
-							<Action>2</Action>
-						</Auth_Buddy_C2S_AddBuddyResult>
-					</Data>
-				</Message>
+				
 
 				<!--When A rejects, server does not send any more message to both A and B -->
 				
@@ -1115,6 +1109,38 @@
 				</Message>
 			</MessageSequence>
 		</Test>
+		<Test>
+			<CleanUpSequence>
+				<!--define a series of connection (by logging in). Program will retrieve all message from server and ack all pending messages-->
+				<!--A log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true">		
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email1}}</Name>						
+							<Password>{{.password1}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
 
+				
+				<!--B log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true" connection="1">		
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email2}}</Name>						
+							<Password>{{.password2}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>				
+			</CleanUpSequence>
+		</Test>
 	</Tests>
 </TestSuite>

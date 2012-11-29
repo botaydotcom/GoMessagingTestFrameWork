@@ -158,7 +158,7 @@
 					</Data>
 				</Message>
 
-				<!--A send message to Server -->
+				<!--A send message 1 to Server -->
 				<Message type="Auth_Buddy_C2S_ChatInfo2" fromClient="true">
 					<Command>0x81</Command>
 					<Data>

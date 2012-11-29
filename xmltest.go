@@ -52,7 +52,7 @@ const (
 	S2C_NotificationInfo_CMD      = 0x06
 
 	S2C_ChatInfo2_CMD       = 0x82
-	S2C_RequestAddBuddy_CMD = 0x65
+	S2C_RemoteRequestAddBuddy_CMD = 0x72
 )
 
 const (
@@ -814,7 +814,7 @@ func readPendingMessage(conn *net.TCPConn) (*proto.Message, error, byte) {
 	var newValue interface{}
 	cmd := rbuf[0]
 	switch cmd {
-	case S2C_RequestAddBuddy_CMD:
+	case S2C_RemoteRequestAddBuddy_CMD:
 		fmt.Println("Found a request add buddy message, respond now: ")
 		newValue = magicVarFunc("Auth_Buddy_S2C_RemoteRequestAddBuddy")
 	case S2C_ChatInfo2_CMD:
@@ -839,13 +839,15 @@ func ackPendingMessageToServer(pendingMessage *proto.Message, comm byte, conn *n
 	var structValue reflect.Value
 	var replyComm byte
 	switch comm {
-	case S2C_RequestAddBuddy_CMD:
+	case S2C_RemoteRequestAddBuddy_CMD:
 		replyMessage = magicVarFunc("Auth_Buddy_C2S_AddBuddyResult")
 		res = replyMessage.(proto.Message)
 		structValue = reflect.Indirect(reflect.ValueOf(replyMessage))
 		userId := reflect.Indirect(reflect.ValueOf(*pendingMessage)).FieldByName("FromId")
 		structValue.FieldByName("UserId").Set(userId)
-		structValue.FieldByName("Action").SetInt(2)
+		var val int32 = 2
+
+		structValue.FieldByName("Action").Set(reflect.ValueOf(&val))
 		replyComm = C2S_AddBuddyResult
 	case S2C_ChatInfo2_CMD:
 		replyMessage = magicVarFunc("Auth_Buddy_C2S_Chat2AckRemote")
