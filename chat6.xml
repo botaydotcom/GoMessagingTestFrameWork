@@ -363,6 +363,36 @@
 					</Data>
 				</Message>
 
+				<Message type="Auth_Buddy_C2S_Chat2AckRemote" fromClient="true" connection="1">
+					<Command>0x82</Command>
+					<Data>
+						<Auth_Buddy_C2S_Chat2AckRemote>
+							<UserId>{{.userId1}}</UserId>
+							<MsgId>{{.mid11}}</MsgId>
+						</Auth_Buddy_C2S_Chat2AckRemote>
+					</Data>
+				</Message>
+
+				<Message type="Auth_Buddy_C2S_Chat2AckRemote" fromClient="true" connection="1">
+					<Command>0x82</Command>
+					<Data>
+						<Auth_Buddy_C2S_Chat2AckRemote>
+							<UserId>{{.userId1}}</UserId>
+							<MsgId>{{.mid11}}</MsgId>
+						</Auth_Buddy_C2S_Chat2AckRemote>
+					</Data>
+				</Message>
+
+				<Message type="Auth_Buddy_C2S_Chat2AckRemote" fromClient="true" connection="1">
+					<Command>0x82</Command>
+					<Data>
+						<Auth_Buddy_C2S_Chat2AckRemote>
+							<UserId>{{.userId1}}</UserId>
+							<MsgId>{{.mid12}}</MsgId>
+						</Auth_Buddy_C2S_Chat2AckRemote>
+					</Data>
+				</Message>
+
 				<Message type="Auth_Buddy_C2S_Chat2AckRemote" fromClient="true" connection="1" close="true">
 					<Command>0x82</Command>
 					<Data>
@@ -456,7 +486,7 @@
 					</Data>
 				</Message>
 
-				<!--B logs out-->
+				<!--B acks last message and logs out-->
 				<Message type="Auth_Buddy_C2S_Chat2AckRemote" fromClient="true" connection="3" close="true">
 					<Command>0x82</Command>
 					<Data>

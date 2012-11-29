@@ -817,9 +817,11 @@ func readPendingMessage(conn *net.TCPConn) (*proto.Message, error, byte) {
 	case S2C_RemoteRequestAddBuddy_CMD:
 		fmt.Println("Found a request add buddy message, respond now: ")
 		newValue = magicVarFunc("Auth_Buddy_S2C_RemoteRequestAddBuddy")
+
 	case S2C_ChatInfo2_CMD:
 		fmt.Println("Found a chat message, respond now: ")
 		newValue = magicVarFunc("Auth_Buddy_S2C_ChatInfo2")
+		
 	default:
 		return nil, nil, 0 // receive a non-offline message
 	}
@@ -846,9 +848,9 @@ func ackPendingMessageToServer(pendingMessage *proto.Message, comm byte, conn *n
 		userId := reflect.Indirect(reflect.ValueOf(*pendingMessage)).FieldByName("FromId")
 		structValue.FieldByName("UserId").Set(userId)
 		var val int32 = 2
-
 		structValue.FieldByName("Action").Set(reflect.ValueOf(&val))
 		replyComm = C2S_AddBuddyResult
+
 	case S2C_ChatInfo2_CMD:
 		replyMessage = magicVarFunc("Auth_Buddy_C2S_Chat2AckRemote")
 		res = replyMessage.(proto.Message)
