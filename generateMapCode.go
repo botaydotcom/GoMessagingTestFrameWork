@@ -23,11 +23,11 @@ const (
 package {{.GeneratedPackage}}
 
 import (
+	
 	"reflect"
 	{{range $path, $value:= .ImportPath}}
 	"{{$path}}"
 	{{end}}
-	
 )
 // exported Map
 var Map map[string] reflect.Type

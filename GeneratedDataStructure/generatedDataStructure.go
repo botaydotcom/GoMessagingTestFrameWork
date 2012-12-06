@@ -2,6 +2,7 @@
 package GeneratedDataStructure
 
 import (
+	
 	"reflect"
 	
 	"xmltest/btalkTest/Auth_Buddy_C2S"
@@ -12,8 +13,13 @@ import (
 	
 	"xmltest/btalkTest/Auth_S2C"
 	
-	"xmltest/btalkTest/TOKEN_S"
+	"xmltest/btalkTest/C_A"
 	
+	"xmltest/btalkTest/Discussion_C2S"
+	
+	"xmltest/btalkTest/Discussion_S2C"
+	
+	"xmltest/btalkTest/TOKEN_S"
 	
 )
 // exported Map
@@ -414,6 +420,168 @@ func init() {
 	
 	var aAuth_S2C_UserNotificationInfo Auth_S2C.UserNotificationInfo
 	Map["Auth_S2C_UserNotificationInfo"] = reflect.TypeOf(aAuth_S2C_UserNotificationInfo)
+	
+	var aC_A_BuddyInfoHolder C_A.BuddyInfoHolder
+	Map["C_A_BuddyInfoHolder"] = reflect.TypeOf(aC_A_BuddyInfoHolder)
+	
+	var aC_A_BuddyInfoHolderList C_A.BuddyInfoHolderList
+	Map["C_A_BuddyInfoHolderList"] = reflect.TypeOf(aC_A_BuddyInfoHolderList)
+	
+	var aC_A_BuddyRelationInfo C_A.BuddyRelationInfo
+	Map["C_A_BuddyRelationInfo"] = reflect.TypeOf(aC_A_BuddyRelationInfo)
+	
+	var aC_A_CateChannelList C_A.CateChannelList
+	Map["C_A_CateChannelList"] = reflect.TypeOf(aC_A_CateChannelList)
+	
+	var aC_A_ClientVersionInfo C_A.ClientVersionInfo
+	Map["C_A_ClientVersionInfo"] = reflect.TypeOf(aC_A_ClientVersionInfo)
+	
+	var aC_A_CommonMessageItemHolder C_A.CommonMessageItemHolder
+	Map["C_A_CommonMessageItemHolder"] = reflect.TypeOf(aC_A_CommonMessageItemHolder)
+	
+	var aC_A_CommonMessageListHolder C_A.CommonMessageListHolder
+	Map["C_A_CommonMessageListHolder"] = reflect.TypeOf(aC_A_CommonMessageListHolder)
+	
+	var aC_A_DiscussionInfo C_A.DiscussionInfo
+	Map["C_A_DiscussionInfo"] = reflect.TypeOf(aC_A_DiscussionInfo)
+	
+	var aC_A_DiscussionInviteMemberList C_A.DiscussionInviteMemberList
+	Map["C_A_DiscussionInviteMemberList"] = reflect.TypeOf(aC_A_DiscussionInviteMemberList)
+	
+	var aC_A_DiscussionInviteMemberList_InviteMemberInfo C_A.DiscussionInviteMemberList_InviteMemberInfo
+	Map["C_A_DiscussionInviteMemberList_InviteMemberInfo"] = reflect.TypeOf(aC_A_DiscussionInviteMemberList_InviteMemberInfo)
+	
+	var aC_A_DiscussionMemberInfo C_A.DiscussionMemberInfo
+	Map["C_A_DiscussionMemberInfo"] = reflect.TypeOf(aC_A_DiscussionMemberInfo)
+	
+	var aC_A_DiscussionMemberList C_A.DiscussionMemberList
+	Map["C_A_DiscussionMemberList"] = reflect.TypeOf(aC_A_DiscussionMemberList)
+	
+	var aC_A_UserBuddyList C_A.UserBuddyList
+	Map["C_A_UserBuddyList"] = reflect.TypeOf(aC_A_UserBuddyList)
+	
+	var aC_A_UserChannelList C_A.UserChannelList
+	Map["C_A_UserChannelList"] = reflect.TypeOf(aC_A_UserChannelList)
+	
+	var aC_A_UserChannelList_UserChannelInfo C_A.UserChannelList_UserChannelInfo
+	Map["C_A_UserChannelList_UserChannelInfo"] = reflect.TypeOf(aC_A_UserChannelList_UserChannelInfo)
+	
+	var aC_A_UserChatInfoList C_A.UserChatInfoList
+	Map["C_A_UserChatInfoList"] = reflect.TypeOf(aC_A_UserChatInfoList)
+	
+	var aC_A_UserDiscussionList C_A.UserDiscussionList
+	Map["C_A_UserDiscussionList"] = reflect.TypeOf(aC_A_UserDiscussionList)
+	
+	var aC_A_UserIdInfo C_A.UserIdInfo
+	Map["C_A_UserIdInfo"] = reflect.TypeOf(aC_A_UserIdInfo)
+	
+	var aC_A_UserImportInfo C_A.UserImportInfo
+	Map["C_A_UserImportInfo"] = reflect.TypeOf(aC_A_UserImportInfo)
+	
+	var aC_A_UserInfo C_A.UserInfo
+	Map["C_A_UserInfo"] = reflect.TypeOf(aC_A_UserInfo)
+	
+	var aC_A_UserInfoEx C_A.UserInfoEx
+	Map["C_A_UserInfoEx"] = reflect.TypeOf(aC_A_UserInfoEx)
+	
+	var aC_A_UserInfoList C_A.UserInfoList
+	Map["C_A_UserInfoList"] = reflect.TypeOf(aC_A_UserInfoList)
+	
+	var aC_A_UserInfoToken C_A.UserInfoToken
+	Map["C_A_UserInfoToken"] = reflect.TypeOf(aC_A_UserInfoToken)
+	
+	var aC_A_UserLoginInfo C_A.UserLoginInfo
+	Map["C_A_UserLoginInfo"] = reflect.TypeOf(aC_A_UserLoginInfo)
+	
+	var aC_A_UserMemDataInfo C_A.UserMemDataInfo
+	Map["C_A_UserMemDataInfo"] = reflect.TypeOf(aC_A_UserMemDataInfo)
+	
+	var aC_A_UserMemDataList C_A.UserMemDataList
+	Map["C_A_UserMemDataList"] = reflect.TypeOf(aC_A_UserMemDataList)
+	
+	var aC_A_UserSignatureInfo C_A.UserSignatureInfo
+	Map["C_A_UserSignatureInfo"] = reflect.TypeOf(aC_A_UserSignatureInfo)
+	
+	var aC_A_UserStatusInfo C_A.UserStatusInfo
+	Map["C_A_UserStatusInfo"] = reflect.TypeOf(aC_A_UserStatusInfo)
+	
+	var aDiscussion_C2S_ChangeDiscussionInfo Discussion_C2S.ChangeDiscussionInfo
+	Map["Discussion_C2S_ChangeDiscussionInfo"] = reflect.TypeOf(aDiscussion_C2S_ChangeDiscussionInfo)
+	
+	var aDiscussion_C2S_ChangeMyOption Discussion_C2S.ChangeMyOption
+	Map["Discussion_C2S_ChangeMyOption"] = reflect.TypeOf(aDiscussion_C2S_ChangeMyOption)
+	
+	var aDiscussion_C2S_ChatInfo Discussion_C2S.ChatInfo
+	Map["Discussion_C2S_ChatInfo"] = reflect.TypeOf(aDiscussion_C2S_ChatInfo)
+	
+	var aDiscussion_C2S_ChatInfoRecvedAck Discussion_C2S.ChatInfoRecvedAck
+	Map["Discussion_C2S_ChatInfoRecvedAck"] = reflect.TypeOf(aDiscussion_C2S_ChatInfoRecvedAck)
+	
+	var aDiscussion_C2S_CreateDiscussion Discussion_C2S.CreateDiscussion
+	Map["Discussion_C2S_CreateDiscussion"] = reflect.TypeOf(aDiscussion_C2S_CreateDiscussion)
+	
+	var aDiscussion_C2S_InviteMember Discussion_C2S.InviteMember
+	Map["Discussion_C2S_InviteMember"] = reflect.TypeOf(aDiscussion_C2S_InviteMember)
+	
+	var aDiscussion_C2S_InviteMemberResult Discussion_C2S.InviteMemberResult
+	Map["Discussion_C2S_InviteMemberResult"] = reflect.TypeOf(aDiscussion_C2S_InviteMemberResult)
+	
+	var aDiscussion_C2S_LeaveDiscussion Discussion_C2S.LeaveDiscussion
+	Map["Discussion_C2S_LeaveDiscussion"] = reflect.TypeOf(aDiscussion_C2S_LeaveDiscussion)
+	
+	var aDiscussion_C2S_RequestDiscussionInfo Discussion_C2S.RequestDiscussionInfo
+	Map["Discussion_C2S_RequestDiscussionInfo"] = reflect.TypeOf(aDiscussion_C2S_RequestDiscussionInfo)
+	
+	var aDiscussion_C2S_RequestMyDiscussion Discussion_C2S.RequestMyDiscussion
+	Map["Discussion_C2S_RequestMyDiscussion"] = reflect.TypeOf(aDiscussion_C2S_RequestMyDiscussion)
+	
+	var aDiscussion_C2S_RequestMyOption Discussion_C2S.RequestMyOption
+	Map["Discussion_C2S_RequestMyOption"] = reflect.TypeOf(aDiscussion_C2S_RequestMyOption)
+	
+	var aDiscussion_C2S_SubscribeDiscussionChanged Discussion_C2S.SubscribeDiscussionChanged
+	Map["Discussion_C2S_SubscribeDiscussionChanged"] = reflect.TypeOf(aDiscussion_C2S_SubscribeDiscussionChanged)
+	
+	var aDiscussion_C2S_UnsubscribeDiscussionChanged Discussion_C2S.UnsubscribeDiscussionChanged
+	Map["Discussion_C2S_UnsubscribeDiscussionChanged"] = reflect.TypeOf(aDiscussion_C2S_UnsubscribeDiscussionChanged)
+	
+	var aDiscussion_S2C_ChatInfo Discussion_S2C.ChatInfo
+	Map["Discussion_S2C_ChatInfo"] = reflect.TypeOf(aDiscussion_S2C_ChatInfo)
+	
+	var aDiscussion_S2C_ChatInfoAck Discussion_S2C.ChatInfoAck
+	Map["Discussion_S2C_ChatInfoAck"] = reflect.TypeOf(aDiscussion_S2C_ChatInfoAck)
+	
+	var aDiscussion_S2C_DiscussionError Discussion_S2C.DiscussionError
+	Map["Discussion_S2C_DiscussionError"] = reflect.TypeOf(aDiscussion_S2C_DiscussionError)
+	
+	var aDiscussion_S2C_DiscussionInfo Discussion_S2C.DiscussionInfo
+	Map["Discussion_S2C_DiscussionInfo"] = reflect.TypeOf(aDiscussion_S2C_DiscussionInfo)
+	
+	var aDiscussion_S2C_DiscussionMemberInfo Discussion_S2C.DiscussionMemberInfo
+	Map["Discussion_S2C_DiscussionMemberInfo"] = reflect.TypeOf(aDiscussion_S2C_DiscussionMemberInfo)
+	
+	var aDiscussion_S2C_DiscussionMemberList Discussion_S2C.DiscussionMemberList
+	Map["Discussion_S2C_DiscussionMemberList"] = reflect.TypeOf(aDiscussion_S2C_DiscussionMemberList)
+	
+	var aDiscussion_S2C_InviteMember Discussion_S2C.InviteMember
+	Map["Discussion_S2C_InviteMember"] = reflect.TypeOf(aDiscussion_S2C_InviteMember)
+	
+	var aDiscussion_S2C_MemberJoin Discussion_S2C.MemberJoin
+	Map["Discussion_S2C_MemberJoin"] = reflect.TypeOf(aDiscussion_S2C_MemberJoin)
+	
+	var aDiscussion_S2C_MemberLeave Discussion_S2C.MemberLeave
+	Map["Discussion_S2C_MemberLeave"] = reflect.TypeOf(aDiscussion_S2C_MemberLeave)
+	
+	var aDiscussion_S2C_MyDiscussionOption Discussion_S2C.MyDiscussionOption
+	Map["Discussion_S2C_MyDiscussionOption"] = reflect.TypeOf(aDiscussion_S2C_MyDiscussionOption)
+	
+	var aDiscussion_S2C_NewDiscussionArrival Discussion_S2C.NewDiscussionArrival
+	Map["Discussion_S2C_NewDiscussionArrival"] = reflect.TypeOf(aDiscussion_S2C_NewDiscussionArrival)
+	
+	var aDiscussion_S2C_UserDiscussionList Discussion_S2C.UserDiscussionList
+	Map["Discussion_S2C_UserDiscussionList"] = reflect.TypeOf(aDiscussion_S2C_UserDiscussionList)
+	
+	var aDiscussion_S2C_UserDiscussionList_DiscussionSimpleInfo Discussion_S2C.UserDiscussionList_DiscussionSimpleInfo
+	Map["Discussion_S2C_UserDiscussionList_DiscussionSimpleInfo"] = reflect.TypeOf(aDiscussion_S2C_UserDiscussionList_DiscussionSimpleInfo)
 	
 	var aTOKEN_S_UserInfo TOKEN_S.UserInfo
 	Map["TOKEN_S_UserInfo"] = reflect.TypeOf(aTOKEN_S_UserInfo)

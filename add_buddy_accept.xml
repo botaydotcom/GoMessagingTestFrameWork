@@ -4,21 +4,39 @@
 	<TargetPort>9100</TargetPort>
 	<VarMap>
 		<Var name="email1">
-			<Value>indotest13@test.com</Value>
+			<Value>indotest15@test.com</Value>
 		</Var>		
 		<Var name="name1">
-			<Value>indotest13</Value>
+			<Value>indotest15</Value>
 		</Var>					
 		<Var name="password1">
 			<Value>e10adc3949ba59abbe56e057f20f883e</Value>
 		</Var>
 		<Var name="email2">
-			<Value>indotest14@test.com</Value>
+			<Value>indotest16@test.com</Value>
 		</Var>		
 		<Var name="name2">
-			<Value>indotest14</Value>
+			<Value>indotest16</Value>
 		</Var>			
 		<Var name="password2">
+			<Value>e10adc3949ba59abbe56e057f20f883e</Value>
+		</Var>
+		<Var name="email3">
+			<Value>indotest17@test.com</Value>
+		</Var>		
+		<Var name="name3">
+			<Value>indotest17</Value>
+		</Var>					
+		<Var name="password3">
+			<Value>e10adc3949ba59abbe56e057f20f883e</Value>
+		</Var>
+		<Var name="email4">
+			<Value>indotest18@test.com</Value>
+		</Var>		
+		<Var name="name4">
+			<Value>indotest18</Value>
+		</Var>					
+		<Var name="password4">
 			<Value>e10adc3949ba59abbe56e057f20f883e</Value>
 		</Var>
 		<Var name="msg">

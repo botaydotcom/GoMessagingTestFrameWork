@@ -39,8 +39,10 @@ const (
 	C2S_KeepAlive_CMD                   = 0x06
 	C2S_ChangeNotification_CMD          = 0x07
 	C2S_RequestUserNotificationInfo_CMD = 0x08
-	C2S_AddBuddyResult                  = 0x66
-	C2S_Chat2AckRemote                  = 0x82
+
+	C2S_AddBuddyResult_CMD              = 0x66
+	C2S_Chat2AckRemote_CMD              = 0x82
+	C2S_InviteMemberResult_CMD   		= 0x08
 )
 
 const (
@@ -51,8 +53,11 @@ const (
 	S2C_KeepAliveAck_CMD          = 0x05
 	S2C_NotificationInfo_CMD      = 0x06
 
-	S2C_ChatInfo2_CMD       = 0x82
+	S2C_ChatInfo2_CMD       	  = 0x82
 	S2C_RemoteRequestAddBuddy_CMD = 0x72
+	S2C_InviteMember_CMD		  = 0x09
+	DISCUSSION_PACKET_BASE_COMMAND = 0xA0
+
 )
 
 const (
@@ -89,6 +94,7 @@ type Message struct {
 	FromClient  bool   `xml:"fromClient,attr"`
 	Connection  int    `xml:"connection,attr"`
 	Close       bool   `xml:"close,attr"`
+	BaseCommand string
 	Command     string
 	Data        InnerXml
 }
@@ -139,6 +145,9 @@ type TestSuiteResult struct {
 var keyMap map[string]string
 var valueMap map[string]interface{}
 
+var sliceKeyMap map[string]string
+var sliceMap map[string]interface{}
+
 var hasPartial bool
 var rawData []byte
 var field int
@@ -154,6 +163,8 @@ func main() {
 
 	keyMap = make(map[string]string)
 	valueMap = make(map[string]interface{})
+	sliceKeyMap = make(map[string]string)
+	sliceMap = make(map[string]interface{})
 
 	ts, err := readXmlInput(inputFile)
 	fmt.Println(*ts)
@@ -231,7 +242,7 @@ func performTestCaseOnce(addr *net.TCPAddr, testCase *TestCase, resultChan chan 
 	var totalTime int64 = 0
 	for i, message := range testCase.MessageSequence {
 		// parse message (plug in values if necessary)
-		parsedMessage, comm, err := parseAMessage(message)
+		parsedMessage, comm, useBase, baseCmd, err := parseAMessage(message)
 		if err != nil {
 			result.IsCorrect = false
 			errMsg := fmt.Sprintf("Cannot parse message %d", i)
@@ -242,7 +253,7 @@ func performTestCaseOnce(addr *net.TCPAddr, testCase *TestCase, resultChan chan 
 
 		// get connection from list or make one if it does not exist yet
 		connectionId := message.Connection
-		if _, exist := connectionState[connectionId]; !exist {
+		if isOpened, exist := connectionState[connectionId]; (!exist ||  !isOpened) {
 			fmt.Println("Connection does not exist or closed, create new connection for connection ", connectionId)
 			conn, err := net.DialTCP("tcp", nil, addr)
 			if err != nil {
@@ -257,15 +268,16 @@ func performTestCaseOnce(addr *net.TCPAddr, testCase *TestCase, resultChan chan 
 			fmt.Println("Connection ", connectionId, " exists, reuse")
 		}
 		conn := listConnection[connectionId]
+
 		if message.FromClient { // message from client, so send to server now
 			fmt.Println("Message to be sent: ", protoParsedMessage)
 			begin := time.Now()
-			sendMsg(byte(comm), protoParsedMessage, conn)
+			sendMsg(useBase, byte(baseCmd), byte(comm), protoParsedMessage, conn)
 			end := time.Now()
 			totalTime += end.Sub(begin).Nanoseconds()
 		} else { // message from server, so read from buffer now
 			fmt.Println("Expecting to receive a message from server ", message.MessageType)
-			replyMessage, err := readReply(byte(comm), protoParsedMessage, conn)
+			replyMessage, err := readReply(useBase, byte(baseCmd), byte(comm), protoParsedMessage, conn)
 			if err == nil {
 				fmt.Println("Correctly received: ", replyMessage)
 				fmt.Println("Comparing received message now! ")
@@ -307,18 +319,27 @@ func performTestCaseOnce(addr *net.TCPAddr, testCase *TestCase, resultChan chan 
 
 /***************Send and Receive Messages********************************/
 // send a message with command and message using given connection
-func sendMsg(cmd byte, msg proto.Message, conn *net.TCPConn) {
-	log.Print("sending message command: ", cmd)
+func sendMsg(useBase bool, baseCmd byte, cmd byte, msg proto.Message, conn *net.TCPConn) {
+	log.Print("sending message base command / command / message: ", baseCmd, cmd, msg)
 	data, err := proto.Marshal(msg)
 	if err != nil {
 		log.Fatal("marchaling error: ", err)
 	}
 	length := int32(len(data)) + 1
+
+	if (useBase) {
+		length = length + 1
+	}
+
 	log.Print("sending message length: ", length)
 
 	buf := new(bytes.Buffer)
 
 	binary.Write(buf, binary.LittleEndian, length)
+	if (useBase) {
+		binary.Write(buf, binary.LittleEndian, baseCmd)
+	}
+
 	binary.Write(buf, binary.LittleEndian, cmd)
 	//binary.Write(buf, binary.LittleEndian, int64(0))
 	buf.Write(data)
@@ -328,7 +349,7 @@ func sendMsg(cmd byte, msg proto.Message, conn *net.TCPConn) {
 
 // read a reply to a buffer based on the expected message type
 // return error if reply message has different type of command than expected
-func readReply(expCmd byte, expMsg proto.Message, conn *net.TCPConn) (*proto.Message, error) {
+func readReply(useBase bool, expBaseCmd byte, expCmd byte, expMsg proto.Message, conn *net.TCPConn) (*proto.Message, error) {
 	length := int32(0)
 	duration, err := time.ParseDuration(READ_TIMEOUT)
 	timeNow := time.Now()
@@ -341,6 +362,22 @@ func readReply(expCmd byte, expMsg proto.Message, conn *net.TCPConn) (*proto.Mes
 	err = binary.Read(conn, binary.LittleEndian, &length)
 	if err != nil {
 		return nil, err
+	}
+
+	if (useBase) {
+		length = length - 1
+		var baseCmd byte
+		err = binary.Read(conn, binary.LittleEndian, &baseCmd)
+
+		if (baseCmd != expBaseCmd) {
+			// finish reading the rest of the message, 
+			// so that it does not affects other message
+			rbuf := make([]byte, length)
+			io.ReadFull(conn, rbuf)
+			// report error
+			errMsg := fmt.Sprintf("Unexpected BASE CMD %d", baseCmd)
+			return nil, errors.New(errMsg)	
+		}
 	}
 
 	rbuf := make([]byte, length)
@@ -428,29 +465,49 @@ func compareGetValueForSlice(expSlice reflect.Value, repSlice reflect.Value) (bo
 	result := true
 	var err error
 	dif := false
-	if expSlice.Len() != repSlice.Len() {
-		fmt.Println("Comparing slices different len, expect:", expSlice.Len(), " got: ", repSlice.Len())
-		dif = true
+
+	strVar := ""
+	byteArray, canConvert := expSlice.Interface().([]byte)
+
+	if canConvert {
+		strVar = string(byteArray)
+	}
+	fmt.Println("Expected pointer in message has value: ", strVar)
+
+	// if the expected field is a variable field that's not bound, bind the value of the key now
+	key, present := keyMap[strVar]
+	
+	if present {
+		fmt.Println("Bound value to map: ", repSlice.Interface())
+		// bound variable to value, return true
+		
+		sliceKeyMap[strVar] = key
+		sliceMap[key] = repSlice.Interface()
 	} else {
-		for index := 0; index < expSlice.Len(); index++ {
-			value1 := expSlice.Index(index)
-			value2 := repSlice.Index(index)
-			var isEqual bool
-			fmt.Println("Kind of element", index, "is:", value1.Kind())
-			if value1.Kind() == reflect.Ptr {
-				isEqual, err = compareGetValueForPointer(value1, value2)
-			} else if value1.Kind() == reflect.Slice {
-				isEqual, err = compareGetValueForSlice(value1, value2)
-			} else if value1.Kind() == reflect.Struct {
-				isEqual, err = compareGetValueForStruct(value1, value2)
-			} else {
-				isEqual = (value1.Interface() == value2.Interface())
-			}
-			if !isEqual {
-				fmt.Printf("Reply field in slice has different value from expected field value. Expect: %v, get: %v",
-					value1.Interface(), value2.Interface())
-				dif = true
-				break
+		if expSlice.Len() != repSlice.Len() {
+			fmt.Println("Comparing slices different len, expect:", expSlice.Len(), " got: ", repSlice.Len())
+			dif = true
+		} else {
+			for index := 0; index < expSlice.Len(); index++ {
+				value1 := expSlice.Index(index)
+				value2 := repSlice.Index(index)
+				var isEqual bool
+				fmt.Println("Kind of element", index, "is:", value1.Kind())
+				if value1.Kind() == reflect.Ptr {
+					isEqual, err = compareGetValueForPointer(value1, value2)
+				} else if value1.Kind() == reflect.Slice {
+					isEqual, err = compareGetValueForSlice(value1, value2)
+				} else if value1.Kind() == reflect.Struct {
+					isEqual, err = compareGetValueForStruct(value1, value2)
+				} else {
+					isEqual = (value1.Interface() == value2.Interface())
+				}
+				if !isEqual {
+					fmt.Printf("Reply field in slice has different value from expected field value. Expect: %v, get: %v",
+						value1.Interface(), value2.Interface())
+					dif = true
+					break
+				}
 			}
 		}
 	}
@@ -478,6 +535,7 @@ func compareGetValueForStruct(expStruct reflect.Value, repStruct reflect.Value) 
 		if expStructField.Kind() == reflect.Ptr {
 			isEqual, err1 = compareGetValueForPointer(expStructField, repStructField)
 		} else if expStructField.Kind() == reflect.Slice {
+			fmt.Println("Comparing slice", expStructField.Interface(), repStructField.Interface())
 			isEqual, err1 = compareGetValueForSlice(expStructField, repStructField)
 		} else if expStructField.Kind() == reflect.Struct {
 			isEqual, err1 = compareGetValueForStruct(expStructField, repStructField)
@@ -518,15 +576,49 @@ func parseVarMap(varMap []Var) {
 	}
 }
 
+func plugValueForVar(message string, varName string, value interface{}) (string) {
+	valueToReplace := ""
+	kind := reflect.ValueOf(value).Kind()
+	if kind == reflect.Slice {
+		/*sliceValue := reflect.ValueOf(value)		
+		regVar = regexp.MustCompile("<(.*)>{{." + varName + "}}</(.*)>")
+		
+		listTag := regVar.FindAllStringSubmatch(message, -1)
+		fmt.Println("list match group: ", listTag)
+		for _, matchedTag := range listTag {
+			fmt.Println(matchedTag, " now try to replace: ", "<" + matchedTag[1] +">{{." + varName + "}}</" + matchedTag[1] +">")
+			reg, _ := regexp.Compile("<" + matchedTag[1] +">{{." + varName + "}}</" + matchedTag[1] +">")
+			valueToReplace = ""
+			for index := 0; index < sliceValue.Len(); index++ {
+				value1 := fmt.Sprintf("%v", sliceValue.Index(index).Interface())
+				valueToReplace = valueToReplace + "<" + matchedTag[1] +">" + value1 + "</" + matchedTag[1] +">"
+			}
+			fmt.Println("Replace with: \n", valueToReplace)
+			message = reg.ReplaceAllString(message, valueToReplace)
+		}*/
+		// dont plug value here	
+	} else {
+		reg, _ := regexp.Compile("{{." + varName + "}}")
+		valueToReplace = fmt.Sprintf("%v", reflect.Indirect(reflect.ValueOf(value)).Interface())
+		message = reg.ReplaceAllString(message, valueToReplace)
+	}
+	return message
+}
+
 // plug value from value map to the raw xml message
 func plugValue(message string) (string, error) {
 	fmt.Println("Plug value from value map to message")
 	t := template.Must(template.New("Xml Message").Parse(message))
-	var buffer bytes.Buffer
-	err := t.Execute(&buffer, valueMap)
+	//var buffer bytes.Buffer
+	//err := t.Execute(&buffer, valueMap)
+	//fmt.Println("----------------------------------------")
+	err := t.Execute(os.Stdout, valueMap)
 	fmt.Println("----------------------------------------")
-	err = t.Execute(os.Stdout, valueMap)
-	return buffer.String(), err
+	for key, value := range(valueMap) {
+		message = plugValueForVar(message, key, value)
+	}
+	fmt.Println("MANUALLY PLUG VALUE IN RESULT IN: ", message)
+	return message, err
 }
 
 // pre-process a message and put unbound variable to value map
@@ -554,8 +646,38 @@ func preProcess(rawData string) {
 	}
 }
 
+func fillSliceValueToMessage(rawMessage *interface{}) {
+	protoMsg := (*rawMessage).(proto.Message)
+	message := reflect.ValueOf(protoMsg).Elem()
+	
+	for i := 0; i < message.NumField(); i++ {
+		fmt.Println("Comparing field", i)
+		expStructField := message.Field(i) // pointer
+		
+		if expStructField.Kind() == reflect.Slice {
+			strVar := ""
+			byteArray, canConvert := expStructField.Interface().([]byte)
+
+			if canConvert {
+				strVar = string(byteArray)
+				fmt.Println("Expected pointer in message has value: ", strVar)
+				// if the expected field is a variable field that's not bound, bind the value of the key now
+				key, present := keyMap[strVar]
+				
+				if present {
+					if sliceValue, valuePresent := sliceMap[key]; valuePresent {
+						message.Field(i).Set(reflect.ValueOf(sliceValue))
+					}
+				}
+			}
+		}
+	}
+ 
+}
+
 // parse a message from message sequence
-func parseAMessage(v Message) (interface{}, int, error) {
+// return: message / command / use base command? / base command / error
+func parseAMessage(v Message) (interface{}, int, bool, int, error) {
 	// first pass: parse the message and put new var to value map
 	preProcess(v.Data.Xml)
 
@@ -565,6 +687,9 @@ func parseAMessage(v Message) (interface{}, int, error) {
 	fmt.Println("After second pass, message = ", addedXmlMessage)
 	message := magicVarFunc(v.MessageType)
 	err = xml.Unmarshal([]byte(addedXmlMessage), message)
+
+	// run through the slice map to fill in missing value
+	fillSliceValueToMessage(&message)
 
 	if err != nil {
 		fmt.Printf("error: %v\n", err)
@@ -576,7 +701,15 @@ func parseAMessage(v Message) (interface{}, int, error) {
 	}
 
 	cmd, _ := strconv.ParseInt(v.Command, 0, 0)
-	return message, int(cmd), err
+
+	useBase := true
+	baseCmd, err1 := strconv.ParseInt(v.BaseCommand, 0, 0)
+	if (err1 != nil) {
+		useBase = false
+		baseCmd = 0
+	}
+	
+	return message, int(cmd), useBase, int(baseCmd), err
 }
 
 /************************* Pointer value helper functions *************************/
@@ -720,7 +853,7 @@ func cleanUpAfterTest(addr *net.TCPAddr, testCase *TestCase) {
 	// these messages are supposed to be login messages !
 	for i, message := range testCase.CleanUpSequence {
 		// parse message (plug in values if necessary)
-		parsedMessage, comm, err := parseAMessage(message)
+		parsedMessage, comm, useBase, baseCmd, err := parseAMessage(message)
 		if err != nil {
 			fmt.Println("Error in parsing clean up message at message:", i)
 			continue
@@ -744,10 +877,10 @@ func cleanUpAfterTest(addr *net.TCPAddr, testCase *TestCase) {
 		conn := listConnection[connectionId]
 		if message.FromClient {
 			// message from client, so send to server now
-			sendMsg(byte(comm), protoParsedMessage, conn)
+			sendMsg(useBase, byte(baseCmd), byte(comm), protoParsedMessage, conn)
 		} else {
 			// message from server, so read from buffer now
-			readReply(byte(comm), protoParsedMessage, conn)
+			readReply(useBase, byte(baseCmd), byte(comm), protoParsedMessage, conn)
 		}
 		if err != nil {
 			continue
@@ -766,6 +899,7 @@ func cleanUpAfterTest(addr *net.TCPAddr, testCase *TestCase) {
 					break
 				}
 				if pendingMessage != nil {
+					fmt.Println("Pending message value: ", *pendingMessage)
 					// ack server
 					ackPendingMessageToServer(pendingMessage, comm, conn)
 					pending = true
@@ -809,19 +943,37 @@ func readPendingMessage(conn *net.TCPConn) (*proto.Message, error, byte) {
 		return nil, errors.New(errMes), 0
 	}
 
+	baseCmd := rbuf[0]
+	useBase := false
+	if baseCmd == DISCUSSION_PACKET_BASE_COMMAND {
+		useBase = true
+		rbuf = rbuf[1:]
+	} else {
+		baseCmd = 0
+	}
+
 	log.Print("Buffer read from network: ", rbuf)
 
 	var newValue interface{}
 	cmd := rbuf[0]
 	switch cmd {
 	case S2C_RemoteRequestAddBuddy_CMD:
-		fmt.Println("Found a request add buddy message, respond now: ")
-		newValue = magicVarFunc("Auth_Buddy_S2C_RemoteRequestAddBuddy")
+		if !useBase {
+			fmt.Println("Found a request add buddy message, respond now: ")
+			newValue = magicVarFunc("Auth_Buddy_S2C_RemoteRequestAddBuddy")
+		}
 
 	case S2C_ChatInfo2_CMD:
-		fmt.Println("Found a chat message, respond now: ")
-		newValue = magicVarFunc("Auth_Buddy_S2C_ChatInfo2")
-		
+		if !useBase {
+			fmt.Println("Found a chat message, respond now: ")
+			newValue = magicVarFunc("Auth_Buddy_S2C_ChatInfo2")
+		}
+
+	case S2C_InviteMember_CMD:
+		if useBase {
+			fmt.Println("Found an invite member message, respond now: ")
+			newValue = magicVarFunc("Discussion_S2C_InviteMember")
+		}
 	default:
 		return nil, nil, 0 // receive a non-offline message
 	}
@@ -840,6 +992,10 @@ func ackPendingMessageToServer(pendingMessage *proto.Message, comm byte, conn *n
 	var res proto.Message
 	var structValue reflect.Value
 	var replyComm byte
+
+	useBase := false
+	baseCmd := 0
+
 	switch comm {
 	case S2C_RemoteRequestAddBuddy_CMD:
 		replyMessage = magicVarFunc("Auth_Buddy_C2S_AddBuddyResult")
@@ -849,7 +1005,7 @@ func ackPendingMessageToServer(pendingMessage *proto.Message, comm byte, conn *n
 		structValue.FieldByName("UserId").Set(userId)
 		var val int32 = 2
 		structValue.FieldByName("Action").Set(reflect.ValueOf(&val))
-		replyComm = C2S_AddBuddyResult
+		replyComm = C2S_AddBuddyResult_CMD
 
 	case S2C_ChatInfo2_CMD:
 		replyMessage = magicVarFunc("Auth_Buddy_C2S_Chat2AckRemote")
@@ -859,7 +1015,21 @@ func ackPendingMessageToServer(pendingMessage *proto.Message, comm byte, conn *n
 		msgId := reflect.Indirect(reflect.ValueOf(*pendingMessage)).FieldByName("MsgId")
 		structValue.FieldByName("UserId").Set(userId)
 		structValue.FieldByName("MsgId").Set(msgId)
-		replyComm = C2S_Chat2AckRemote
+		replyComm = C2S_Chat2AckRemote_CMD
+
+	case S2C_InviteMember_CMD:
+		replyMessage = magicVarFunc("Discussion_C2S_InviteMemberResult")
+		res = replyMessage.(proto.Message)
+		structValue = reflect.Indirect(reflect.ValueOf(replyMessage))
+		inviteId := reflect.Indirect(reflect.ValueOf(*pendingMessage)).FieldByName("InviteId")
+		structValue.FieldByName("InviteId").Set(inviteId)
+
+		var val int32 = 0
+		structValue.FieldByName("Agree").Set(reflect.ValueOf(&val))
+		replyComm = C2S_InviteMemberResult_CMD
+		fmt.Println("Reply with message", res)
+		useBase = true
+		baseCmd = DISCUSSION_PACKET_BASE_COMMAND
 	}
-	sendMsg(replyComm, res, conn)
+	sendMsg(useBase, byte(baseCmd), replyComm, res, conn)
 }

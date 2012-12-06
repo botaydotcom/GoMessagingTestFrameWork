@@ -609,8 +609,6 @@
 						</Auth_C2S_LoginInfo>
 					</Data>
 				</Message>
-
-				
 			</CleanUpSequence>
 		</Test>
 	</Tests>
