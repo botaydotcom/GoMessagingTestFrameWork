@@ -1151,7 +1151,6 @@ indotest18 knows indotest16
 				</Message>
 			</MessageSequence>
 		</Test>
-
 		
 		<Test>
 			<CleanUpSequence>

@@ -90,7 +90,7 @@ indotest18 knows indotest16
 			<Name>A, B, C, D requests my discussion info, sees 1 discussion</Name>
 		</TestInfo>
 		<TestInfo skip="false" repeat="1">
-			<Name>A, B, logs in. A sends 5 message to group, B receives all in order. C logs in and receives all in order. D logs in and receives 5 messages, D acks 2 message / re-log in, receives last 3 message / ack all</Name>
+			<Name>A, B, logs in. A sends 5 message using 3 message id to group, B receives 3 in order. C logs in and receives 3 in order. D logs in and receives 3 messages, D acks 2 message / re-log in, receives last message / ack all</Name>
 		</TestInfo>
 		<TestInfo skip="false" repeat="1">
 			<Name>Clean up</Name>
@@ -907,7 +907,7 @@ indotest18 knows indotest16
 					<Data>
 						<Discussion_C2S_ChatInfoRecvedAck>
 							<DiscussionId>{{.did}}</DiscussionId>
-							<MsgId>{{.mid2}}</MsgId>
+							<MsgId>{{.mid3}}</MsgId>
 						</Discussion_C2S_ChatInfoRecvedAck>
 					</Data>
 				</Message>
