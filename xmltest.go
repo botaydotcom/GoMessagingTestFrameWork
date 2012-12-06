@@ -19,9 +19,9 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"os"
+	//"os"
 	"reflect"
-	"text/template"
+	//"text/template"
 	"time"
 	"xmltest/btalkTest/GeneratedDataStructure"
 )
@@ -43,6 +43,7 @@ const (
 	C2S_AddBuddyResult_CMD              = 0x66
 	C2S_Chat2AckRemote_CMD              = 0x82
 	C2S_InviteMemberResult_CMD   		= 0x08
+	C2S_ChatInfoRecvedAck_CMD   		= 0x0B // discussion chat ack
 )
 
 const (
@@ -56,6 +57,8 @@ const (
 	S2C_ChatInfo2_CMD       	  = 0x82
 	S2C_RemoteRequestAddBuddy_CMD = 0x72
 	S2C_InviteMember_CMD		  = 0x09
+	S2C_ChatInfo_CMD    		  = 0x08 // discussion chat ack
+
 	DISCUSSION_PACKET_BASE_COMMAND = 0xA0
 
 )
@@ -320,10 +323,9 @@ func performTestCaseOnce(addr *net.TCPAddr, testCase *TestCase, resultChan chan 
 /***************Send and Receive Messages********************************/
 // send a message with command and message using given connection
 func sendMsg(useBase bool, baseCmd byte, cmd byte, msg proto.Message, conn *net.TCPConn) {
-	log.Print("sending message base command / command / message: ", baseCmd, cmd, msg)
 	data, err := proto.Marshal(msg)
 	if err != nil {
-		log.Fatal("marchaling error: ", err)
+		log.Fatal("marshaling error: ", err)
 	}
 	length := int32(len(data)) + 1
 
@@ -331,7 +333,7 @@ func sendMsg(useBase bool, baseCmd byte, cmd byte, msg proto.Message, conn *net.
 		length = length + 1
 	}
 
-	log.Print("sending message length: ", length)
+	log.Print("sending message base length: ", length, " command / command / message: ", baseCmd, cmd, msg)
 
 	buf := new(bytes.Buffer)
 
@@ -344,7 +346,6 @@ func sendMsg(useBase bool, baseCmd byte, cmd byte, msg proto.Message, conn *net.
 	//binary.Write(buf, binary.LittleEndian, int64(0))
 	buf.Write(data)
 	conn.Write(buf.Bytes())
-	log.Print("sending message buffer: ", buf.Bytes())
 }
 
 // read a reply to a buffer based on the expected message type
@@ -392,14 +393,13 @@ func readReply(useBase bool, expBaseCmd byte, expCmd byte, expMsg proto.Message,
 		return nil, errors.New(errMes)
 	}
 
-	log.Print("Buffer read from network: ", rbuf)
-
 	cmd := rbuf[0]
 	// command needs to be equal to expected command
 	if cmd != expCmd {
 		errMsg := fmt.Sprintf("Unexpected CMD %d", cmd)
 		return nil, errors.New(errMsg)
 	}
+	
 	fmt.Println("CMD is CORRECT, expected message type: ", reflect.ValueOf(expMsg).Type())
 	newValue := reflect.New(reflect.ValueOf(expMsg).Elem().Type()).Interface()
 	res = newValue.(proto.Message)
@@ -409,6 +409,7 @@ func readReply(useBase bool, expBaseCmd byte, expCmd byte, expMsg proto.Message,
 		log.Fatal(err)
 	}
 	fmt.Println("Successfully receive message", res)
+	log.Print("Message read from network: ", res)
 	return &res, err
 }
 
@@ -448,7 +449,7 @@ func compareGetValueForPointer(expPtr reflect.Value, repPtr reflect.Value) (bool
 			fmt.Println("Comparing: ", expValue.Interface(), repValue.Interface(), " result ", isEqual)
 
 			if !isEqual {
-				errorMsg := fmt.Sprintf("Reply field value is different from expected field value. Expect: %v, get: %v",
+				errorMsg := fmt.Sprintf("Reply field value is different from expected field value. Expect: |%v|, get: |%v|",
 					expValue.Interface(), repValue.Interface())
 				result = false
 				err = errors.New(errorMsg)
@@ -464,6 +465,7 @@ func compareGetValueForSlice(expSlice reflect.Value, repSlice reflect.Value) (bo
 	fmt.Println("Comparing slices")
 	result := true
 	var err error
+	var errorMsg string
 	dif := false
 
 	strVar := ""
@@ -476,7 +478,7 @@ func compareGetValueForSlice(expSlice reflect.Value, repSlice reflect.Value) (bo
 
 	// if the expected field is a variable field that's not bound, bind the value of the key now
 	key, present := keyMap[strVar]
-	
+
 	if present {
 		fmt.Println("Bound value to map: ", repSlice.Interface())
 		// bound variable to value, return true
@@ -485,7 +487,7 @@ func compareGetValueForSlice(expSlice reflect.Value, repSlice reflect.Value) (bo
 		sliceMap[key] = repSlice.Interface()
 	} else {
 		if expSlice.Len() != repSlice.Len() {
-			fmt.Println("Comparing slices different len, expect:", expSlice.Len(), " got: ", repSlice.Len())
+			errorMsg = fmt.Sprintf("Slices have different len, expect: %d, get: %d", expSlice.Len(), repSlice.Len())
 			dif = true
 		} else {
 			for index := 0; index < expSlice.Len(); index++ {
@@ -503,7 +505,7 @@ func compareGetValueForSlice(expSlice reflect.Value, repSlice reflect.Value) (bo
 					isEqual = (value1.Interface() == value2.Interface())
 				}
 				if !isEqual {
-					fmt.Printf("Reply field in slice has different value from expected field value. Expect: %v, get: %v",
+					errorMsg = fmt.Sprintf("Reply field in slice has different value from expected field value. Expect: %v, get: %v",
 						value1.Interface(), value2.Interface())
 					dif = true
 					break
@@ -511,9 +513,7 @@ func compareGetValueForSlice(expSlice reflect.Value, repSlice reflect.Value) (bo
 			}
 		}
 	}
-	if dif {
-		errorMsg := fmt.Sprintf("Reply field value is different from expected field value. Expect: %v, get: %v",
-			reflect.ValueOf(expSlice).Interface(), reflect.ValueOf(repSlice).Interface())
+	if dif {	
 		err = errors.New(errorMsg)
 		result = false
 	}
@@ -535,7 +535,6 @@ func compareGetValueForStruct(expStruct reflect.Value, repStruct reflect.Value) 
 		if expStructField.Kind() == reflect.Ptr {
 			isEqual, err1 = compareGetValueForPointer(expStructField, repStructField)
 		} else if expStructField.Kind() == reflect.Slice {
-			fmt.Println("Comparing slice", expStructField.Interface(), repStructField.Interface())
 			isEqual, err1 = compareGetValueForSlice(expStructField, repStructField)
 		} else if expStructField.Kind() == reflect.Struct {
 			isEqual, err1 = compareGetValueForStruct(expStructField, repStructField)
@@ -607,18 +606,15 @@ func plugValueForVar(message string, varName string, value interface{}) (string)
 
 // plug value from value map to the raw xml message
 func plugValue(message string) (string, error) {
-	fmt.Println("Plug value from value map to message")
-	t := template.Must(template.New("Xml Message").Parse(message))
+	//t := template.Must(template.New("Xml Message").Parse(message))
 	//var buffer bytes.Buffer
 	//err := t.Execute(&buffer, valueMap)
 	//fmt.Println("----------------------------------------")
-	err := t.Execute(os.Stdout, valueMap)
-	fmt.Println("----------------------------------------")
+	//err := t.Execute(os.Stdout, valueMap)
 	for key, value := range(valueMap) {
 		message = plugValueForVar(message, key, value)
 	}
-	fmt.Println("MANUALLY PLUG VALUE IN RESULT IN: ", message)
-	return message, err
+	return message, nil
 }
 
 // pre-process a message and put unbound variable to value map
@@ -786,7 +782,7 @@ func printValue(ptrValue reflect.Value) {
 				fmt.Println(value.String())
 			}
 		} else {
-			fmt.Println("Invalid value")
+			fmt.Println("Uninitialized")
 		}
 	} else {
 		fmt.Println("Not a pointer")
@@ -946,13 +942,14 @@ func readPendingMessage(conn *net.TCPConn) (*proto.Message, error, byte) {
 	baseCmd := rbuf[0]
 	useBase := false
 	if baseCmd == DISCUSSION_PACKET_BASE_COMMAND {
+		fmt.Println("Found a discussion message with command ", rbuf[1])
 		useBase = true
 		rbuf = rbuf[1:]
 	} else {
 		baseCmd = 0
 	}
 
-	log.Print("Buffer read from network: ", rbuf)
+	//log.Print("Buffer read from network: ", rbuf)
 
 	var newValue interface{}
 	cmd := rbuf[0]
@@ -973,6 +970,12 @@ func readPendingMessage(conn *net.TCPConn) (*proto.Message, error, byte) {
 		if useBase {
 			fmt.Println("Found an invite member message, respond now: ")
 			newValue = magicVarFunc("Discussion_S2C_InviteMember")
+		}
+
+	case S2C_ChatInfo_CMD:
+		if useBase {
+			fmt.Println("Found a discussion chat message, respond now: ")
+			newValue = magicVarFunc("Discussion_S2C_ChatInfo")
 		}
 	default:
 		return nil, nil, 0 // receive a non-offline message
@@ -1027,6 +1030,20 @@ func ackPendingMessageToServer(pendingMessage *proto.Message, comm byte, conn *n
 		var val int32 = 0
 		structValue.FieldByName("Agree").Set(reflect.ValueOf(&val))
 		replyComm = C2S_InviteMemberResult_CMD
+		fmt.Println("Reply with message", res)
+		useBase = true
+		baseCmd = DISCUSSION_PACKET_BASE_COMMAND
+
+	case S2C_ChatInfo_CMD:
+		replyMessage = magicVarFunc("Discussion_C2S_ChatInfoRecvedAck")
+		res = replyMessage.(proto.Message)
+		structValue = reflect.Indirect(reflect.ValueOf(replyMessage))
+		discussionId := reflect.Indirect(reflect.ValueOf(*pendingMessage)).FieldByName("DiscussionId")
+		structValue.FieldByName("DiscussionId").Set(discussionId)
+		messageId := reflect.Indirect(reflect.ValueOf(*pendingMessage)).FieldByName("MsgId")
+		structValue.FieldByName("MsgId").Set(messageId)
+
+		replyComm = C2S_ChatInfoRecvedAck_CMD
 		fmt.Println("Reply with message", res)
 		useBase = true
 		baseCmd = DISCUSSION_PACKET_BASE_COMMAND

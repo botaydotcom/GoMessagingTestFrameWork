@@ -38,12 +38,12 @@ namespace DiscussionNS
             UserDiscussionList_CMD,
             DiscussionMemberList_CMD,
             DiscussionError_CMD,
-            NewDiscussionArrival_CMD,
+            NewDiscussionArrival_CMD, //0x05
             MemberLeave_CMD,
             MemberJoin_CMD,
             ChatInfo_CMD,
 			InviteMember_CMD,
-			ChatInfoAck_CMD,
+			ChatInfoAck_CMD, //0xA0
 			MyDiscussionOption_CMD
         };
     }
