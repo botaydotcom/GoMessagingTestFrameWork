@@ -62,7 +62,7 @@ indotest18 knows indotest16
 		<TestInfo skip="false" repeat="1">
 			<Name>A, B, C, D requests my discussion info, sees no discussion</Name>
 		</TestInfo>
-		<TestInfo skip="false" repeat="1">
+		<TestInfo skip="true" repeat="1">
 			<Name>Clean up</Name>
 		</TestInfo>
 	</ListTest>

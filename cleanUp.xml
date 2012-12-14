@@ -1,60 +1,145 @@
+<CleanUpSuite>
+	<CleanUpSuiteName>Clean up for user: 15/16/17/18</CleanUpSuiteName>
+	<TargetHost>203.117.155.188</TargetHost>
+	<TargetPort>9100</TargetPort>
+	<VarMap>
+		<Var name="email1">
+			<Value>indotest15@test.com</Value>
+		</Var>		
+		<Var name="name1">
+			<Value>indotest15</Value>
+		</Var>					
+		<Var name="password1">
+			<Value>e10adc3949ba59abbe56e057f20f883e</Value>
+		</Var>
+		<Var name="email2">
+			<Value>indotest16@test.com</Value>
+		</Var>		
+		<Var name="name2">
+			<Value>indotest16</Value>
+		</Var>			
+		<Var name="password2">
+			<Value>e10adc3949ba59abbe56e057f20f883e</Value>
+		</Var>
+		<Var name="email3">
+			<Value>indotest17@test.com</Value>
+		</Var>		
+		<Var name="name3">
+			<Value>indotest17</Value>
+		</Var>					
+		<Var name="password3">
+			<Value>e10adc3949ba59abbe56e057f20f883e</Value>
+		</Var>
+		<Var name="email4">
+			<Value>indotest18@test.com</Value>
+		</Var>		
+		<Var name="name4">
+			<Value>indotest18</Value>
+		</Var>					
+		<Var name="password4">
+			<Value>e10adc3949ba59abbe56e057f20f883e</Value>
+		</Var>
+		<Var name="email5">
+			<Value>indotest13@test.com</Value>
+		</Var>		
+		<Var name="name5">
+			<Value>indotest13</Value>
+		</Var>					
+		<Var name="password5">
+			<Value>e10adc3949ba59abbe56e057f20f883e</Value>
+		</Var>
+		<Var name="email6">
+			<Value>indotest14@test.com</Value>
+		</Var>		
+		<Var name="name6">
+			<Value>indotest14</Value>
+		</Var>			
+		<Var name="password6">
+			<Value>e10adc3949ba59abbe56e057f20f883e</Value>
+		</Var>
+		<Var name="title">
+			<Value>Discussion 0</Value>
+		</Var>
+	</VarMap>
+	<CleanUpSequence>
+		<!--define a series of connection (by logging in). Program will retrieve all message from server and ack all pending messages-->
+		<!--A log in-->
+		<Message type="Auth_C2S_LoginInfo" fromClient="true">		
+			<Command>0x02</Command>
+			<Data>
+				<Auth_C2S_LoginInfo>
+					<Name>{{.email1}}</Name>						
+					<Password>{{.password1}}</Password>
+					<ClientType>1</ClientType>
+					<MachineId>1</MachineId>
+					<SoftwareVersion>1</SoftwareVersion>
+				</Auth_C2S_LoginInfo>
+			</Data>
+		</Message>
 
-			<CleanUpSequence>
-				<!--define a series of connection (by logging in). Program will retrieve all message from server and ack all pending messages-->
-				<!--A log in-->
-				<Message type="Auth_C2S_LoginInfo" fromClient="true">		
-					<Command>0x02</Command>
-					<Data>
-						<Auth_C2S_LoginInfo>
-							<Name>{{.email1}}</Name>						
-							<Password>{{.password1}}</Password>
-							<ClientType>1</ClientType>
-							<MachineId>1</MachineId>
-							<SoftwareVersion>1</SoftwareVersion>
-						</Auth_C2S_LoginInfo>
-					</Data>
-				</Message>
+		<Message type="Auth_C2S_LoginInfo" fromClient="true" connection="1">		
+			<Command>0x02</Command>
+			<Data>
+				<Auth_C2S_LoginInfo>
+					<Name>{{.email2}}</Name>						
+					<Password>{{.password2}}</Password>
+					<ClientType>1</ClientType>
+					<MachineId>1</MachineId>
+					<SoftwareVersion>1</SoftwareVersion>
+				</Auth_C2S_LoginInfo>
+			</Data>
+		</Message>
 
-				<!--Server sends login info to A-->
-				<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
-					<Command>0x02</Command>
-					<Data>
-						<Auth_S2C_LoginInfoResult>
-							<MyInfo>
-								<UserId>{{.userId1}}</UserId>
-								<Name>{{.email1}}</Name>						
-								<NickName>{{.name1}}</NickName>
-							</MyInfo>
-						</Auth_S2C_LoginInfoResult>
-					</Data>
-				</Message>
+		<Message type="Auth_C2S_LoginInfo" fromClient="true"  connection="2">		
+			<Command>0x02</Command>
+			<Data>
+				<Auth_C2S_LoginInfo>
+					<Name>{{.email3}}</Name>						
+					<Password>{{.password3}}</Password>
+					<ClientType>1</ClientType>
+					<MachineId>1</MachineId>
+					<SoftwareVersion>1</SoftwareVersion>
+				</Auth_C2S_LoginInfo>
+			</Data>
+		</Message>
 
-				<!--B log in-->
-				<Message type="Auth_C2S_LoginInfo" fromClient="true" connection="1">		
-					<Command>0x02</Command>
-					<Data>
-						<Auth_C2S_LoginInfo>
-							<Name>{{.email2}}</Name>						
-							<Password>{{.password2}}</Password>
-							<ClientType>1</ClientType>
-							<MachineId>1</MachineId>
-							<SoftwareVersion>1</SoftwareVersion>
-						</Auth_C2S_LoginInfo>
-					</Data>
-				</Message>
+		<Message type="Auth_C2S_LoginInfo" fromClient="true"  connection="3">		
+			<Command>0x02</Command>
+			<Data>
+				<Auth_C2S_LoginInfo>
+					<Name>{{.email4}}</Name>						
+					<Password>{{.password4}}</Password>
+					<ClientType>1</ClientType>
+					<MachineId>1</MachineId>
+					<SoftwareVersion>1</SoftwareVersion>
+				</Auth_C2S_LoginInfo>
+			</Data>
+		</Message>
 
-				<!--Server sends login info to B-->
-				<Message type="Auth_S2C_LoginUserInfo" fromClient="false" connection="1">
-					<Command>0x02</Command>
-					<Data>
-						<Auth_S2C_LoginInfoResult>
-							<MyInfo>
-								<UserId>{{.userId2}}</UserId>
-								<Name>{{.email2}}</Name>						
-								<NickName>{{.name2}}</NickName>
-							</MyInfo>
-						</Auth_S2C_LoginInfoResult>
-					</Data>
-				</Message>
-			</CleanUpSequence>
-		</Test>
+		<Message type="Auth_C2S_LoginInfo" fromClient="true"  connection="4">		
+			<Command>0x02</Command>
+			<Data>
+				<Auth_C2S_LoginInfo>
+					<Name>{{.email5}}</Name>						
+					<Password>{{.password5}}</Password>
+					<ClientType>1</ClientType>
+					<MachineId>1</MachineId>
+					<SoftwareVersion>1</SoftwareVersion>
+				</Auth_C2S_LoginInfo>
+			</Data>
+		</Message>
+
+		<Message type="Auth_C2S_LoginInfo" fromClient="true"  connection="5">		
+			<Command>0x02</Command>
+			<Data>
+				<Auth_C2S_LoginInfo>
+					<Name>{{.email6}}</Name>						
+					<Password>{{.password6}}</Password>
+					<ClientType>1</ClientType>
+					<MachineId>1</MachineId>
+					<SoftwareVersion>1</SoftwareVersion>
+				</Auth_C2S_LoginInfo>
+			</Data>
+		</Message>
+	</CleanUpSequence>
+</CleanUpSuite>

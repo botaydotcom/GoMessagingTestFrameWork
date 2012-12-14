@@ -1,4 +1,4 @@
-package main
+package TestEngine
 
 import (
 	"code.google.com/p/goprotobuf/proto"
@@ -15,7 +15,6 @@ import (
 	"encoding/binary"
 	//"encoding/hex"
 	"encoding/xml"
-	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -80,9 +79,8 @@ const (
 )
 
 const (
-	CONN_NUM     = 3
-	READ_TIMEOUT = "3s"
-	DEFAULT_LINGER_PERIOD = 5
+	READ_PENDING_TIMEOUT = "3s"
+	CONN_NUM     		 = 3
 )
 
 // DEBUG FLAGS
@@ -94,7 +92,7 @@ const (
 	DEBUG_CLEANING_UP	  = false
 	DEBUG_PARSING_MESSAGE = false
 
-	DEBUG_SENDING_MESSAGE = true
+	DEBUG_SENDING_MESSAGE = false
 	DEBUG_READING_MESSAGE = false
 )
 
@@ -170,12 +168,11 @@ var rawData []byte
 var field int
 var regVar *regexp.Regexp
 var numVar int = 0
+var readTimeOut string
 
-func main() {
-	var inputFile string
-	flag.StringVar(&inputFile, "in", "test.xml", "The test input file")
-	flag.Parse()
-	// open file
+func ExecuteTest(inputFile string, timeOut int) {
+// open file
+	readTimeOut = fmt.Sprintf("%ds", timeOut)
 	fmt.Println("Testing file:", inputFile)
 
 	keyMap = make(map[string]string)
@@ -208,10 +205,16 @@ func executeTestSuite(testSuite *TestSuite) {
 	var testSuiteResult TestSuiteResult
 	testSuiteResult.Skip = make([]bool, len(testSuite.ListTestInfos))
 	testSuiteResult.TestCaseResults = make([]TestCaseResult, len(testSuite.ListTestInfos))
+
+	skipped := false
 	for i := range testSuite.ListTestInfos {
-		if !testSuite.ListTestInfos[i].Skip {
+		if !skipped && !testSuite.ListTestInfos[i].Skip {
 			testSuiteResult.Skip[i] = false
 			testSuiteResult.TestCaseResults[i] = executeTestCase(addr, &(testSuite.ListTestInfos[i]), &(testSuite.ListTestCases[i]))
+			if testSuiteResult.TestCaseResults[i].NumCorrect !=  testSuiteResult.TestCaseResults[i].NumTest {
+				skipped = true
+				// skip the rest of the test suite
+			}
 		} else {
 			testSuiteResult.Skip[i] = true
 		}
@@ -238,7 +241,7 @@ func executeTestCase(addr *net.TCPAddr, testInfo *TestInfo, testCase *TestCase) 
 		testCaseResult.Results[i] = <-chans[i]
 		if testCaseResult.Results[i].IsCorrect {
 			testCaseResult.NumCorrect++
-		}
+		} 
 	}
 
 	return testCaseResult
@@ -317,10 +320,7 @@ func performTestCaseOnce(addr *net.TCPAddr, testCase *TestCase, resultChan chan 
 		}
 		if message.Close {
 			connectionState[connectionId] = false
-
-			if (conn.Close() == nil) {
-				fmt.Println("CONNECTION SUCCESSFULLY CLOSED")
-			}
+			conn.Close()
 		}
 	}
 
@@ -364,19 +364,14 @@ func sendMsg(useBase bool, baseCmd byte, cmd byte, msg proto.Message, conn *net.
 	binary.Write(buf, binary.LittleEndian, cmd)
 	//binary.Write(buf, binary.LittleEndian, int64(0))
 	buf.Write(data)
-	numSent, err := conn.Write(buf.Bytes())
-	if (err != nil) {
-		log.Fatal("error while sending data to server ", err, " num bytes sent: ", numSent)
-	} else {
-		fmt.Println("MESSAGE SUCCESSFULLY SENT", numSent)
-	}
+	conn.Write(buf.Bytes())
 }
 
 // read a reply to a buffer based on the expected message type
 // return error if reply message has different type of command than expected
 func readReply(useBase bool, expBaseCmd byte, expCmd byte, expMsg proto.Message, conn *net.TCPConn) (*proto.Message, error) {
 	length := int32(0)
-	duration, err := time.ParseDuration(READ_TIMEOUT)
+	duration, err := time.ParseDuration(readTimeOut)
 	timeNow := time.Now()
 
 	err = conn.SetReadDeadline(timeNow.Add(duration))
@@ -385,7 +380,6 @@ func readReply(useBase bool, expBaseCmd byte, expCmd byte, expMsg proto.Message,
 	}
 
 	err = binary.Read(conn, binary.LittleEndian, &length)
-	fmt.Println("READING:", length, "FROM SOCKET")
 	if err != nil {
 		return nil, err
 	}
@@ -852,7 +846,8 @@ func readXmlInput(inputFile string) (*TestSuite, error) {
 	return &testSuite, nil
 }
 
-func prettyPrintTestCase(testCaseInfo *TestInfo, isSkipped bool, result *TestCaseResult) {
+func prettyPrintTestCase(testCaseInfo *TestInfo, isSkipped bool, result *TestCaseResult) (bool){
+	incorrect := false
 	var offset = "     "
 	fmt.Printf(" %sTEST CASE: %s\n", offset, testCaseInfo.Name)
 	if isSkipped {
@@ -866,6 +861,7 @@ func prettyPrintTestCase(testCaseInfo *TestInfo, isSkipped bool, result *TestCas
 				fmt.Printf("	CORRECT.   Time taken: %5d us \n", (aResult.TimeTaken / 1000))
 				totalTime += int(aResult.TimeTaken / 1000)
 			} else {
+				incorrect = true
 				fmt.Println("   INCORRECT. Reason: ", aResult.Reason)
 				totalTime += int(aResult.TimeTaken / 1000)
 			}
@@ -876,18 +872,25 @@ func prettyPrintTestCase(testCaseInfo *TestInfo, isSkipped bool, result *TestCas
 			(result.NumCorrect * 100.0 / result.NumTest), totalTime)
 	}
 	fmt.Println(offset, "END OF TEST CASE RESULT")
+	return incorrect
 }
 
 func prettyPrintTestSuite(testSuite *TestSuite, result *TestSuiteResult) {
+	incorrect := false
 	fmt.Println("--------------------------------------------------------------------------------")
 	fmt.Printf("TEST SUITE: %s\n", testSuite.TestSuiteName)
 	for i := 0; i < len(testSuite.ListTestInfos); i++ {
 		fmt.Println()
-		prettyPrintTestCase(&(testSuite.ListTestInfos[i]), result.Skip[i], &(result.TestCaseResults[i]))
+		if (prettyPrintTestCase(&(testSuite.ListTestInfos[i]), result.Skip[i], &(result.TestCaseResults[i]))) {
+			incorrect = true
+		}
 		fmt.Println()
 	}
 	fmt.Println("END OF TEST SUITE RESULT")
 	fmt.Println("--------------------------------------------------------------------------------")
+	if (incorrect) {
+		log.Fatal("TEST CASE FAILED, STOP!")
+	}
 }
 
 func cleanUpAfterTest(addr *net.TCPAddr, testCase *TestCase) {
@@ -966,7 +969,7 @@ func cleanUpAfterTest(addr *net.TCPAddr, testCase *TestCase) {
 // return error if cannot read a message in these type
 func readPendingMessage(conn *net.TCPConn) (*proto.Message, error, byte) {
 	length := int32(0)
-	duration, err := time.ParseDuration(READ_TIMEOUT)
+	duration, err := time.ParseDuration(READ_PENDING_TIMEOUT)
 	timeNow := time.Now()
 
 	err = conn.SetReadDeadline(timeNow.Add(duration))

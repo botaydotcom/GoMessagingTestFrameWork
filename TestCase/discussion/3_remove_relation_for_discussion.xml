@@ -50,10 +50,7 @@
 
 	<ListTest>
 		<TestInfo skip="false" repeat="1">
-			<Name>A adds B, C. B adds D.</Name>
-		</TestInfo>
-		<TestInfo skip="false" repeat="1">
-			<Name>Log in to get user id</Name>
+			<Name>A remove B, C. B remove D.</Name>
 		</TestInfo>
 		<TestInfo skip="false" repeat="1">
 			<Name>A checking buddy list</Name>
@@ -61,7 +58,7 @@
 		<TestInfo skip="false" repeat="1">
 			<Name>B checking buddy list</Name>
 		</TestInfo>
-		<TestInfo skip="true" repeat="1">
+		<TestInfo skip="false" repeat="1">
 			<Name>Clean up</Name>
 		</TestInfo>
 	</ListTest>
@@ -153,6 +150,26 @@
 					</Data>
 				</Message>
 
+				<!--Server sends A info that B's online-->
+				<Message type="Auth_Buddy_S2C_BuddyOnline" fromClient="false">
+					<Command>0x73</Command>
+					<Data>
+						<Auth_Buddy_S2C_BuddyOnline>
+							<UserId>{{.userId2}}</UserId>							
+						</Auth_Buddy_S2C_BuddyOnline>
+					</Data>
+				</Message>
+
+				<!--Server sends A info that C's online-->
+				<Message type="Auth_Buddy_S2C_BuddyOnline" fromClient="false">
+					<Command>0x73</Command>
+					<Data>
+						<Auth_Buddy_S2C_BuddyOnline>
+							<UserId>{{.userId3}}</UserId>							
+						</Auth_Buddy_S2C_BuddyOnline>
+					</Data>
+				</Message>
+
 				<!--D log in-->
 				<Message type="Auth_C2S_LoginInfo" fromClient="true" connection="3">		
 					<Command>0x02</Command>
@@ -181,286 +198,71 @@
 					</Data>
 				</Message>
 
-				<!--A send message to Server to add B-->
-				<Message type="Auth_Buddy_C2S_RequestAddBuddy" fromClient="true">
-					<Command>0x65</Command>
+				<!--Server sends B info that D's online-->
+				<Message type="Auth_Buddy_S2C_BuddyOnline" fromClient="false" connection="1">
+					<Command>0x73</Command>
 					<Data>
-						<Auth_Buddy_C2S_RequestAddBuddy>
-							<UserId>{{.userId2}}</UserId>
-							<Message>{{.msg}}</Message>
-						</Auth_Buddy_C2S_RequestAddBuddy>
-					</Data>
-				</Message>
-
-				<!--A send message to Server to add C-->
-				<Message type="Auth_Buddy_C2S_RequestAddBuddy" fromClient="true">
-					<Command>0x65</Command>
-					<Data>
-						<Auth_Buddy_C2S_RequestAddBuddy>
-							<UserId>{{.userId3}}</UserId>
-							<Message>{{.msg}}</Message>
-						</Auth_Buddy_C2S_RequestAddBuddy>
-					</Data>
-				</Message>
-
-				<!--B send message to Server to add D-->
-				<Message type="Auth_Buddy_C2S_RequestAddBuddy" fromClient="true" connection="1">
-					<Command>0x65</Command>
-					<Data>
-						<Auth_Buddy_C2S_RequestAddBuddy>
+						<Auth_Buddy_S2C_BuddyOnline>
 							<UserId>{{.userId4}}</UserId>
-							<Message>{{.msg}}</Message>
-						</Auth_Buddy_C2S_RequestAddBuddy>
+						</Auth_Buddy_S2C_BuddyOnline>
+					</Data>
+				</Message>
+
+				<!--A send delete message to Server -->
+				<Message type="Auth_Buddy_C2S_DeleteBuddy" fromClient="true">
+					<Command>0x67</Command>
+					<Data>
+						<Auth_Buddy_C2S_DeleteBuddy>
+							<UserId>{{.userId2}}</UserId>
+							<UserId>{{.userId3}}</UserId>
+						</Auth_Buddy_C2S_DeleteBuddy>
 					</Data>
 				</Message>
 
 				<!--Server send message to B -->
-				<Message type="Auth_Buddy_S2C_RemoteRequestAddBuddy" fromClient="false" connection="1">
-					<Command>0x72</Command>
+				<Message type="Auth_Buddy_S2C_BuddyDeleted" fromClient="false" connection="1">
+					<Command>0x68</Command>
 					<Data>
-						<Auth_Buddy_S2C_RemoteRequestAddBuddy>
-							<FromId>{{.userId1}}</FromId>
-							<Message>{{.msg}}</Message>
-						</Auth_Buddy_S2C_RemoteRequestAddBuddy>
+						<BuddyDeleted>
+							<UserId>{{.userId1}}</UserId>
+						</BuddyDeleted>
 					</Data>
 				</Message>
 
 				<!--Server send message to C -->
-				<Message type="Auth_Buddy_S2C_RemoteRequestAddBuddy" fromClient="false" connection="2">
-					<Command>0x72</Command>
+				<Message type="Auth_Buddy_S2C_BuddyDeleted" fromClient="false" connection="2">
+					<Command>0x68</Command>
 					<Data>
-						<Auth_Buddy_S2C_RemoteRequestAddBuddy>
-							<FromId>{{.userId1}}</FromId>
-							<Message>{{.msg}}</Message>
-						</Auth_Buddy_S2C_RemoteRequestAddBuddy>
+						<BuddyDeleted>
+							<UserId>{{.userId1}}</UserId>
+						</BuddyDeleted>
+					</Data>
+				</Message>
+
+				<!--B send delete message to Server -->
+				<Message type="Auth_Buddy_C2S_DeleteBuddy" fromClient="true" connection="1">
+					<Command>0x67</Command>
+					<Data>
+						<Auth_Buddy_C2S_DeleteBuddy>
+							<UserId>{{.userId4}}</UserId>
+						</Auth_Buddy_C2S_DeleteBuddy>
 					</Data>
 				</Message>
 
 				<!--Server send message to D -->
-				<Message type="Auth_Buddy_S2C_RemoteRequestAddBuddy" fromClient="false" connection="3">
-					<Command>0x72</Command>
+				<Message type="Auth_Buddy_S2C_BuddyDeleted" fromClient="false" connection="3">
+					<Command>0x68</Command>
 					<Data>
-						<Auth_Buddy_S2C_RemoteRequestAddBuddy>
-							<FromId>{{.userId2}}</FromId>
-							<Message>{{.msg}}</Message>
-						</Auth_Buddy_S2C_RemoteRequestAddBuddy>
-					</Data>
-				</Message>
-
-				<!--B send ack message to Server -->
-				<Message type="Auth_Buddy_C2S_AddBuddyResult" fromClient="true" connection="1">
-					<Command>0x66</Command>
-					<Data>
-						<Auth_Buddy_C2S_AddBuddyResult>
-							<UserId>{{.userId1}}</UserId>
-							<Action>3</Action>
-						</Auth_Buddy_C2S_AddBuddyResult>
-					</Data>
-				</Message>
-
-				<!--C send ack message to Server -->
-				<Message type="Auth_Buddy_C2S_AddBuddyResult" fromClient="true" connection="2">
-					<Command>0x66</Command>
-					<Data>
-						<Auth_Buddy_C2S_AddBuddyResult>
-							<UserId>{{.userId1}}</UserId>
-							<Action>3</Action>
-						</Auth_Buddy_C2S_AddBuddyResult>
-					</Data>
-				</Message>
-
-				<!--D send ack message to Server -->
-				<Message type="Auth_Buddy_C2S_AddBuddyResult" fromClient="true" connection="3">
-					<Command>0x66</Command>
-					<Data>
-						<Auth_Buddy_C2S_AddBuddyResult>
+						<BuddyDeleted>
 							<UserId>{{.userId2}}</UserId>
-							<Action>3</Action>
-						</Auth_Buddy_C2S_AddBuddyResult>
-					</Data>
-				</Message>
-
-				<!--Server send result message to B -->
-				<Message type="Auth_Buddy_S2C_RemoteAddBuddyResult" fromClient="false" connection="1">
-					<Command>0x67</Command>
-					<Data>
-						<Auth_Buddy_S2C_RemoteAddBuddyResult>
-							<FromId>{{.userId1}}</FromId>
-						</Auth_Buddy_S2C_RemoteAddBuddyResult>
-					</Data>
-				</Message>
-
-				<!--Server send result message to A -->
-				<Message type="Auth_Buddy_S2C_RemoteAddBuddyResult" fromClient="false">
-					<Command>0x67</Command>
-					<Data>
-						<Auth_Buddy_S2C_RemoteAddBuddyResult>
-							<FromId>{{.userId2}}</FromId>
-						</Auth_Buddy_S2C_RemoteAddBuddyResult>
-					</Data>
-				</Message>
-
-				<!--Server send result message to C -->
-				<Message type="Auth_Buddy_S2C_RemoteAddBuddyResult" fromClient="false" connection="2">
-					<Command>0x67</Command>
-					<Data>
-						<Auth_Buddy_S2C_RemoteAddBuddyResult>
-							<FromId>{{.userId1}}</FromId>
-						</Auth_Buddy_S2C_RemoteAddBuddyResult>
-					</Data>
-				</Message>
-
-				<!--Server send result message to A -->
-				<Message type="Auth_Buddy_S2C_RemoteAddBuddyResult" fromClient="false">
-					<Command>0x67</Command>
-					<Data>
-						<Auth_Buddy_S2C_RemoteAddBuddyResult>
-							<FromId>{{.userId3}}</FromId>
-						</Auth_Buddy_S2C_RemoteAddBuddyResult>
-					</Data>
-				</Message>
-
-				<!--Server send result message to B -->
-				<Message type="Auth_Buddy_S2C_RemoteAddBuddyResult" fromClient="false" connection="1">
-					<Command>0x67</Command>
-					<Data>
-						<Auth_Buddy_S2C_RemoteAddBuddyResult>
-							<FromId>{{.userId4}}</FromId>
-						</Auth_Buddy_S2C_RemoteAddBuddyResult>
-					</Data>
-				</Message>
-
-				<!--Server send result message to D -->
-				<Message type="Auth_Buddy_S2C_RemoteAddBuddyResult" fromClient="false" connection="3">
-					<Command>0x67</Command>
-					<Data>
-						<Auth_Buddy_S2C_RemoteAddBuddyResult>
-							<FromId>{{.userId2}}</FromId>
-						</Auth_Buddy_S2C_RemoteAddBuddyResult>
+						</BuddyDeleted>
 					</Data>
 				</Message>
 
 			</MessageSequence>
 		</Test>
 
-		<!--A B C D all log in to get user id-->
-		<Test>
-			<MessageSequence>
-				<!--A log in-->
-				<Message type="Auth_C2S_LoginInfo" fromClient="true">		
-					<Command>0x02</Command>
-					<Data>
-						<Auth_C2S_LoginInfo>
-							<Name>{{.email1}}</Name>						
-							<Password>{{.password1}}</Password>
-							<ClientType>1</ClientType>
-							<MachineId>1</MachineId>
-							<SoftwareVersion>1</SoftwareVersion>
-						</Auth_C2S_LoginInfo>
-					</Data>
-				</Message>
-
-				<!--Server sends A log in info-->
-				<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
-					<Command>0x02</Command>
-					<Data>
-						<Auth_S2C_LoginInfoResult>
-							<MyInfo>
-								<UserId>{{.userId1}}</UserId>
-								<Name>{{.email1}}</Name>						
-								<NickName>{{.name1}}</NickName>
-							</MyInfo>
-						</Auth_S2C_LoginInfoResult>
-					</Data>
-				</Message>
-
-				<!--B log in-->
-				<Message type="Auth_C2S_LoginInfo" fromClient="true" connection="1">		
-					<Command>0x02</Command>
-					<Data>
-						<Auth_C2S_LoginInfo>
-							<Name>{{.email2}}</Name>						
-							<Password>{{.password2}}</Password>
-							<ClientType>1</ClientType>
-							<MachineId>1</MachineId>
-							<SoftwareVersion>1</SoftwareVersion>
-						</Auth_C2S_LoginInfo>
-					</Data>
-				</Message>
-
-				<!--Server sends B log in info-->
-				<Message type="Auth_S2C_LoginUserInfo" fromClient="false" connection="1">
-					<Command>0x02</Command>
-					<Data>
-						<Auth_S2C_LoginInfoResult>
-							<MyInfo>
-								<UserId>{{.userId2}}</UserId>
-								<Name>{{.email2}}</Name>						
-								<NickName>{{.name2}}</NickName>
-							</MyInfo>
-						</Auth_S2C_LoginInfoResult>
-					</Data>
-				</Message>
-
-				<!--C log in-->
-				<Message type="Auth_C2S_LoginInfo" fromClient="true"  connection="2">		
-					<Command>0x02</Command>
-					<Data>
-						<Auth_C2S_LoginInfo>
-							<Name>{{.email3}}</Name>						
-							<Password>{{.password3}}</Password>
-							<ClientType>1</ClientType>
-							<MachineId>1</MachineId>
-							<SoftwareVersion>1</SoftwareVersion>
-						</Auth_C2S_LoginInfo>
-					</Data>
-				</Message>
-
-				<!--Server sends C log in info-->
-				<Message type="Auth_S2C_LoginUserInfo" fromClient="false"  connection="2">
-					<Command>0x02</Command>
-					<Data>
-						<Auth_S2C_LoginInfoResult>
-							<MyInfo>
-								<UserId>{{.userId3}}</UserId>
-								<Name>{{.email3}}</Name>						
-								<NickName>{{.name3}}</NickName>
-							</MyInfo>
-						</Auth_S2C_LoginInfoResult>
-					</Data>
-				</Message>
-
-				<!--D log in-->
-				<Message type="Auth_C2S_LoginInfo" fromClient="true" connection="3">		
-					<Command>0x02</Command>
-					<Data>
-						<Auth_C2S_LoginInfo>
-							<Name>{{.email4}}</Name>						
-							<Password>{{.password4}}</Password>
-							<ClientType>1</ClientType>
-							<MachineId>1</MachineId>
-							<SoftwareVersion>1</SoftwareVersion>
-						</Auth_C2S_LoginInfo>
-					</Data>
-				</Message>
-
-				<!--Server sends D log in info-->
-				<Message type="Auth_S2C_LoginUserInfo" fromClient="false" connection="3">
-					<Command>0x02</Command>
-					<Data>
-						<Auth_S2C_LoginInfoResult>
-							<MyInfo>
-								<UserId>{{.userId4}}</UserId>
-								<Name>{{.email4}}</Name>						
-								<NickName>{{.name4}}</NickName>
-							</MyInfo>
-						</Auth_S2C_LoginInfoResult>
-					</Data>
-				</Message>
-			</MessageSequence>
-		</Test>
-
-		<!--A requests friend list from server, sees B and C as friend-->
+		<!--A requests friend list from server, see no buddy-->
 		<Test>
 			<MessageSequence>
 				<!--A log in-->
@@ -506,19 +308,13 @@
 					<Command>0x65</Command>
 					<Data>
 						<Auth_Buddy_S2C_BuddySimpleInfoList>
-							<Buddies>
-								<UserId>{{.userId2}}</UserId>
-							</Buddies>
-							<Buddies>
-								<UserId>{{.userId3}}</UserId>
-							</Buddies>
 						</Auth_Buddy_S2C_BuddySimpleInfoList>
 					</Data>
 				</Message>
 			</MessageSequence>
 		</Test>
 
-		<!--B requests friend list from server, sees A and D as friend -->
+		<!--B requests friend list from server, sees no buddy -->
 		<Test>
 			<MessageSequence>
 				<!--B log in-->
@@ -564,12 +360,6 @@
 					<Command>0x65</Command>
 					<Data>
 						<Auth_Buddy_S2C_BuddySimpleInfoList>
-							<Buddies>
-								<UserId>{{.userId1}}</UserId>
-							</Buddies>
-							<Buddies>
-								<UserId>{{.userId4}}</UserId>
-							</Buddies>
 						</Auth_Buddy_S2C_BuddySimpleInfoList>
 					</Data>
 				</Message>

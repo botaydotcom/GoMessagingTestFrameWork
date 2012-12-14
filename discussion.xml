@@ -53,7 +53,7 @@ indotest18 knows indotest16
 	</VarMap>
 
 	<ListTest>
-		<TestInfo skip="true" repeat="1">
+		<TestInfo skip="false" repeat="1">
 			<Name>A create discussion without invitation</Name>
 		</TestInfo>
 		<TestInfo skip="false" repeat="1">
@@ -62,13 +62,13 @@ indotest18 knows indotest16
 		<TestInfo skip="false" repeat="1">
 			<Name>A requests discussion member list info, see A.</Name>
 		</TestInfo>
-		<TestInfo skip="false" repeat="1">
+		<TestInfo skip="true" repeat="1">
 			<Name>A leaves discussion in case 1</Name>
 		</TestInfo>
 		<TestInfo skip="false" repeat="1">
 			<Name>A requests discussion info, see no discussion.</Name>
 		</TestInfo>
-		<TestInfo skip="true" repeat="1">
+		<TestInfo skip="false" repeat="1">
 			<Name>Clean up</Name>
 		</TestInfo>
 	</ListTest>
@@ -122,7 +122,7 @@ indotest18 knows indotest16
 					<Command>0x05</Command>
 					<Data>
 						<Discussion_S2C_NewDiscussionArrival>
-							<DiscussionId>{{.did}}</DiscussionId>							
+							<DiscussionId>{{.didx}}</DiscussionId>							
 						</Discussion_S2C_NewDiscussionArrival>				
 					</Data>
 				</Message>	

@@ -62,16 +62,16 @@ indotest18 knows indotest16
 		<TestInfo skip="false" repeat="1">
 			<Name>A sends invitation to B (offline) and C (offline) and logs out. B receives invitation and accept, and invites D. C logs in and accept. A logs in. D logs in and accepts</Name>
 		</TestInfo>		
-		<TestInfo skip="true" repeat="1">
+		<TestInfo skip="false" repeat="1">
 			<Name>B, C, D requests discussion info, see discussion in case 1.</Name>
 		</TestInfo>
-		<TestInfo skip="true" repeat="1">
+		<TestInfo skip="false" repeat="1">
 			<Name>A requests discussion member list info, see A, B, C, D.</Name>
 		</TestInfo>
 		<TestInfo skip="false" repeat="1">
 			<Name>D logs in and leaves discussion. A logs in, B logs in and leaves.</Name>
 		</TestInfo>
-		<TestInfo skip="true" repeat="1">
+		<TestInfo skip="false" repeat="1">
 			<Name>A, requests discussion member list, see A, C.</Name>
 		</TestInfo>
 		<TestInfo skip="false" repeat="1">
@@ -80,7 +80,7 @@ indotest18 knows indotest16
 		<TestInfo skip="false" repeat="1">
 			<Name>A request discussion list, does not see any disscusion.</Name>
 		</TestInfo>
-		<TestInfo skip="false" repeat="1">
+		<TestInfo skip="true" repeat="1">
 			<Name>Clean up</Name>
 		</TestInfo>
 	</ListTest>
