@@ -547,6 +547,7 @@ func readReply(useBase bool, expBaseCmd byte, expCmd byte, expMsg proto.Message,
 	err = binary.Read(conn, binary.LittleEndian, &length)
 	fmt.Println("READING:", length, "FROM SOCKET")
 	if err != nil {
+		fmt.Println("Cant read: Cant read length from socket")
 		return nil, errors.New("Cant read: Cant read length from socket")
 	}
 
@@ -555,6 +556,7 @@ func readReply(useBase bool, expBaseCmd byte, expCmd byte, expMsg proto.Message,
 		var baseCmd byte
 		err = binary.Read(conn, binary.LittleEndian, &baseCmd)
 		if err != nil {
+			fmt.Println("Cant read: Cant read base command from socket")
 			return nil, errors.New("Cant read: Cant read message from socket")
 		}
 
@@ -564,6 +566,7 @@ func readReply(useBase bool, expBaseCmd byte, expCmd byte, expMsg proto.Message,
 			rbuf := make([]byte, length)
 			io.ReadFull(conn, rbuf)
 			// report error
+			fmt.Println("Unexpected BASE CMD")
 			errMsg := fmt.Sprintf("Unexpected BASE CMD %d", baseCmd)
 			return nil, errors.New(errMsg)	
 		}
@@ -572,11 +575,13 @@ func readReply(useBase bool, expBaseCmd byte, expCmd byte, expMsg proto.Message,
 	rbuf := make([]byte, length)
 	_, err = io.ReadFull(conn, rbuf)
 	if err != nil {
+		fmt.Println("Cant read: Cant read full message from sockets")
 		return nil, err
 	}
 
 	var res proto.Message
 	if len(rbuf) < 1 {
+		fmt.Println("Reply message is too short")
 		errMes := fmt.Sprintf("Reply message is too short: %d", len(rbuf))
 		return nil, errors.New(errMes)
 	}
@@ -584,6 +589,7 @@ func readReply(useBase bool, expBaseCmd byte, expCmd byte, expMsg proto.Message,
 	cmd := rbuf[0]
 	// command needs to be equal to expected command
 	if cmd != expCmd {
+		fmt.Println("Unexpected CMD", cmd)
 		errMsg := fmt.Sprintf("Unexpected CMD %d", cmd)
 		return nil, errors.New(errMsg)
 	}
@@ -593,11 +599,12 @@ func readReply(useBase bool, expBaseCmd byte, expCmd byte, expMsg proto.Message,
 	err = proto.Unmarshal(rbuf[1:], res)
 
 	if err != nil {
+		fmt.Println("Cannot unmarshal")
 		log.Fatal(err)
 	}
 
 	if (DEBUG_READING_MESSAGE) {
-		log.Print("Successfully receive message from network: ", res)
+		log.Print("Successfully receive message from network: ", reflect.ValueOf(expMsg).Type(), res)
 	}
 	return &res, err
 }

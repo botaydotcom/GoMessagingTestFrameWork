@@ -14,7 +14,7 @@ const (
 	DEFAULT_EXTENSION = "xml"
 	RESET_ITERATION = 1000
 	SLEEP_BETWEEN_TEST = 100 // milisecond
-	TIME_OUT_FOR_READ = 3
+	TIME_OUT_FOR_READ = 10
 )
 
 var timeOut int

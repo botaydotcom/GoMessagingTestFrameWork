@@ -12,10 +12,10 @@ import (
 	//"garena.com/btalkTest/TOKEN_S"
 	"bytes"
 	//"crypto/md5"
+	"flag"
 	"encoding/binary"
 	//"encoding/hex"
 	"encoding/xml"
-	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -80,9 +80,8 @@ const (
 )
 
 const (
-	CONN_NUM     = 3
-	READ_TIMEOUT = "3s"
-	DEFAULT_LINGER_PERIOD = 5
+	READ_PENDING_TIMEOUT = "3s"
+	CONN_NUM     		 = 3
 )
 
 // DEBUG FLAGS
@@ -94,8 +93,9 @@ const (
 	DEBUG_CLEANING_UP	  = false
 	DEBUG_PARSING_MESSAGE = false
 
-	DEBUG_SENDING_MESSAGE = true
+	DEBUG_SENDING_MESSAGE = false
 	DEBUG_READING_MESSAGE = false
+	DEBUG_IGNORING_MESSAGE = false
 )
 
 type InnerXml struct {
@@ -121,9 +121,16 @@ type Var struct {
 	Value string
 }
 
+type IgnoreMessageSignature struct {
+	BaseCommand string
+	Command 	string
+	MessageType string
+}
+
 type TestInfo struct {
 	Skip   bool `xml:"skip,attr"`
 	Repeat int  `xml:"repeat,attr"`
+	IgnoreMessages []IgnoreMessageSignature `xml:"IgnoreMessages>Message"`
 	Name   string
 }
 
@@ -137,6 +144,7 @@ type TestSuite struct {
 	TestSuiteName string
 	TargetHost    string
 	TargetPort    string
+	GlobalIgnoreMessages []IgnoreMessageSignature `xml:"IgnoreMessages>Message"`
 	GlobalVarMap  []Var      `xml:"VarMap>Var"`
 	ListTestInfos []TestInfo `xml:"ListTest>TestInfo"`
 	ListTestCases []TestCase `xml:"Tests>Test"`
@@ -165,11 +173,15 @@ var valueMap map[string]interface{}
 var sliceKeyMap map[string]string
 var sliceMap map[string]interface{}
 
+var globalIgnoreMessages map[int]string
+var currentIgnoreMessages map[int]string
+
 var hasPartial bool
 var rawData []byte
 var field int
 var regVar *regexp.Regexp
 var numVar int = 0
+var readTimeOut string
 
 func main() {
 	var inputFile string
@@ -182,6 +194,8 @@ func main() {
 	valueMap = make(map[string]interface{})
 	sliceKeyMap = make(map[string]string)
 	sliceMap = make(map[string]interface{})
+	globalIgnoreMessages = make(map[int]string)
+	readTimeOut = READ_PENDING_TIMEOUT
 
 	ts, err := readXmlInput(inputFile)
 
@@ -202,16 +216,25 @@ func executeTestSuite(testSuite *TestSuite) {
 		log.Fatal("Cannot resolve address")
 	}
 
+	// parse global ignore messages
+	parseGlobalIgnoreMessages(testSuite.GlobalIgnoreMessages)
+	
 	// parse test-suite varmap first
 	parseVarMap(testSuite.GlobalVarMap)
 
 	var testSuiteResult TestSuiteResult
 	testSuiteResult.Skip = make([]bool, len(testSuite.ListTestInfos))
 	testSuiteResult.TestCaseResults = make([]TestCaseResult, len(testSuite.ListTestInfos))
+
+	skipped := false
 	for i := range testSuite.ListTestInfos {
-		if !testSuite.ListTestInfos[i].Skip {
+		if !skipped && !testSuite.ListTestInfos[i].Skip {
 			testSuiteResult.Skip[i] = false
 			testSuiteResult.TestCaseResults[i] = executeTestCase(addr, &(testSuite.ListTestInfos[i]), &(testSuite.ListTestCases[i]))
+			if testSuiteResult.TestCaseResults[i].NumCorrect !=  testSuiteResult.TestCaseResults[i].NumTest {
+				skipped = true
+				// skip the rest of the test suite
+			}
 		} else {
 			testSuiteResult.Skip[i] = true
 		}
@@ -222,6 +245,9 @@ func executeTestSuite(testSuite *TestSuite) {
 func executeTestCase(addr *net.TCPAddr, testInfo *TestInfo, testCase *TestCase) TestCaseResult {
 	fmt.Println("Running test case:", testInfo.Repeat, "times")
 	fmt.Println(testInfo.Name)
+
+	prepareCurrentIgnoreMap(testInfo.IgnoreMessages)
+
 	var testCaseResult TestCaseResult
 
 	testCaseResult.Results = make([]TestResult, testInfo.Repeat)
@@ -238,7 +264,7 @@ func executeTestCase(addr *net.TCPAddr, testInfo *TestInfo, testCase *TestCase) 
 		testCaseResult.Results[i] = <-chans[i]
 		if testCaseResult.Results[i].IsCorrect {
 			testCaseResult.NumCorrect++
-		}
+		} 
 	}
 
 	return testCaseResult
@@ -291,12 +317,29 @@ func performTestCaseOnce(addr *net.TCPAddr, testCase *TestCase, resultChan chan 
 			end := time.Now()
 			totalTime += end.Sub(begin).Nanoseconds()
 		} else { // message from server, so read from buffer now
-			
+			// try to see if we can ignore this message
+			if !useBase {
+				baseCmd = 0
+			}
+			if (tryIgnoreExpectedMessage(int(baseCmd), int(comm), protoParsedMessage)) {
+				// ignore this message
+				continue
+			}
 			if (DEBUG_READING_MESSAGE) {
 				fmt.Println("Expecting to receive a message from server ", message.MessageType)
 			}
-			
-			replyMessage, err := readReply(useBase, byte(baseCmd), byte(comm), protoParsedMessage, conn)
+
+			var replyMessage *proto.Message 
+			var err error
+			for {
+				replyMessage, err = readReply(useBase, byte(baseCmd), byte(comm), protoParsedMessage, conn)	
+				fmt.Println("reply message, err: ", replyMessage, err)
+				if (replyMessage != nil || err != nil) {
+					break;
+					// when both reply message / err == nil signals that the message is ignored
+				}
+
+			}
 			if err == nil {
 				if comparedResult, err := compareGetValueForProtoMessage(protoParsedMessage, *replyMessage); comparedResult {
 					// CORRECT Reply message.
@@ -317,10 +360,7 @@ func performTestCaseOnce(addr *net.TCPAddr, testCase *TestCase, resultChan chan 
 		}
 		if message.Close {
 			connectionState[connectionId] = false
-
-			if (conn.Close() == nil) {
-				fmt.Println("CONNECTION SUCCESSFULLY CLOSED")
-			}
+			conn.Close()
 		}
 	}
 
@@ -364,43 +404,121 @@ func sendMsg(useBase bool, baseCmd byte, cmd byte, msg proto.Message, conn *net.
 	binary.Write(buf, binary.LittleEndian, cmd)
 	//binary.Write(buf, binary.LittleEndian, int64(0))
 	buf.Write(data)
-	numSent, err := conn.Write(buf.Bytes())
-	if (err != nil) {
-		log.Fatal("error while sending data to server ", err, " num bytes sent: ", numSent)
-	} else {
-		fmt.Println("MESSAGE SUCCESSFULLY SENT", numSent)
+	conn.Write(buf.Bytes())
+}
+
+func tryIgnoreReceivedMessage(buffer []byte) (bool){
+	if (DEBUG_IGNORING_MESSAGE) {
+		fmt.Println("Trying to ignore received message buffer: ", buffer)
+		fmt.Println("Global ignore list:", globalIgnoreMessages)
+		fmt.Println("Current ignore list:", currentIgnoreMessages)
 	}
+
+	baseCmd := buffer[0]
+	// report error
+	signature := calculateSignature(0, int(baseCmd))
+	if (DEBUG_IGNORING_MESSAGE) {
+		fmt.Println("Signature 1: ", signature)
+	}	
+	if ignoreType, exist := currentIgnoreMessages[signature]; exist {
+		newValue := magicVarFunc(ignoreType)
+		res := newValue.(proto.Message)
+		err := proto.Unmarshal(buffer[1:], res)
+		if err == nil {
+			// can ignore this message
+			if (DEBUG_IGNORING_MESSAGE) {
+				fmt.Println("Ignored!")
+			}	
+			return true
+		}
+	}
+
+	if (len(buffer) >= 2) {
+		signature = calculateSignature(int(baseCmd), int(buffer[1]))
+		if (DEBUG_IGNORING_MESSAGE) {
+			fmt.Println("Signature 2: ", signature)
+		}	
+		if ignoreType, exist:= currentIgnoreMessages[signature]; exist {
+			newValue := magicVarFunc(ignoreType)
+			res := newValue.(proto.Message)
+			err := proto.Unmarshal(buffer[1:], res)
+			if err == nil {
+				// can ignore this message
+				if (DEBUG_IGNORING_MESSAGE) {
+					fmt.Println("Ignored!")
+				}
+				return true
+			}
+		}
+	}
+	if (DEBUG_IGNORING_MESSAGE) {
+		fmt.Println("Not ignored!")
+	}	
+	return false
+}
+
+// when we expect some messages, and get error while receiving
+// check if the expected messages can be ignored, and ignore it.
+func tryIgnoreExpectedMessage(baseCmd int, cmd int, expMsg proto.Message) (bool){
+	if (DEBUG_IGNORING_MESSAGE) {
+		fmt.Println("Trying to ignore expected message: ", baseCmd, cmd, expMsg)
+		fmt.Println("Global ignore list:", globalIgnoreMessages)
+		fmt.Println("Current ignore list:", currentIgnoreMessages)
+	}
+	signature := calculateSignature(baseCmd, cmd)
+	if (DEBUG_IGNORING_MESSAGE) {
+		fmt.Println("Signature: ", signature)
+	}
+	if ignoreType, exist := currentIgnoreMessages[signature]; exist {
+		fmt.Println(ignoreType, expMsg)
+		if (DEBUG_IGNORING_MESSAGE) {
+			fmt.Println("Ignored!")
+		}
+		return true
+	}
+	if (DEBUG_IGNORING_MESSAGE) {
+		fmt.Println("Not Ignored!")
+	}
+	return false
 }
 
 // read a reply to a buffer based on the expected message type
 // return error if reply message has different type of command than expected
 func readReply(useBase bool, expBaseCmd byte, expCmd byte, expMsg proto.Message, conn *net.TCPConn) (*proto.Message, error) {
 	length := int32(0)
-	duration, err := time.ParseDuration(READ_TIMEOUT)
+	duration, err := time.ParseDuration(readTimeOut)
 	timeNow := time.Now()
-
+	fmt.Println("set read deadline")
 	err = conn.SetReadDeadline(timeNow.Add(duration))
 	if err != nil {
 		return nil, err
 	}
 
 	err = binary.Read(conn, binary.LittleEndian, &length)
-	fmt.Println("READING:", length, "FROM SOCKET")
+	fmt.Println("read length", length)
 	if err != nil {
 		return nil, err
 	}
 
+	var baseCmd byte
 	if (useBase) {
 		length = length - 1
-		var baseCmd byte
 		err = binary.Read(conn, binary.LittleEndian, &baseCmd)
-
 		if (baseCmd != expBaseCmd) {
 			// finish reading the rest of the message, 
 			// so that it does not affects other message
 			rbuf := make([]byte, length)
 			io.ReadFull(conn, rbuf)
-			// report error
+
+			// try to ignore this message before report error
+			fullBuffer := make([]byte, 0)
+			fullBuffer = append(fullBuffer, baseCmd)
+			fullBuffer = append(fullBuffer, rbuf...)
+
+			if tryIgnoreReceivedMessage(fullBuffer) {
+				return nil, nil // signal ignored
+			}
+
 			errMsg := fmt.Sprintf("Unexpected BASE CMD %d", baseCmd)
 			return nil, errors.New(errMsg)	
 		}
@@ -421,6 +539,18 @@ func readReply(useBase bool, expBaseCmd byte, expCmd byte, expMsg proto.Message,
 	cmd := rbuf[0]
 	// command needs to be equal to expected command
 	if cmd != expCmd {
+		// try to ignore this message before report error
+		fullBuffer := make([]byte, 0)
+		if (useBase) {
+			fullBuffer = append(fullBuffer, baseCmd)
+		}
+		fullBuffer = append(fullBuffer, rbuf...)
+		if tryIgnoreReceivedMessage(fullBuffer) {
+			return nil, nil // signal ignored
+		}
+		fmt.Println("buffer, baseCmd", rbuf, baseCmd)
+		fmt.Println("fullBuffer", fullBuffer)
+
 		errMsg := fmt.Sprintf("Unexpected CMD %d", cmd)
 		return nil, errors.New(errMsg)
 	}
@@ -618,26 +748,39 @@ func parseVarMap(varMap []Var) {
 	}
 }
 
+func calculateSignature(baseCommand int, command int) (int) {
+	return baseCommand * 500 + command;
+}
+
+// parse global ignore messages
+func parseGlobalIgnoreMessages(ignoreMessages []IgnoreMessageSignature) {
+	for _, messageType := range ignoreMessages {
+		fmt.Println("Parsing: ", messageType)
+		baseCmd, _ := strconv.ParseInt(messageType.BaseCommand, 0, 0)
+		cmd, _ := strconv.ParseInt(messageType.Command, 0, 0)
+		signature := calculateSignature(int(baseCmd), int(cmd))
+		globalIgnoreMessages[signature] = messageType.MessageType
+	}
+}
+
+func prepareCurrentIgnoreMap(ignoreMessages []IgnoreMessageSignature) {
+	// clean the current ignore message, copy the whole global ignore map here
+	currentIgnoreMessages = make(map[int]string)
+	for key, value := range globalIgnoreMessages {
+		currentIgnoreMessages[key] = value
+	}
+	for _, messageType := range ignoreMessages {
+		baseCmd, _ := strconv.ParseInt(messageType.BaseCommand, 0, 0)
+		cmd, _ := strconv.ParseInt(messageType.Command, 0, 0)
+		signature := calculateSignature(int(baseCmd), int(cmd))
+		currentIgnoreMessages[signature] = messageType.MessageType
+	}
+}
+
 func plugValueForVar(message string, varName string, value interface{}) (string) {
 	valueToReplace := ""
 	kind := reflect.ValueOf(value).Kind()
 	if kind == reflect.Slice {
-		/*sliceValue := reflect.ValueOf(value)		
-		regVar = regexp.MustCompile("<(.*)>{{." + varName + "}}</(.*)>")
-		
-		listTag := regVar.FindAllStringSubmatch(message, -1)
-		fmt.Println("list match group: ", listTag)
-		for _, matchedTag := range listTag {
-			fmt.Println(matchedTag, " now try to replace: ", "<" + matchedTag[1] +">{{." + varName + "}}</" + matchedTag[1] +">")
-			reg, _ := regexp.Compile("<" + matchedTag[1] +">{{." + varName + "}}</" + matchedTag[1] +">")
-			valueToReplace = ""
-			for index := 0; index < sliceValue.Len(); index++ {
-				value1 := fmt.Sprintf("%v", sliceValue.Index(index).Interface())
-				valueToReplace = valueToReplace + "<" + matchedTag[1] +">" + value1 + "</" + matchedTag[1] +">"
-			}
-			fmt.Println("Replace with: \n", valueToReplace)
-			message = reg.ReplaceAllString(message, valueToReplace)
-		}*/
 		// dont plug value here	
 	} else {
 		reg, _ := regexp.Compile("{{." + varName + "}}")
@@ -649,11 +792,6 @@ func plugValueForVar(message string, varName string, value interface{}) (string)
 
 // plug value from value map to the raw xml message
 func plugValue(message string) (string, error) {
-	//t := template.Must(template.New("Xml Message").Parse(message))
-	//var buffer bytes.Buffer
-	//err := t.Execute(&buffer, valueMap)
-	//fmt.Println("----------------------------------------")
-	//err := t.Execute(os.Stdout, valueMap)
 	for key, value := range(valueMap) {
 		message = plugValueForVar(message, key, value)
 	}
@@ -852,7 +990,8 @@ func readXmlInput(inputFile string) (*TestSuite, error) {
 	return &testSuite, nil
 }
 
-func prettyPrintTestCase(testCaseInfo *TestInfo, isSkipped bool, result *TestCaseResult) {
+func prettyPrintTestCase(testCaseInfo *TestInfo, isSkipped bool, result *TestCaseResult) (bool){
+	incorrect := false
 	var offset = "     "
 	fmt.Printf(" %sTEST CASE: %s\n", offset, testCaseInfo.Name)
 	if isSkipped {
@@ -866,6 +1005,7 @@ func prettyPrintTestCase(testCaseInfo *TestInfo, isSkipped bool, result *TestCas
 				fmt.Printf("	CORRECT.   Time taken: %5d us \n", (aResult.TimeTaken / 1000))
 				totalTime += int(aResult.TimeTaken / 1000)
 			} else {
+				incorrect = true
 				fmt.Println("   INCORRECT. Reason: ", aResult.Reason)
 				totalTime += int(aResult.TimeTaken / 1000)
 			}
@@ -876,18 +1016,25 @@ func prettyPrintTestCase(testCaseInfo *TestInfo, isSkipped bool, result *TestCas
 			(result.NumCorrect * 100.0 / result.NumTest), totalTime)
 	}
 	fmt.Println(offset, "END OF TEST CASE RESULT")
+	return incorrect
 }
 
 func prettyPrintTestSuite(testSuite *TestSuite, result *TestSuiteResult) {
+	incorrect := false
 	fmt.Println("--------------------------------------------------------------------------------")
 	fmt.Printf("TEST SUITE: %s\n", testSuite.TestSuiteName)
 	for i := 0; i < len(testSuite.ListTestInfos); i++ {
 		fmt.Println()
-		prettyPrintTestCase(&(testSuite.ListTestInfos[i]), result.Skip[i], &(result.TestCaseResults[i]))
+		if (prettyPrintTestCase(&(testSuite.ListTestInfos[i]), result.Skip[i], &(result.TestCaseResults[i]))) {
+			incorrect = true
+		}
 		fmt.Println()
 	}
 	fmt.Println("END OF TEST SUITE RESULT")
 	fmt.Println("--------------------------------------------------------------------------------")
+	if (incorrect) {
+		log.Fatal("TEST CASE FAILED, STOP!")
+	}
 }
 
 func cleanUpAfterTest(addr *net.TCPAddr, testCase *TestCase) {
@@ -966,7 +1113,7 @@ func cleanUpAfterTest(addr *net.TCPAddr, testCase *TestCase) {
 // return error if cannot read a message in these type
 func readPendingMessage(conn *net.TCPConn) (*proto.Message, error, byte) {
 	length := int32(0)
-	duration, err := time.ParseDuration(READ_TIMEOUT)
+	duration, err := time.ParseDuration(READ_PENDING_TIMEOUT)
 	timeNow := time.Now()
 
 	err = conn.SetReadDeadline(timeNow.Add(duration))

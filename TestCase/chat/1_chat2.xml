@@ -52,7 +52,13 @@
 			<Value>Test message 15</Value>
 		</Var>
 	</VarMap>
-
+	<IgnoreMessages>
+		<Message>
+			<BaseCommand>0x00</BaseCommand>
+			<Command>0x73</Command>
+			<MessageType>Auth_Buddy_S2C_BuddyOnline</MessageType>
+		</Message>
+	</IgnoreMessages>
 	<ListTest>
 		<TestInfo skip="false" repeat="1">
 			<Name>A and B log in, A sends 5 messages to B, using only 2 message id, B receives only 2 in correct orders, send ack to A, A receives 2 in order</Name>

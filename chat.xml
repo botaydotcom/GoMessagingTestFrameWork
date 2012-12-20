@@ -4,22 +4,22 @@
 	<TargetPort>9100</TargetPort>
 	<VarMap>
 		<Var name="email1">
-			<Value>indotest13@test.com</Value>
+			<Value>indotest15@test.com</Value>
 		</Var>		
 		<Var name="password1">
 			<Value>e10adc3949ba59abbe56e057f20f883e</Value>
 		</Var>
 		<Var name="name1">
-			<Value>indotest13</Value>
+			<Value>indotest15</Value>
 		</Var>			
 		<Var name="email2">
-			<Value>indotest14@test.com</Value>
+			<Value>indotest16@test.com</Value>
 		</Var>		
 		<Var name="password2">
 			<Value>e10adc3949ba59abbe56e057f20f883e</Value>
 		</Var>
 		<Var name="name2">
-			<Value>indotest14</Value>
+			<Value>indotest16</Value>
 		</Var>			
 		<Var name="mid1">
 			<Value>13456793</Value>
@@ -58,6 +58,13 @@
 			<Value>This is Test message 52</Value>
 		</Var>
 	</VarMap>
+	<IgnoreMessages>
+		<Message>
+			<BaseCommand>0x00</BaseCommand>
+			<Command>0x73</Command>
+			<MessageType>Auth_Buddy_S2C_BuddyOnline</MessageType>
+		</Message>
+	</IgnoreMessages>
 
 	<ListTest>
 		<TestInfo skip="false" repeat="1">

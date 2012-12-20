@@ -3,7 +3,7 @@
 	<TargetHost>203.117.155.188</TargetHost>
 	<TargetPort>9100</TargetPort>
 	<ListTest>
-		<TestInfo skip="false" repeat='20'>
+		<TestInfo skip="false" repeat='1'>
 			<Name>Hello test</Name>
 		</TestInfo>
 	</ListTest>
