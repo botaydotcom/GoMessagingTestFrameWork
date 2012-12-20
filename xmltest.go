@@ -333,7 +333,9 @@ func performTestCaseOnce(addr *net.TCPAddr, testCase *TestCase, resultChan chan 
 			var err error
 			for {
 				replyMessage, err = readReply(useBase, byte(baseCmd), byte(comm), protoParsedMessage, conn)	
-				fmt.Println("reply message, err: ", replyMessage, err)
+				if (DEBUG_READING_MESSAGE) {
+					fmt.Println("reply message, err: ", replyMessage, err)
+				}
 				if (replyMessage != nil || err != nil) {
 					break;
 					// when both reply message / err == nil signals that the message is ignored
@@ -488,14 +490,18 @@ func readReply(useBase bool, expBaseCmd byte, expCmd byte, expMsg proto.Message,
 	length := int32(0)
 	duration, err := time.ParseDuration(readTimeOut)
 	timeNow := time.Now()
-	fmt.Println("set read deadline")
+	if (DEBUG_READING_MESSAGE) {
+		fmt.Println("set read deadline")
+	}
 	err = conn.SetReadDeadline(timeNow.Add(duration))
 	if err != nil {
 		return nil, err
 	}
 
 	err = binary.Read(conn, binary.LittleEndian, &length)
-	fmt.Println("read length", length)
+	if (DEBUG_READING_MESSAGE) {
+		fmt.Println("read length", length)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -548,8 +554,10 @@ func readReply(useBase bool, expBaseCmd byte, expCmd byte, expMsg proto.Message,
 		if tryIgnoreReceivedMessage(fullBuffer) {
 			return nil, nil // signal ignored
 		}
-		fmt.Println("buffer, baseCmd", rbuf, baseCmd)
-		fmt.Println("fullBuffer", fullBuffer)
+		if (DEBUG_READING_MESSAGE) {
+			fmt.Println("buffer, baseCmd", rbuf, baseCmd)
+			fmt.Println("fullBuffer", fullBuffer)
+		}
 
 		errMsg := fmt.Sprintf("Unexpected CMD %d", cmd)
 		return nil, errors.New(errMsg)
@@ -755,7 +763,9 @@ func calculateSignature(baseCommand int, command int) (int) {
 // parse global ignore messages
 func parseGlobalIgnoreMessages(ignoreMessages []IgnoreMessageSignature) {
 	for _, messageType := range ignoreMessages {
-		fmt.Println("Parsing: ", messageType)
+		if DEBUG_PARSING_MESSAGE {
+			fmt.Println("Parsing: ", messageType)
+		}
 		baseCmd, _ := strconv.ParseInt(messageType.BaseCommand, 0, 0)
 		cmd, _ := strconv.ParseInt(messageType.Command, 0, 0)
 		signature := calculateSignature(int(baseCmd), int(cmd))

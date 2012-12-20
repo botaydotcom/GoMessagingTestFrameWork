@@ -761,7 +761,9 @@ func calculateSignature(baseCommand int, command int) (int) {
 // parse global ignore messages
 func parseGlobalIgnoreMessages(ignoreMessages []IgnoreMessageSignature) {
 	for _, messageType := range ignoreMessages {
-		fmt.Println("Parsing: ", messageType)
+		if DEBUG_PARSING_MESSAGE {
+			fmt.Println("Parsing: ", messageType)
+		}
 		baseCmd, _ := strconv.ParseInt(messageType.BaseCommand, 0, 0)
 		cmd, _ := strconv.ParseInt(messageType.Command, 0, 0)
 		signature := calculateSignature(int(baseCmd), int(cmd))

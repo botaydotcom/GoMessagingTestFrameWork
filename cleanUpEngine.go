@@ -317,27 +317,40 @@ func removeAllBuddiesForAllUsers(listConnection map[int]*net.TCPConn) {
 }
 
 func removeAllDiscussionsForAllUsers(listConnection map[int]*net.TCPConn) {
-	for i := range listConnection {
-		conn := listConnection[i]
+	for {
+		stop := true
+		for i := range listConnection {
+			conn := listConnection[i]
 
-		queryDiscussionMessage := magicVarFunc("Discussion_C2S_RequestMyDiscussion")
-		protoMessage := queryDiscussionMessage.(proto.Message)
-		sendMsg(true, byte(DISCUSSION_PACKET_BASE_COMMAND), 
-			C2S_RequestMyDiscussion_CMD, protoMessage, conn)
-		expMsg := magicVarFunc("Discussion_S2C_UserDiscussionList")
+			queryDiscussionMessage := magicVarFunc("Discussion_C2S_RequestMyDiscussion")
+			protoMessage := queryDiscussionMessage.(proto.Message)
+			sendMsg(true, byte(DISCUSSION_PACKET_BASE_COMMAND), 
+				C2S_RequestMyDiscussion_CMD, protoMessage, conn)
+			expMsg := magicVarFunc("Discussion_S2C_UserDiscussionList")
 
-		listDiscussionMessagePtr, _ := readReply(true, DISCUSSION_PACKET_BASE_COMMAND, 
-			S2C_UserDiscussionList_CMD, expMsg.(proto.Message), conn)
+			listDiscussionMessagePtr, err := readReply(true, DISCUSSION_PACKET_BASE_COMMAND, 
+				S2C_UserDiscussionList_CMD, expMsg.(proto.Message), conn)
+			if (err != nil) {
+				fmt.Println(err)
+				if (err.Error()[0:8] != "Cant read") {
+					stop = false
+				}
+				continue
+			}
 
-		listDiscussion := reflect.Indirect(reflect.ValueOf(*listDiscussionMessagePtr)).FieldByName("Discussion")
-		for index := 0; index < listDiscussion.Len(); index++ {
-			discussion := reflect.Indirect(listDiscussion.Index(index))
-			discussionId := discussion.FieldByName("DiscussionId")
+			listDiscussion := reflect.Indirect(reflect.ValueOf(*listDiscussionMessagePtr)).FieldByName("Discussion")
+			for index := 0; index < listDiscussion.Len(); index++ {
+				discussion := reflect.Indirect(listDiscussion.Index(index))
+				discussionId := discussion.FieldByName("DiscussionId")
 
-			deleteMessage := magicVarFunc("Discussion_C2S_LeaveDiscussion")
-			structValue := reflect.Indirect(reflect.ValueOf(deleteMessage))
-			structValue.FieldByName("DiscussionId").Set(discussionId)
-			sendMsg(true, byte(DISCUSSION_PACKET_BASE_COMMAND), C2S_LeaveDiscussion_CMD, deleteMessage.(proto.Message), conn)
+				deleteMessage := magicVarFunc("Discussion_C2S_LeaveDiscussion")
+				structValue := reflect.Indirect(reflect.ValueOf(deleteMessage))
+				structValue.FieldByName("DiscussionId").Set(discussionId)
+				sendMsg(true, byte(DISCUSSION_PACKET_BASE_COMMAND), C2S_LeaveDiscussion_CMD, deleteMessage.(proto.Message), conn)
+			}
+		}
+		if (stop) {
+			break;
 		}
 	}
 }
