@@ -60,6 +60,7 @@ const (
 	S2C_ChatInfo_CMD    		  = 0x08 // discussion chat ack
 
 	DISCUSSION_PACKET_BASE_COMMAND = 0xA0
+	DailyLifeRequest_MAINCMD	   = 0xA1
 
 )
 
@@ -91,7 +92,7 @@ const (
 	DEBUG_COMPARE_STRUCT  = false
 
 	DEBUG_CLEANING_UP	  = false
-	DEBUG_PARSING_MESSAGE = false
+	DEBUG_PARSING_MESSAGE = true
 
 	DEBUG_SENDING_MESSAGE = false
 	DEBUG_READING_MESSAGE = false
@@ -878,16 +879,24 @@ func parseAMessage(v Message) (interface{}, int, bool, int, error) {
 	// run through the slice map to fill in missing value
 	fillSliceValueToMessage(&message)
 
+	if (DEBUG_PARSING_MESSAGE) {
+		fmt.Println("after unmarshal parsing, error = ", err, " message = ", message)
+	}
+
 	if err != nil {
 		fmt.Printf("error: %v\n", err)
 	}
 	
 	if (DEBUG_PARSING_MESSAGE) {
-		s := reflect.ValueOf(message).Elem()
+		/*s := reflect.ValueOf(message).Elem()
+		fmt.Println("Message type: ", s.Type())
 		for i := 0; i < s.NumField(); i++ {
+			fmt.Print("Print value field ", i, " : ")
 			f := s.Field(i)
 			printValue(f)
-		}
+		}*/
+		s := reflect.ValueOf(message).Elem()
+		printValueForStruct(s, 0)
 	}
 
 	cmd, _ := strconv.ParseInt(v.Command, 0, 0)
@@ -956,30 +965,69 @@ func getValue(ptrValue reflect.Value) (interface{}, error) {
 	return ptrValue, errors.New("Not a pointer")
 }
 
-func printValue(ptrValue reflect.Value) {
-	if ptrValue.Kind() == reflect.Ptr {
-		if ptrValue.Elem().IsValid() {
-			value := reflect.Indirect(reflect.ValueOf(ptrValue.Interface()))
-			//fmt.Println("value:", value, value.String(), value.Interface().(string))
+func getOffsetForLevel(level int) (string) {
+	offset := ""
+	for i:=0; i<level; i++ {
+		offset = offset + "   "
+	}
+	return offset
+}
 
-			if _, ok := value.Interface().(interface {
-				Int()
-			}); ok {
-				fmt.Println(value.Int())
-			}
-			if _, ok := value.Interface().(interface {
-				Float()
-			}); ok {
-				fmt.Println(value.Float())
-			}
-			if value.Kind() == reflect.String {
-				fmt.Println(value.String())
-			}
-		} else {
-			fmt.Println("Uninitialized")
+func printValueForPointer(ptrValue reflect.Value, level int) {
+	offset := getOffsetForLevel(level)
+	if ptrValue.Elem().IsValid() {
+		value := reflect.Indirect(reflect.ValueOf(ptrValue.Interface()))
+		
+		fmt.Print(offset)
+		fmt.Println("value:", value.Interface())
+		if value.Kind() == reflect.Slice {
+			printValueForSlice(value, level+1)
+		} 
+		if value.Kind() == reflect.Struct {
+			printValueForStruct(value, level+1) 
 		}
 	} else {
-		fmt.Println("Not a pointer")
+		fmt.Print(offset)
+		fmt.Println("Uninitialized")
+	}
+}
+
+func printValueForSlice(sliceValue reflect.Value, level int) {
+	offset := getOffsetForLevel(level)
+	fmt.Print(offset)
+	fmt.Println("Slice: ")
+	for index := 0; index < sliceValue.Len(); index++ {
+		fmt.Print(offset)
+		fmt.Println("Index", index,":")
+		f := sliceValue.Index(index)
+		if (f.Kind() == reflect.Ptr) {
+			printValueForPointer(f, level+1)
+		} else if (f.Kind() == reflect.Slice) {
+			printValueForSlice(f, level+1)
+		} else if (f.Kind() == reflect.Struct) {
+			printValueForStruct(f, level+1)
+		} else {
+			fmt.Print(offset)
+			fmt.Println(f.Interface())
+		}
+	}
+}
+
+func printValueForStruct(structValue reflect.Value, level int) {
+	offset := getOffsetForLevel(level)
+	fmt.Print(offset)
+	fmt.Println("Struct: ", structValue.Type())
+	for i := 0; i < structValue.NumField(); i++ {
+		fmt.Print(offset)
+		fmt.Println("Value field", i, ":")
+		f := structValue.Field(i)
+		if (f.Kind() == reflect.Ptr) {
+			printValueForPointer(f, level+1)
+		} else if (f.Kind() == reflect.Slice) {
+			printValueForSlice(f, level+1)
+		} else if (f.Kind() == reflect.Struct) {
+			printValueForStruct(f, level+1)
+		}
 	}
 }
 

@@ -1,0 +1,135 @@
+<TestSuite>
+	<TestSuiteName>Chat</TestSuiteName>
+	<TargetHost>203.117.155.188</TargetHost>
+	<TargetPort>9100</TargetPort>
+	<VarMap>
+		<Var name="email1">
+			<Value>indotest15@test.com</Value>
+		</Var>		
+		<Var name="password1">
+			<Value>e10adc3949ba59abbe56e057f20f883e</Value>
+		</Var>
+		<Var name="name1">
+			<Value>indotest15</Value>
+		</Var>			
+		<Var name="email2">
+			<Value>indotest16@test.com</Value>
+		</Var>		
+		<Var name="password2">
+			<Value>e10adc3949ba59abbe56e057f20f883e</Value>
+		</Var>
+		<Var name="name2">
+			<Value>indotest16</Value>
+		</Var>			
+		<Var name="mid1">
+			<Value>13456793</Value>
+		</Var>
+		<Var name="msg1">
+			<Value>Test message</Value>
+		</Var>
+		<Var name="mid2">
+			<Value>13456794</Value>
+		</Var>
+		<Var name="msg2">
+			<Value>Test message 1</Value>
+		</Var>
+		<Var name="mid3">
+			<Value>13456795</Value>
+		</Var>
+		<Var name="msg3">
+			<Value>This is Test message 3</Value>
+		</Var>
+		<Var name="mid4">
+			<Value>13456796</Value>
+		</Var>
+		<Var name="msg4">
+			<Value>This is Test message 4</Value>
+		</Var>
+		<Var name="rid1">
+			<Value>13456799</Value>
+		</Var>
+		<Var name="photoname">
+			<Value>This is a test photo</Value>
+		</Var>
+		<Var name="ts1">
+			<Value>1356073254</Value>
+		</Var>
+	</VarMap>
+	<IgnoreMessages>
+		<Message>
+			<BaseCommand>0x00</BaseCommand>
+			<Command>0x73</Command>
+			<MessageType>Auth_Buddy_S2C_BuddyOnline</MessageType>
+		</Message>
+	</IgnoreMessages>
+
+	<ListTest>
+		<TestInfo skip="false" repeat="1">
+			<Name>A and B log in, A sends a message to B (both online), B receives</Name>
+		</TestInfo>
+	</ListTest>
+
+	<Tests>
+		<!--A and B log in, A sends a chat message to B (both of them are online)-->
+		<Test>
+			<MessageSequence>
+				<!--A log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true">		
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email1}}</Name>						
+							<Password>{{.password1}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to A-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId1}}</UserId>
+								<Name>{{.email1}}</Name>		
+								<NickName>{{.name1}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--A send message to Server -->
+				<Message type="DL_PostDailyItem" fromClient="true">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x01</Command>
+					<Data>
+						<DL_PostDailyItem>
+							<Item>
+								<ItemId>1</ItemId>
+								<BasicInfo>
+									<Timestamp>{{.ts1}}</Timestamp>
+								</BasicInfo>
+							</Item>
+							<RequestId>{{.rid1}}</RequestId>
+						</DL_PostDailyItem>
+					</Data>
+				</Message>
+
+				<!--Server send ack message to A -->
+				<Message type="DL_OperationState" fromClient="false">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x01</Command>
+					<Data>
+						<DL_OperationState>
+							<RequestId>{{.rid1}}</RequestId>
+							<ItemId>{{.iid}}</ItemId>
+						</DL_OperationState>
+					</Data>
+				</Message>
+			</MessageSequence>
+		</Test>
+	</Tests>
+</TestSuite>

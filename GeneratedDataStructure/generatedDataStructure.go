@@ -15,9 +15,15 @@ import (
 	
 	"xmltest/btalkTest/C_A"
 	
+	"xmltest/btalkTest/DL"
+	
+	"xmltest/btalkTest/DLNotif"
+	
 	"xmltest/btalkTest/Discussion_C2S"
 	
 	"xmltest/btalkTest/Discussion_S2C"
+	
+	"xmltest/btalkTest/Notif"
 	
 	"xmltest/btalkTest/TOKEN_S"
 	
@@ -505,6 +511,123 @@ func init() {
 	var aC_A_UserStatusInfo C_A.UserStatusInfo
 	Map["C_A_UserStatusInfo"] = reflect.TypeOf(aC_A_UserStatusInfo)
 	
+	var aDLNotif_CommentParam DLNotif.CommentParam
+	Map["DLNotif_CommentParam"] = reflect.TypeOf(aDLNotif_CommentParam)
+	
+	var aDLNotif_ItemParam DLNotif.ItemParam
+	Map["DLNotif_ItemParam"] = reflect.TypeOf(aDLNotif_ItemParam)
+	
+	var aDL_AddCircle DL.AddCircle
+	Map["DL_AddCircle"] = reflect.TypeOf(aDL_AddCircle)
+	
+	var aDL_AddCircleMember DL.AddCircleMember
+	Map["DL_AddCircleMember"] = reflect.TypeOf(aDL_AddCircleMember)
+	
+	var aDL_Circle DL.Circle
+	Map["DL_Circle"] = reflect.TypeOf(aDL_Circle)
+	
+	var aDL_CirclesResponse DL.CirclesResponse
+	Map["DL_CirclesResponse"] = reflect.TypeOf(aDL_CirclesResponse)
+	
+	var aDL_CommentContentResponse DL.CommentContentResponse
+	Map["DL_CommentContentResponse"] = reflect.TypeOf(aDL_CommentContentResponse)
+	
+	var aDL_CommentDetailResponse DL.CommentDetailResponse
+	Map["DL_CommentDetailResponse"] = reflect.TypeOf(aDL_CommentDetailResponse)
+	
+	var aDL_CommentInfo DL.CommentInfo
+	Map["DL_CommentInfo"] = reflect.TypeOf(aDL_CommentInfo)
+	
+	var aDL_CommentRequest DL.CommentRequest
+	Map["DL_CommentRequest"] = reflect.TypeOf(aDL_CommentRequest)
+	
+	var aDL_Cursor DL.Cursor
+	Map["DL_Cursor"] = reflect.TypeOf(aDL_Cursor)
+	
+	var aDL_DailyBasicInfo DL.DailyBasicInfo
+	Map["DL_DailyBasicInfo"] = reflect.TypeOf(aDL_DailyBasicInfo)
+	
+	var aDL_DailyItem DL.DailyItem
+	Map["DL_DailyItem"] = reflect.TypeOf(aDL_DailyItem)
+	
+	var aDL_DailyItemsResponse DL.DailyItemsResponse
+	Map["DL_DailyItemsResponse"] = reflect.TypeOf(aDL_DailyItemsResponse)
+	
+	var aDL_DeleteDailyItem DL.DeleteDailyItem
+	Map["DL_DeleteDailyItem"] = reflect.TypeOf(aDL_DeleteDailyItem)
+	
+	var aDL_IDListResponse DL.IDListResponse
+	Map["DL_IDListResponse"] = reflect.TypeOf(aDL_IDListResponse)
+	
+	var aDL_ItemCircles DL.ItemCircles
+	Map["DL_ItemCircles"] = reflect.TypeOf(aDL_ItemCircles)
+	
+	var aDL_ItemCirclesResponse DL.ItemCirclesResponse
+	Map["DL_ItemCirclesResponse"] = reflect.TypeOf(aDL_ItemCirclesResponse)
+	
+	var aDL_OperationState DL.OperationState
+	Map["DL_OperationState"] = reflect.TypeOf(aDL_OperationState)
+	
+	var aDL_PhotoInfo DL.PhotoInfo
+	Map["DL_PhotoInfo"] = reflect.TypeOf(aDL_PhotoInfo)
+	
+	var aDL_PostComment DL.PostComment
+	Map["DL_PostComment"] = reflect.TypeOf(aDL_PostComment)
+	
+	var aDL_PostDailyItem DL.PostDailyItem
+	Map["DL_PostDailyItem"] = reflect.TypeOf(aDL_PostDailyItem)
+	
+	var aDL_RecentPostsResponse DL.RecentPostsResponse
+	Map["DL_RecentPostsResponse"] = reflect.TypeOf(aDL_RecentPostsResponse)
+	
+	var aDL_RecentSummaryResponse DL.RecentSummaryResponse
+	Map["DL_RecentSummaryResponse"] = reflect.TypeOf(aDL_RecentSummaryResponse)
+	
+	var aDL_RemoveBuddy DL.RemoveBuddy
+	Map["DL_RemoveBuddy"] = reflect.TypeOf(aDL_RemoveBuddy)
+	
+	var aDL_RemoveCircle DL.RemoveCircle
+	Map["DL_RemoveCircle"] = reflect.TypeOf(aDL_RemoveCircle)
+	
+	var aDL_RemoveCircleMember DL.RemoveCircleMember
+	Map["DL_RemoveCircleMember"] = reflect.TypeOf(aDL_RemoveCircleMember)
+	
+	var aDL_RequestCircles DL.RequestCircles
+	Map["DL_RequestCircles"] = reflect.TypeOf(aDL_RequestCircles)
+	
+	var aDL_RequestCommentContent DL.RequestCommentContent
+	Map["DL_RequestCommentContent"] = reflect.TypeOf(aDL_RequestCommentContent)
+	
+	var aDL_RequestCommentDetail DL.RequestCommentDetail
+	Map["DL_RequestCommentDetail"] = reflect.TypeOf(aDL_RequestCommentDetail)
+	
+	var aDL_RequestDailyItems DL.RequestDailyItems
+	Map["DL_RequestDailyItems"] = reflect.TypeOf(aDL_RequestDailyItems)
+	
+	var aDL_RequestIDList DL.RequestIDList
+	Map["DL_RequestIDList"] = reflect.TypeOf(aDL_RequestIDList)
+	
+	var aDL_RequestItemCircles DL.RequestItemCircles
+	Map["DL_RequestItemCircles"] = reflect.TypeOf(aDL_RequestItemCircles)
+	
+	var aDL_RequestRecentPosts DL.RequestRecentPosts
+	Map["DL_RequestRecentPosts"] = reflect.TypeOf(aDL_RequestRecentPosts)
+	
+	var aDL_RequestRecentSummary DL.RequestRecentSummary
+	Map["DL_RequestRecentSummary"] = reflect.TypeOf(aDL_RequestRecentSummary)
+	
+	var aDL_ResultAck DL.ResultAck
+	Map["DL_ResultAck"] = reflect.TypeOf(aDL_ResultAck)
+	
+	var aDL_ResultAck_RequestType DL.ResultAck_RequestType
+	Map["DL_ResultAck_RequestType"] = reflect.TypeOf(aDL_ResultAck_RequestType)
+	
+	var aDL_UserCommentInfo DL.UserCommentInfo
+	Map["DL_UserCommentInfo"] = reflect.TypeOf(aDL_UserCommentInfo)
+	
+	var aDL_UserDailyItem DL.UserDailyItem
+	Map["DL_UserDailyItem"] = reflect.TypeOf(aDL_UserDailyItem)
+	
 	var aDiscussion_C2S_ChangeDiscussionInfo Discussion_C2S.ChangeDiscussionInfo
 	Map["Discussion_C2S_ChangeDiscussionInfo"] = reflect.TypeOf(aDiscussion_C2S_ChangeDiscussionInfo)
 	
@@ -582,6 +705,24 @@ func init() {
 	
 	var aDiscussion_S2C_UserDiscussionList_DiscussionSimpleInfo Discussion_S2C.UserDiscussionList_DiscussionSimpleInfo
 	Map["Discussion_S2C_UserDiscussionList_DiscussionSimpleInfo"] = reflect.TypeOf(aDiscussion_S2C_UserDiscussionList_DiscussionSimpleInfo)
+	
+	var aNotif_MessageInfo Notif.MessageInfo
+	Map["Notif_MessageInfo"] = reflect.TypeOf(aNotif_MessageInfo)
+	
+	var aNotif_MessageInfo_Action Notif.MessageInfo_Action
+	Map["Notif_MessageInfo_Action"] = reflect.TypeOf(aNotif_MessageInfo_Action)
+	
+	var aNotif_MessageInfo_ContentType Notif.MessageInfo_ContentType
+	Map["Notif_MessageInfo_ContentType"] = reflect.TypeOf(aNotif_MessageInfo_ContentType)
+	
+	var aNotif_MulticastNotification Notif.MulticastNotification
+	Map["Notif_MulticastNotification"] = reflect.TypeOf(aNotif_MulticastNotification)
+	
+	var aNotif_Notification Notif.Notification
+	Map["Notif_Notification"] = reflect.TypeOf(aNotif_Notification)
+	
+	var aNotif_OperationState Notif.OperationState
+	Map["Notif_OperationState"] = reflect.TypeOf(aNotif_OperationState)
 	
 	var aTOKEN_S_UserInfo TOKEN_S.UserInfo
 	Map["TOKEN_S_UserInfo"] = reflect.TypeOf(aTOKEN_S_UserInfo)

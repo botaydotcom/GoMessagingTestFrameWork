@@ -59,7 +59,7 @@ const (
 	S2C_ChatInfo_CMD    		  = 0x08 // discussion chat ack
 
 	DISCUSSION_PACKET_BASE_COMMAND = 0xA0
-
+	DailyLifeRequest_MAINCMD	   = 0xA1
 )
 
 const (
