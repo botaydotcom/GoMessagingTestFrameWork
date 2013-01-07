@@ -65,6 +65,8 @@ type LoginInfo struct {
 	MachineId        *string `protobuf:"bytes,4,req" json:"MachineId,omitempty"`
 	SoftwareVersion  *int32  `protobuf:"varint,5,req" json:"SoftwareVersion,omitempty"`
 	Status           *int32  `protobuf:"varint,6,opt" json:"Status,omitempty"`
+	Timestamp        *int64  `protobuf:"varint,7,opt,name=timestamp" json:"timestamp,omitempty"`
+	DeviceId         []byte  `protobuf:"bytes,8,opt,name=deviceId" json:"deviceId,omitempty"`
 	XXX_unrecognized []byte  `json:"-"`
 }
 
@@ -112,6 +114,20 @@ func (this *LoginInfo) GetStatus() int32 {
 		return *this.Status
 	}
 	return 0
+}
+
+func (this *LoginInfo) GetTimestamp() int64 {
+	if this != nil && this.Timestamp != nil {
+		return *this.Timestamp
+	}
+	return 0
+}
+
+func (this *LoginInfo) GetDeviceId() []byte {
+	if this != nil {
+		return this.DeviceId
+	}
+	return nil
 }
 
 type HelloInfo struct {
@@ -331,6 +347,8 @@ type OAuthLogin struct {
 	MachineId        *string `protobuf:"bytes,5,req" json:"MachineId,omitempty"`
 	SoftwareVersion  *int32  `protobuf:"varint,6,req" json:"SoftwareVersion,omitempty"`
 	Status           *int32  `protobuf:"varint,7,opt" json:"Status,omitempty"`
+	Timestamp        *int64  `protobuf:"varint,8,opt" json:"Timestamp,omitempty"`
+	DeviceId         []byte  `protobuf:"bytes,9,opt" json:"DeviceId,omitempty"`
 	XXX_unrecognized []byte  `json:"-"`
 }
 
@@ -371,6 +389,20 @@ func (this *OAuthLogin) GetStatus() int32 {
 		return *this.Status
 	}
 	return 0
+}
+
+func (this *OAuthLogin) GetTimestamp() int64 {
+	if this != nil && this.Timestamp != nil {
+		return *this.Timestamp
+	}
+	return 0
+}
+
+func (this *OAuthLogin) GetDeviceId() []byte {
+	if this != nil {
+		return this.DeviceId
+	}
+	return nil
 }
 
 type FillFinishReg struct {
@@ -505,6 +537,22 @@ func (this *RequestUserNotificationInfo) GetRequestId() []byte {
 	return nil
 }
 
+type RequestPluginNotificationInfo struct {
+	RequestId        []byte `protobuf:"bytes,1,req" json:"RequestId,omitempty"`
+	XXX_unrecognized []byte `json:"-"`
+}
+
+func (this *RequestPluginNotificationInfo) Reset()         { *this = RequestPluginNotificationInfo{} }
+func (this *RequestPluginNotificationInfo) String() string { return proto.CompactTextString(this) }
+func (*RequestPluginNotificationInfo) ProtoMessage()       {}
+
+func (this *RequestPluginNotificationInfo) GetRequestId() []byte {
+	if this != nil {
+		return this.RequestId
+	}
+	return nil
+}
+
 type ChangeNotification struct {
 	Enabled          *bool  `protobuf:"varint,1,req" json:"Enabled,omitempty"`
 	TimeSilence      *bool  `protobuf:"varint,2,opt" json:"TimeSilence,omitempty"`
@@ -567,6 +615,38 @@ func (this *ChangeNotification) GetLanguage() int32 {
 		return *this.Language
 	}
 	return 0
+}
+
+type ChangePluginNotification struct {
+	Enabled          *bool   `protobuf:"varint,1,req" json:"Enabled,omitempty"`
+	Tag              *string `protobuf:"bytes,2,req" json:"Tag,omitempty"`
+	RequestId        []byte  `protobuf:"bytes,3,req" json:"RequestId,omitempty"`
+	XXX_unrecognized []byte  `json:"-"`
+}
+
+func (this *ChangePluginNotification) Reset()         { *this = ChangePluginNotification{} }
+func (this *ChangePluginNotification) String() string { return proto.CompactTextString(this) }
+func (*ChangePluginNotification) ProtoMessage()       {}
+
+func (this *ChangePluginNotification) GetEnabled() bool {
+	if this != nil && this.Enabled != nil {
+		return *this.Enabled
+	}
+	return false
+}
+
+func (this *ChangePluginNotification) GetTag() string {
+	if this != nil && this.Tag != nil {
+		return *this.Tag
+	}
+	return ""
+}
+
+func (this *ChangePluginNotification) GetRequestId() []byte {
+	if this != nil {
+		return this.RequestId
+	}
+	return nil
 }
 
 type ChangePassword struct {

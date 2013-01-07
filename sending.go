@@ -1,3 +1,5 @@
+package main
+
 func performTestCaseOnce(addr *net.TCPAddr, testCase *TestCase, resultChan chan TestResult) {
 	var result = TestResult{
 		IsCorrect: true,
@@ -23,7 +25,7 @@ func performTestCaseOnce(addr *net.TCPAddr, testCase *TestCase, resultChan chan 
 
 		// get connection from list or make one if it does not exist yet
 		connectionId := message.Connection
-		if isOpened, exist := connectionState[connectionId]; (!exist ||  !isOpened) {
+		if isOpened, exist := connectionState[connectionId]; !exist || !isOpened {
 			//Connection does not exist or closed, create new connection for connection 
 			conn, err := net.DialTCP("tcp", nil, addr)
 			if err != nil {
@@ -45,11 +47,11 @@ func performTestCaseOnce(addr *net.TCPAddr, testCase *TestCase, resultChan chan 
 			end := time.Now()
 			totalTime += end.Sub(begin).Nanoseconds()
 		} else { // message from server, so read from buffer now
-			
-			if (DEBUG_READING_MESSAGE) {
+
+			if DEBUG_READING_MESSAGE {
 				fmt.Println("Expecting to receive a message from server ", message.MessageType)
 			}
-			
+
 			replyMessage, err := readReply(useBase, byte(baseCmd), byte(comm), protoParsedMessage, conn)
 			if err == nil {
 				if comparedResult, err := compareGetValueForProtoMessage(protoParsedMessage, *replyMessage); comparedResult {
@@ -73,7 +75,7 @@ func performTestCaseOnce(addr *net.TCPAddr, testCase *TestCase, resultChan chan 
 			connectionState[connectionId] = false
 			conn.SetLinger(DEFAULT_LINGER_PERIOD)
 
-			if (conn.Close() == nil) {
+			if conn.Close() == nil {
 				fmt.Println("CONNECTION SUCCESSFULLY CLOSED")
 			}
 		}
@@ -101,18 +103,18 @@ func sendMsg(useBase bool, baseCmd byte, cmd byte, msg proto.Message, conn *net.
 	}
 	length := int32(len(data)) + 1
 
-	if (useBase) {
+	if useBase {
 		length = length + 1
 	}
 
-	if (DEBUG_SENDING_MESSAGE) {
+	if DEBUG_SENDING_MESSAGE {
 		log.Print("sending message base length: ", length, " command / command / message: ", baseCmd, cmd, msg)
 	}
 
 	buf := new(bytes.Buffer)
 
 	binary.Write(buf, binary.LittleEndian, length)
-	if (useBase) {
+	if useBase {
 		binary.Write(buf, binary.LittleEndian, baseCmd)
 	}
 
@@ -120,14 +122,12 @@ func sendMsg(useBase bool, baseCmd byte, cmd byte, msg proto.Message, conn *net.
 	buf.Write(data)
 	// write data to connection
 	numSent, err := conn.Write(buf.Bytes())
-	if (err != nil) {
+	if err != nil {
 		log.Fatal("error while sending data to server ", err, " num bytes sent: ", numSent)
 	} else {
 		fmt.Println("MESSAGE SUCCESSFULLY SENT", numSent)
 	}
 }
-
-
 
 // read a reply to a buffer based on the expected message type
 // return error if reply message has different type of command than expected
@@ -146,19 +146,19 @@ func readReply(useBase bool, expBaseCmd byte, expCmd byte, expMsg proto.Message,
 		return nil, err
 	}
 	// check if use base-command
-	if (useBase) {
+	if useBase {
 		length = length - 1
 		var baseCmd byte
 		err = binary.Read(conn, binary.LittleEndian, &baseCmd)
 
-		if (baseCmd != expBaseCmd) {
+		if baseCmd != expBaseCmd {
 			// finish reading the rest of the message, 
 			// so that it does not affects other message
 			rbuf := make([]byte, length)
 			io.ReadFull(conn, rbuf)
 			// report error
 			errMsg := fmt.Sprintf("Unexpected BASE CMD %d", baseCmd)
-			return nil, errors.New(errMsg)	
+			return nil, errors.New(errMsg)
 		}
 	}
 
@@ -180,7 +180,7 @@ func readReply(useBase bool, expBaseCmd byte, expCmd byte, expMsg proto.Message,
 		errMsg := fmt.Sprintf("Unexpected CMD %d", cmd)
 		return nil, errors.New(errMsg)
 	}
-	
+
 	newValue := reflect.New(reflect.ValueOf(expMsg).Elem().Type()).Interface()
 	res = newValue.(proto.Message)
 	err = proto.Unmarshal(rbuf[1:], res)
@@ -189,7 +189,7 @@ func readReply(useBase bool, expBaseCmd byte, expCmd byte, expMsg proto.Message,
 		log.Fatal(err)
 	}
 
-	if (DEBUG_READING_MESSAGE) {
+	if DEBUG_READING_MESSAGE {
 		log.Print("Successfully receive message from network: ", res)
 	}
 	return &res, err

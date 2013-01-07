@@ -1,4 +1,5 @@
 package Auth.C2S;
+
 message LoginInfo
 {
 	required string Name = 1;
@@ -7,7 +8,10 @@ message LoginInfo
 	required string MachineId = 4;
 	required int32 SoftwareVersion = 5;
 	optional int32 Status = 6;
+	optional int64 timestamp = 7;
+	optional bytes deviceId = 8;
 }
+
 message HelloInfo
 {
 	required int32 ClientType = 1;
@@ -72,7 +76,10 @@ message OAuthLogin
 	required string MachineId = 5;
 	required int32 SoftwareVersion = 6;
 	optional int32 Status = 7;
+	optional int64 Timestamp = 8;
+	optional bytes DeviceId = 9;
 }
+
 message FillFinishReg
 {
 	optional int32 UserId = 1;
@@ -97,6 +104,12 @@ message RequestUserNotificationInfo
 {
 	optional bytes RequestId = 1;
 }
+
+message RequestPluginNotificationInfo
+{
+    required bytes RequestId = 1;
+}
+
 message ChangeNotification
 {
 	required bool Enabled = 1;
@@ -107,6 +120,14 @@ message ChangeNotification
 	optional bytes RequestId = 6;
     optional int32 Language  = 7; //0: En, 1: TW
 }
+
+message ChangePluginNotification
+{
+    required bool Enabled = 1;
+    required string Tag   = 2; //"dl": dailylife, "ds": discussion
+	required bytes RequestId = 3;
+}
+
 message ChangePassword
 {
     required string OldPassword = 1;

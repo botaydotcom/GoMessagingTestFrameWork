@@ -1,5 +1,4 @@
 package TestEngine
-
 import (
 	"code.google.com/p/goprotobuf/proto"
 	"errors"
@@ -39,10 +38,10 @@ const (
 	C2S_ChangeNotification_CMD          = 0x07
 	C2S_RequestUserNotificationInfo_CMD = 0x08
 
-	C2S_AddBuddyResult_CMD              = 0x66
-	C2S_Chat2AckRemote_CMD              = 0x82
-	C2S_InviteMemberResult_CMD   		= 0x08
-	C2S_ChatInfoRecvedAck_CMD   		= 0x0B // discussion chat ack
+	C2S_AddBuddyResult_CMD     = 0x66
+	C2S_Chat2AckRemote_CMD     = 0x82
+	C2S_InviteMemberResult_CMD = 0x08
+	C2S_ChatInfoRecvedAck_CMD  = 0x0B // discussion chat ack
 )
 
 const (
@@ -53,13 +52,13 @@ const (
 	S2C_KeepAliveAck_CMD          = 0x05
 	S2C_NotificationInfo_CMD      = 0x06
 
-	S2C_ChatInfo2_CMD       	  = 0x82
+	S2C_ChatInfo2_CMD             = 0x82
 	S2C_RemoteRequestAddBuddy_CMD = 0x72
-	S2C_InviteMember_CMD		  = 0x09
-	S2C_ChatInfo_CMD    		  = 0x08 // discussion chat ack
+	S2C_InviteMember_CMD          = 0x09
+	S2C_ChatInfo_CMD              = 0x08 // discussion chat ack
 
 	DISCUSSION_PACKET_BASE_COMMAND = 0xA0
-	DailyLifeRequest_MAINCMD	   = 0xA1
+	DailyLifeRequest_MAINCMD       = 0xA1
 )
 
 const (
@@ -80,22 +79,20 @@ const (
 
 const (
 	READ_PENDING_TIMEOUT = "3s"
-	CONN_NUM     		 = 3
+	CONN_NUM             = 3
 )
 
 // DEBUG FLAGS
-const (
-	DEBUG_COMPARE_POINTER = false
-	DEBUG_COMPARE_SLICE   = false
-	DEBUG_COMPARE_STRUCT  = false
+var DEBUG_COMPARE_POINTER bool = false
+var DEBUG_COMPARE_SLICE bool = false
+var DEBUG_COMPARE_STRUCT bool = false
 
-	DEBUG_CLEANING_UP	  = false
-	DEBUG_PARSING_MESSAGE = false
+var DEBUG_CLEANING_UP bool = false
+var DEBUG_PARSING_MESSAGE bool = false
 
-	DEBUG_IGNORING_MESSAGE = false
-	DEBUG_SENDING_MESSAGE = false
-	DEBUG_READING_MESSAGE = false
-)
+var DEBUG_SENDING_MESSAGE bool = false
+var DEBUG_READING_MESSAGE bool = false
+var DEBUG_IGNORING_MESSAGE bool = false
 
 type InnerXml struct {
 	Xml string `xml:",innerxml"`
@@ -105,33 +102,34 @@ type InnerXml struct {
 	IsPartial    bool   `xml:"isPartial,attr"`
 	PartialField int    `xml:"partialField,attr"`
 */
-
 type Message struct {
 	MessageType string `xml:"type,attr"`
 	FromClient  bool   `xml:"fromClient,attr"`
 	Connection  int    `xml:"connection,attr"`
 	Close       bool   `xml:"close,attr"`
+	Wait        string `xml:"wait,attr"`
 	BaseCommand string
 	Command     string
 	Data        InnerXml
 }
 
 type Var struct {
-	Name  string `xml:"name,attr"`
-	Value string
+	Name   string `xml:"name,attr"`
+	IsFunc bool   `xml:"isFunc,attr"`
+	Value  string
 }
 
 type IgnoreMessageSignature struct {
 	BaseCommand string
-	Command 	string
+	Command     string
 	MessageType string
 }
 
 type TestInfo struct {
-	Skip   bool `xml:"skip,attr"`
-	Repeat int  `xml:"repeat,attr"`
+	Skip           bool                     `xml:"skip,attr"`
+	Repeat         int                      `xml:"repeat,attr"`
 	IgnoreMessages []IgnoreMessageSignature `xml:"IgnoreMessages>Message"`
-	Name   string
+	Name           string
 }
 
 type TestCase struct {
@@ -141,15 +139,14 @@ type TestCase struct {
 }
 
 type TestSuite struct {
-	TestSuiteName string
-	TargetHost    string
-	TargetPort    string
+	TestSuiteName        string
+	TargetHost           string
+	TargetPort           string
 	GlobalIgnoreMessages []IgnoreMessageSignature `xml:"IgnoreMessages>Message"`
-	GlobalVarMap  []Var      `xml:"VarMap>Var"`
-	ListTestInfos []TestInfo `xml:"ListTest>TestInfo"`
-	ListTestCases []TestCase `xml:"Tests>Test"`
+	GlobalVarMap         []Var                    `xml:"VarMap>Var"`
+	ListTestInfos        []TestInfo               `xml:"ListTest>TestInfo"`
+	ListTestCases        []TestCase               `xml:"Tests>Test"`
 }
-
 
 type TestResult struct {
 	IsCorrect bool
@@ -184,9 +181,21 @@ var regVar *regexp.Regexp
 var numVar int = 0
 var readTimeOut string
 
-func ExecuteTest(inputFile string, timeOut int) {
-// open file
+func ExecuteTest(flagMap map[string]bool, inputFile string, timeOut int) {
+	DEBUG_COMPARE_POINTER = flagMap["cmpPtr"]
+	DEBUG_COMPARE_SLICE = flagMap["cmpSlc"]
+	DEBUG_COMPARE_STRUCT = flagMap["cmpStr"]
+
+	DEBUG_CLEANING_UP = flagMap["clean"]
+	DEBUG_PARSING_MESSAGE = flagMap["parse"]
+
+	DEBUG_SENDING_MESSAGE = flagMap["send"]
+	DEBUG_READING_MESSAGE = flagMap["read"]
+	DEBUG_IGNORING_MESSAGE = flagMap["ignore"]
+
+	// open file
 	readTimeOut = fmt.Sprintf("%ds", timeOut)
+	fmt.Println("Read time out", readTimeOut)
 	fmt.Println("Testing file:", inputFile)
 
 	keyMap = make(map[string]string)
@@ -203,7 +212,6 @@ func ExecuteTest(inputFile string, timeOut int) {
 	} else {
 		executeTestSuite(ts)
 	}
-
 }
 
 /******************* steps in test ****************************************/
@@ -211,12 +219,13 @@ func executeTestSuite(testSuite *TestSuite) {
 	targetAddr := testSuite.TargetHost + ":" + testSuite.TargetPort
 	addr, err := net.ResolveTCPAddr("tcp", targetAddr)
 	if err != nil {
+		fmt.Println("Cannot resolve address")
 		log.Fatal("Cannot resolve address")
 	}
 
 	// parse global ignore messages
 	parseGlobalIgnoreMessages(testSuite.GlobalIgnoreMessages)
-	
+
 	// parse test-suite varmap first
 	parseVarMap(testSuite.GlobalVarMap)
 
@@ -229,7 +238,7 @@ func executeTestSuite(testSuite *TestSuite) {
 		if !skipped && !testSuite.ListTestInfos[i].Skip {
 			testSuiteResult.Skip[i] = false
 			testSuiteResult.TestCaseResults[i] = executeTestCase(addr, &(testSuite.ListTestInfos[i]), &(testSuite.ListTestCases[i]))
-			if testSuiteResult.TestCaseResults[i].NumCorrect !=  testSuiteResult.TestCaseResults[i].NumTest {
+			if testSuiteResult.TestCaseResults[i].NumCorrect != testSuiteResult.TestCaseResults[i].NumTest {
 				skipped = true
 				// skip the rest of the test suite
 			}
@@ -262,7 +271,7 @@ func executeTestCase(addr *net.TCPAddr, testInfo *TestInfo, testCase *TestCase) 
 		testCaseResult.Results[i] = <-chans[i]
 		if testCaseResult.Results[i].IsCorrect {
 			testCaseResult.NumCorrect++
-		} 
+		}
 	}
 
 	return testCaseResult
@@ -293,7 +302,7 @@ func performTestCaseOnce(addr *net.TCPAddr, testCase *TestCase, resultChan chan 
 
 		// get connection from list or make one if it does not exist yet
 		connectionId := message.Connection
-		if isOpened, exist := connectionState[connectionId]; (!exist ||  !isOpened) {
+		if isOpened, exist := connectionState[connectionId]; !exist || !isOpened {
 			//Connection does not exist or closed, create new connection for connection 
 			conn, err := net.DialTCP("tcp", nil, addr)
 			if err != nil {
@@ -309,7 +318,20 @@ func performTestCaseOnce(addr *net.TCPAddr, testCase *TestCase, resultChan chan 
 		}
 		conn := listConnection[connectionId]
 
+		fmt.Println("MESSAGE WAIT IS: ", message.Wait, "|")
+
+		if message.Wait != "" {
+			duration, err := time.ParseDuration(message.Wait)
+			if err == nil {
+				fmt.Println("WAITING FOR: ", duration)
+				time.Sleep(duration)
+			}
+		}
+
 		if message.FromClient { // message from client, so send to server now
+			if DEBUG_SENDING_MESSAGE {
+				fmt.Println("Preparing to send a message from server ", message.MessageType)
+			}
 			begin := time.Now()
 			sendMsg(useBase, byte(baseCmd), byte(comm), protoParsedMessage, conn)
 			end := time.Now()
@@ -319,23 +341,23 @@ func performTestCaseOnce(addr *net.TCPAddr, testCase *TestCase, resultChan chan 
 			if !useBase {
 				baseCmd = 0
 			}
-			if (tryIgnoreExpectedMessage(int(baseCmd), int(comm), protoParsedMessage)) {
+			if tryIgnoreExpectedMessage(int(baseCmd), int(comm), protoParsedMessage) {
 				// ignore this message
 				continue
 			}
-			if (DEBUG_READING_MESSAGE) {
+			if DEBUG_READING_MESSAGE {
 				fmt.Println("Expecting to receive a message from server ", message.MessageType)
 			}
 
-			var replyMessage *proto.Message 
+			var replyMessage *proto.Message
 			var err error
 			for {
-				replyMessage, err = readReply(useBase, byte(baseCmd), byte(comm), protoParsedMessage, conn)	
-				if (DEBUG_READING_MESSAGE) {
+				replyMessage, err = readReply(useBase, byte(baseCmd), byte(comm), protoParsedMessage, conn)
+				if DEBUG_READING_MESSAGE {
 					fmt.Println("reply message, err: ", replyMessage, err)
 				}
-				if (replyMessage != nil || err != nil) {
-					break;
+				if replyMessage != nil || err != nil {
+					break
 					// when both reply message / err == nil signals that the message is ignored
 				}
 
@@ -382,22 +404,23 @@ func performTestCaseOnce(addr *net.TCPAddr, testCase *TestCase, resultChan chan 
 func sendMsg(useBase bool, baseCmd byte, cmd byte, msg proto.Message, conn *net.TCPConn) {
 	data, err := proto.Marshal(msg)
 	if err != nil {
+		fmt.Println("marshaling error: ", err)
 		log.Fatal("marshaling error: ", err)
 	}
 	length := int32(len(data)) + 1
 
-	if (useBase) {
+	if useBase {
 		length = length + 1
 	}
 
-	if (DEBUG_SENDING_MESSAGE) {
-		log.Print("sending message base length: ", length, " command / command / message: ", baseCmd, cmd, msg)
+	if DEBUG_SENDING_MESSAGE {
+		fmt.Println("sending message base length: ", length, " command / command / message: ", baseCmd, cmd, msg)
 	}
 
 	buf := new(bytes.Buffer)
 
 	binary.Write(buf, binary.LittleEndian, length)
-	if (useBase) {
+	if useBase {
 		binary.Write(buf, binary.LittleEndian, baseCmd)
 	}
 
@@ -407,8 +430,8 @@ func sendMsg(useBase bool, baseCmd byte, cmd byte, msg proto.Message, conn *net.
 	conn.Write(buf.Bytes())
 }
 
-func tryIgnoreReceivedMessage(buffer []byte) (bool){
-	if (DEBUG_IGNORING_MESSAGE) {
+func tryIgnoreReceivedMessage(buffer []byte) bool {
+	if DEBUG_IGNORING_MESSAGE {
 		fmt.Println("Trying to ignore received message buffer: ", buffer)
 		fmt.Println("Global ignore list:", globalIgnoreMessages)
 		fmt.Println("Current ignore list:", currentIgnoreMessages)
@@ -417,66 +440,66 @@ func tryIgnoreReceivedMessage(buffer []byte) (bool){
 	baseCmd := buffer[0]
 	// report error
 	signature := calculateSignature(0, int(baseCmd))
-	if (DEBUG_IGNORING_MESSAGE) {
+	if DEBUG_IGNORING_MESSAGE {
 		fmt.Println("Signature 1: ", signature)
-	}	
+	}
 	if ignoreType, exist := currentIgnoreMessages[signature]; exist {
 		newValue := magicVarFunc(ignoreType)
 		res := newValue.(proto.Message)
 		err := proto.Unmarshal(buffer[1:], res)
 		if err == nil {
 			// can ignore this message
-			if (DEBUG_IGNORING_MESSAGE) {
+			if DEBUG_IGNORING_MESSAGE {
 				fmt.Println("Ignored!")
-			}	
+			}
 			return true
 		}
 	}
 
-	if (len(buffer) >= 2) {
+	if len(buffer) >= 2 {
 		signature = calculateSignature(int(baseCmd), int(buffer[1]))
-		if (DEBUG_IGNORING_MESSAGE) {
+		if DEBUG_IGNORING_MESSAGE {
 			fmt.Println("Signature 2: ", signature)
-		}	
-		if ignoreType, exist:= currentIgnoreMessages[signature]; exist {
+		}
+		if ignoreType, exist := currentIgnoreMessages[signature]; exist {
 			newValue := magicVarFunc(ignoreType)
 			res := newValue.(proto.Message)
 			err := proto.Unmarshal(buffer[1:], res)
 			if err == nil {
 				// can ignore this message
-				if (DEBUG_IGNORING_MESSAGE) {
+				if DEBUG_IGNORING_MESSAGE {
 					fmt.Println("Ignored!")
 				}
 				return true
 			}
 		}
 	}
-	if (DEBUG_IGNORING_MESSAGE) {
+	if DEBUG_IGNORING_MESSAGE {
 		fmt.Println("Not ignored!")
-	}	
+	}
 	return false
 }
 
 // when we expect some messages, and get error while receiving
 // check if the expected messages can be ignored, and ignore it.
-func tryIgnoreExpectedMessage(baseCmd int, cmd int, expMsg proto.Message) (bool){
-	if (DEBUG_IGNORING_MESSAGE) {
+func tryIgnoreExpectedMessage(baseCmd int, cmd int, expMsg proto.Message) bool {
+	if DEBUG_IGNORING_MESSAGE {
 		fmt.Println("Trying to ignore expected message: ", baseCmd, cmd, expMsg)
 		fmt.Println("Global ignore list:", globalIgnoreMessages)
 		fmt.Println("Current ignore list:", currentIgnoreMessages)
 	}
 	signature := calculateSignature(baseCmd, cmd)
-	if (DEBUG_IGNORING_MESSAGE) {
+	if DEBUG_IGNORING_MESSAGE {
 		fmt.Println("Signature: ", signature)
 	}
 	if ignoreType, exist := currentIgnoreMessages[signature]; exist {
 		fmt.Println(ignoreType, expMsg)
-		if (DEBUG_IGNORING_MESSAGE) {
+		if DEBUG_IGNORING_MESSAGE {
 			fmt.Println("Ignored!")
 		}
 		return true
 	}
-	if (DEBUG_IGNORING_MESSAGE) {
+	if DEBUG_IGNORING_MESSAGE {
 		fmt.Println("Not Ignored!")
 	}
 	return false
@@ -488,7 +511,7 @@ func readReply(useBase bool, expBaseCmd byte, expCmd byte, expMsg proto.Message,
 	length := int32(0)
 	duration, err := time.ParseDuration(readTimeOut)
 	timeNow := time.Now()
-	if (DEBUG_READING_MESSAGE) {
+	if DEBUG_READING_MESSAGE {
 		fmt.Println("set read deadline")
 	}
 	err = conn.SetReadDeadline(timeNow.Add(duration))
@@ -497,7 +520,7 @@ func readReply(useBase bool, expBaseCmd byte, expCmd byte, expMsg proto.Message,
 	}
 
 	err = binary.Read(conn, binary.LittleEndian, &length)
-	if (DEBUG_READING_MESSAGE) {
+	if DEBUG_READING_MESSAGE {
 		fmt.Println("read length", length)
 	}
 	if err != nil {
@@ -505,10 +528,10 @@ func readReply(useBase bool, expBaseCmd byte, expCmd byte, expMsg proto.Message,
 	}
 
 	var baseCmd byte
-	if (useBase) {
+	if useBase {
 		length = length - 1
 		err = binary.Read(conn, binary.LittleEndian, &baseCmd)
-		if (baseCmd != expBaseCmd) {
+		if baseCmd != expBaseCmd {
 			// finish reading the rest of the message, 
 			// so that it does not affects other message
 			rbuf := make([]byte, length)
@@ -524,7 +547,7 @@ func readReply(useBase bool, expBaseCmd byte, expCmd byte, expMsg proto.Message,
 			}
 
 			errMsg := fmt.Sprintf("Unexpected BASE CMD %d", baseCmd)
-			return nil, errors.New(errMsg)	
+			return nil, errors.New(errMsg)
 		}
 	}
 
@@ -545,14 +568,14 @@ func readReply(useBase bool, expBaseCmd byte, expCmd byte, expMsg proto.Message,
 	if cmd != expCmd {
 		// try to ignore this message before report error
 		fullBuffer := make([]byte, 0)
-		if (useBase) {
+		if useBase {
 			fullBuffer = append(fullBuffer, baseCmd)
 		}
 		fullBuffer = append(fullBuffer, rbuf...)
 		if tryIgnoreReceivedMessage(fullBuffer) {
 			return nil, nil // signal ignored
 		}
-		if (DEBUG_READING_MESSAGE) {
+		if DEBUG_READING_MESSAGE {
 			fmt.Println("buffer, baseCmd", rbuf, baseCmd)
 			fmt.Println("fullBuffer", fullBuffer)
 		}
@@ -560,24 +583,25 @@ func readReply(useBase bool, expBaseCmd byte, expCmd byte, expMsg proto.Message,
 		errMsg := fmt.Sprintf("Unexpected CMD %d", cmd)
 		return nil, errors.New(errMsg)
 	}
-	
+
 	newValue := reflect.New(reflect.ValueOf(expMsg).Elem().Type()).Interface()
 	res = newValue.(proto.Message)
 	err = proto.Unmarshal(rbuf[1:], res)
 
 	if err != nil {
+		fmt.Println(err)
 		log.Fatal(err)
 	}
 
-	if (DEBUG_READING_MESSAGE) {
-		log.Print("Successfully receive message from network: ", res)
+	if DEBUG_READING_MESSAGE {
+		fmt.Println("Successfully receive message from network: ", res)
 	}
 	return &res, err
 }
 
 /**************Compare Values and Bind value from reply message to unbound var in value map*****/
 func compareGetValueForPointer(expPtr reflect.Value, repPtr reflect.Value) (bool, error) {
-	if (DEBUG_COMPARE_POINTER) {
+	if DEBUG_COMPARE_POINTER {
 		fmt.Println("Comparing pointers", expPtr.Elem().IsValid(), repPtr.Elem().IsValid())
 	}
 	// if pointer of expected value is null, just dont compare
@@ -595,7 +619,7 @@ func compareGetValueForPointer(expPtr reflect.Value, repPtr reflect.Value) (bool
 
 	strVar := fmt.Sprintf("%v", expValue.Interface())
 
-	if (DEBUG_COMPARE_POINTER) {
+	if DEBUG_COMPARE_POINTER {
 		fmt.Println("Expected pointer in message has value: ", strVar)
 	}
 
@@ -605,7 +629,7 @@ func compareGetValueForPointer(expPtr reflect.Value, repPtr reflect.Value) (bool
 	// if the expected field is a variable field that's not bound, bind the value of the key now
 	key, present := keyMap[strVar]
 	if present {
-		if (DEBUG_COMPARE_POINTER) {
+		if DEBUG_COMPARE_POINTER {
 			fmt.Println("Unbound pointer variable, bind value to map now")
 		}
 		// bound variable to value, return true
@@ -616,7 +640,7 @@ func compareGetValueForPointer(expPtr reflect.Value, repPtr reflect.Value) (bool
 		if expValue.Kind() != reflect.Struct {
 			isEqual := (expValue.Interface() == repValue.Interface())
 
-			if (DEBUG_COMPARE_POINTER) {
+			if DEBUG_COMPARE_POINTER {
 				fmt.Println("Comparing: ", expValue.Interface(), repValue.Interface(), " equal? ", isEqual)
 			}
 
@@ -634,7 +658,7 @@ func compareGetValueForPointer(expPtr reflect.Value, repPtr reflect.Value) (bool
 }
 
 func compareGetValueForSlice(expSlice reflect.Value, repSlice reflect.Value) (bool, error) {
-	if (DEBUG_COMPARE_SLICE) {
+	if DEBUG_COMPARE_SLICE {
 		fmt.Println("Comparing slices")
 	}
 
@@ -649,12 +673,12 @@ func compareGetValueForSlice(expSlice reflect.Value, repSlice reflect.Value) (bo
 	if canConvert {
 		strVar = string(byteArray)
 	}
-	
+
 	// if the expected field is a variable field that's not bound, (its value exists in key map)
 	// bind the value of the key now
 	key, present := keyMap[strVar]
 	if present {
-		if (DEBUG_COMPARE_SLICE) {
+		if DEBUG_COMPARE_SLICE {
 			fmt.Println("Unbound slice variable, bind value to map now")
 		}
 
@@ -688,7 +712,7 @@ func compareGetValueForSlice(expSlice reflect.Value, repSlice reflect.Value) (bo
 			}
 		}
 	}
-	if dif {	
+	if dif {
 		err = errors.New(errorMsg)
 		result = false
 	}
@@ -696,7 +720,7 @@ func compareGetValueForSlice(expSlice reflect.Value, repSlice reflect.Value) (bo
 }
 
 func compareGetValueForStruct(expStruct reflect.Value, repStruct reflect.Value) (bool, error) {
-	if (DEBUG_COMPARE_STRUCT) {
+	if DEBUG_COMPARE_STRUCT {
 		fmt.Println("Comparing structs")
 	}
 	result := true
@@ -705,7 +729,7 @@ func compareGetValueForStruct(expStruct reflect.Value, repStruct reflect.Value) 
 		expStructField := expStruct.Field(i) // pointer
 		repStructField := repStruct.Field(i) // pointer
 
-		if (DEBUG_COMPARE_STRUCT) {
+		if DEBUG_COMPARE_STRUCT {
 			fmt.Println(expStructField, repStructField, expStructField.Kind())
 		}
 
@@ -750,12 +774,22 @@ func compareGetValueForProtoMessage(protoExp proto.Message, protoRep proto.Messa
 // parse varMap from input and put value to the value map
 func parseVarMap(varMap []Var) {
 	for _, newVar := range varMap {
-		valueMap[newVar.Name] = newVar.Value
+		if !newVar.IsFunc {
+			valueMap[newVar.Name] = newVar.Value
+		} else {
+			valueMap[newVar.Name] = magicCallFunc(newVar.Value, nil)[0]
+		}
+		if DEBUG_PARSING_MESSAGE {
+			fmt.Println("Paring global var: ", newVar.Name, " ==> ", valueMap[newVar.Name])
+		}
+	}
+	if DEBUG_PARSING_MESSAGE {
+		fmt.Println("Global var map:", valueMap)
 	}
 }
 
-func calculateSignature(baseCommand int, command int) (int) {
-	return baseCommand * 500 + command;
+func calculateSignature(baseCommand int, command int) int {
+	return baseCommand*500 + command
 }
 
 // parse global ignore messages
@@ -785,7 +819,7 @@ func prepareCurrentIgnoreMap(ignoreMessages []IgnoreMessageSignature) {
 	}
 }
 
-func plugValueForVar(message string, varName string, value interface{}) (string) {
+func plugValueForVar(message string, varName string, value interface{}) string {
 	valueToReplace := ""
 	kind := reflect.ValueOf(value).Kind()
 	if kind == reflect.Slice {
@@ -800,7 +834,7 @@ func plugValueForVar(message string, varName string, value interface{}) (string)
 
 // plug value from value map to the raw xml message
 func plugValue(message string) (string, error) {
-	for key, value := range(valueMap) {
+	for key, value := range valueMap {
 		message = plugValueForVar(message, key, value)
 	}
 	return message, nil
@@ -832,10 +866,10 @@ func preProcess(rawData string) {
 func fillSliceValueToMessage(rawMessage *interface{}) {
 	protoMsg := (*rawMessage).(proto.Message)
 	message := reflect.ValueOf(protoMsg).Elem()
-	
+
 	for i := 0; i < message.NumField(); i++ {
 		expStructField := message.Field(i) // pointer
-		
+
 		if expStructField.Kind() == reflect.Slice {
 			strVar := ""
 			byteArray, canConvert := expStructField.Interface().([]byte)
@@ -844,7 +878,7 @@ func fillSliceValueToMessage(rawMessage *interface{}) {
 				strVar = string(byteArray)
 				// if the expected field is a variable field that's not bound, bind the value of the key now
 				key, present := keyMap[strVar]
-				
+
 				if present {
 					if sliceValue, valuePresent := sliceMap[key]; valuePresent {
 						message.Field(i).Set(reflect.ValueOf(sliceValue))
@@ -853,7 +887,7 @@ func fillSliceValueToMessage(rawMessage *interface{}) {
 			}
 		}
 	}
- 
+
 }
 
 // parse a message from message sequence
@@ -865,7 +899,7 @@ func parseAMessage(v Message) (interface{}, int, bool, int, error) {
 	// second pass: plug all value to the var in the raw string 
 	addedXmlMessage, err := plugValue(v.Data.Xml)
 
-	if (DEBUG_PARSING_MESSAGE) {
+	if DEBUG_PARSING_MESSAGE {
 		fmt.Println("-------------------------------------------------")
 		fmt.Println("Processing message: ", addedXmlMessage)
 	}
@@ -873,34 +907,51 @@ func parseAMessage(v Message) (interface{}, int, bool, int, error) {
 	message := magicVarFunc(v.MessageType)
 	err = xml.Unmarshal([]byte(addedXmlMessage), message)
 
+	if DEBUG_PARSING_MESSAGE {
+		fmt.Println("after unmarshal parsing, error = ", err, " message = ", message)
+	}
+
 	// run through the slice map to fill in missing value
 	fillSliceValueToMessage(&message)
+
+	if DEBUG_PARSING_MESSAGE {
+		fmt.Println("After filling in slice: ", message)
+	}
 
 	if err != nil {
 		fmt.Printf("error: %v\n", err)
 	}
-	
-	if (DEBUG_PARSING_MESSAGE) {
-		s := reflect.ValueOf(message).Elem()
+
+	if DEBUG_PARSING_MESSAGE {
+		/*s := reflect.ValueOf(message).Elem()
+		fmt.Println("Message type: ", s.Type())
 		for i := 0; i < s.NumField(); i++ {
+			fmt.Print("Print value field ", i, " : ")
 			f := s.Field(i)
 			printValue(f)
-		}
+		}*/
+		//s := reflect.ValueOf(message).Elem()
+		//printValueForStruct(s, 0)
 	}
 
 	cmd, _ := strconv.ParseInt(v.Command, 0, 0)
 
 	useBase := true
 	baseCmd, err1 := strconv.ParseInt(v.BaseCommand, 0, 0)
-	if (err1 != nil) {
+	if err1 != nil {
 		useBase = false
 		baseCmd = 0
 	}
-	
+
 	return message, int(cmd), useBase, int(baseCmd), err
 }
 
 /************************* Pointer value helper functions *************************/
+// call a function with a specific name 
+func magicCallFunc(typeName string, in []reflect.Value) []reflect.Value {
+	return GeneratedDataStructure.FuncMap[typeName].Call(in)
+}
+
 // create a zero pointer to a value of the correponding type in the map
 func magicVarFunc(typeName string) interface{} {
 	return reflect.New(GeneratedDataStructure.Map[typeName]).Interface()
@@ -954,30 +1005,69 @@ func getValue(ptrValue reflect.Value) (interface{}, error) {
 	return ptrValue, errors.New("Not a pointer")
 }
 
-func printValue(ptrValue reflect.Value) {
-	if ptrValue.Kind() == reflect.Ptr {
-		if ptrValue.Elem().IsValid() {
-			value := reflect.Indirect(reflect.ValueOf(ptrValue.Interface()))
-			//fmt.Println("value:", value, value.String(), value.Interface().(string))
+func getOffsetForLevel(level int) string {
+	offset := ""
+	for i := 0; i < level; i++ {
+		offset = offset + "   "
+	}
+	return offset
+}
 
-			if _, ok := value.Interface().(interface {
-				Int()
-			}); ok {
-				fmt.Println(value.Int())
-			}
-			if _, ok := value.Interface().(interface {
-				Float()
-			}); ok {
-				fmt.Println(value.Float())
-			}
-			if value.Kind() == reflect.String {
-				fmt.Println(value.String())
-			}
-		} else {
-			fmt.Println("Uninitialized")
+func printValueForPointer(ptrValue reflect.Value, level int) {
+	offset := getOffsetForLevel(level)
+	if ptrValue.Elem().IsValid() {
+		value := reflect.Indirect(reflect.ValueOf(ptrValue.Interface()))
+
+		fmt.Print(offset)
+		fmt.Println("value:", value.Interface())
+		if value.Kind() == reflect.Slice {
+			printValueForSlice(value, level+1)
+		}
+		if value.Kind() == reflect.Struct {
+			printValueForStruct(value, level+1)
 		}
 	} else {
-		fmt.Println("Not a pointer")
+		fmt.Print(offset)
+		fmt.Println("Uninitialized")
+	}
+}
+
+func printValueForSlice(sliceValue reflect.Value, level int) {
+	offset := getOffsetForLevel(level)
+	fmt.Print(offset)
+	fmt.Println("Slice: ")
+	for index := 0; index < sliceValue.Len(); index++ {
+		fmt.Print(offset)
+		fmt.Println("Index", index, ":")
+		f := sliceValue.Index(index)
+		if f.Kind() == reflect.Ptr {
+			printValueForPointer(f, level+1)
+		} else if f.Kind() == reflect.Slice {
+			printValueForSlice(f, level+1)
+		} else if f.Kind() == reflect.Struct {
+			printValueForStruct(f, level+1)
+		} else {
+			fmt.Print(offset)
+			fmt.Println(f.Interface())
+		}
+	}
+}
+
+func printValueForStruct(structValue reflect.Value, level int) {
+	offset := getOffsetForLevel(level)
+	fmt.Print(offset)
+	fmt.Println("Struct: ", structValue.Type())
+	for i := 0; i < structValue.NumField(); i++ {
+		fmt.Print(offset)
+		fmt.Println("Value field", i, ":")
+		f := structValue.Field(i)
+		if f.Kind() == reflect.Ptr {
+			printValueForPointer(f, level+1)
+		} else if f.Kind() == reflect.Slice {
+			printValueForSlice(f, level+1)
+		} else if f.Kind() == reflect.Struct {
+			printValueForStruct(f, level+1)
+		}
 	}
 }
 
@@ -998,7 +1088,7 @@ func readXmlInput(inputFile string) (*TestSuite, error) {
 	return &testSuite, nil
 }
 
-func prettyPrintTestCase(testCaseInfo *TestInfo, isSkipped bool, result *TestCaseResult) (bool){
+func prettyPrintTestCase(testCaseInfo *TestInfo, isSkipped bool, result *TestCaseResult) bool {
 	incorrect := false
 	var offset = "     "
 	fmt.Printf(" %sTEST CASE: %s\n", offset, testCaseInfo.Name)
@@ -1033,14 +1123,15 @@ func prettyPrintTestSuite(testSuite *TestSuite, result *TestSuiteResult) {
 	fmt.Printf("TEST SUITE: %s\n", testSuite.TestSuiteName)
 	for i := 0; i < len(testSuite.ListTestInfos); i++ {
 		fmt.Println()
-		if (prettyPrintTestCase(&(testSuite.ListTestInfos[i]), result.Skip[i], &(result.TestCaseResults[i]))) {
+		if prettyPrintTestCase(&(testSuite.ListTestInfos[i]), result.Skip[i], &(result.TestCaseResults[i])) {
 			incorrect = true
 		}
 		fmt.Println()
 	}
 	fmt.Println("END OF TEST SUITE RESULT")
 	fmt.Println("--------------------------------------------------------------------------------")
-	if (incorrect) {
+	if incorrect {
+		fmt.Println("TEST CASE FAILED, STOP!")
 		log.Fatal("TEST CASE FAILED, STOP!")
 	}
 }
@@ -1053,7 +1144,7 @@ func cleanUpAfterTest(addr *net.TCPAddr, testCase *TestCase) {
 		// parse message (plug in values if necessary)
 		parsedMessage, comm, useBase, baseCmd, err := parseAMessage(message)
 		if err != nil {
-			log.Println("Error in parsing clean up message at message:", i)
+			fmt.Println("Error in parsing clean up message at message:", i)
 			continue
 		}
 		protoParsedMessage := parsedMessage.(proto.Message)
@@ -1064,7 +1155,7 @@ func cleanUpAfterTest(addr *net.TCPAddr, testCase *TestCase) {
 			// Connection does not exist or closed, create new connection for connection
 			conn, err := net.DialTCP("tcp", nil, addr)
 			if err != nil {
-				log.Print("Cannot establish connection for clean up:", connectionId)
+				fmt.Println("Cannot establish connection for clean up:", connectionId)
 				continue
 			} else {
 				listConnection[connectionId] = conn
@@ -1090,7 +1181,7 @@ func cleanUpAfterTest(addr *net.TCPAddr, testCase *TestCase) {
 	for pending {
 		pending = false
 		for i, conn := range listConnection {
-			if (DEBUG_CLEANING_UP) {
+			if DEBUG_CLEANING_UP {
 				fmt.Println("Trying to read from connection", i, "and ack all pending messages")
 			}
 			// now all the established connections are the one to be clean up
@@ -1100,7 +1191,7 @@ func cleanUpAfterTest(addr *net.TCPAddr, testCase *TestCase) {
 					break
 				}
 				if pendingMessage != nil {
-					if (DEBUG_CLEANING_UP) {
+					if DEBUG_CLEANING_UP {
 						fmt.Println("Pending message value: ", *pendingMessage)
 					}
 					// ack server
@@ -1157,14 +1248,14 @@ func readPendingMessage(conn *net.TCPConn) (*proto.Message, error, byte) {
 		baseCmd = 0
 	}
 
-	//log.Print("Buffer read from network: ", rbuf)
+	//fmt.Println("Buffer read from network: ", rbuf)
 
 	var newValue interface{}
 	cmd := rbuf[0]
 	switch cmd {
 	case S2C_RemoteRequestAddBuddy_CMD:
 		if !useBase {
-			if (DEBUG_CLEANING_UP) {
+			if DEBUG_CLEANING_UP {
 				fmt.Println("Found a request add buddy message, respond now: ")
 			}
 			newValue = magicVarFunc("Auth_Buddy_S2C_RemoteRequestAddBuddy")
@@ -1172,15 +1263,15 @@ func readPendingMessage(conn *net.TCPConn) (*proto.Message, error, byte) {
 
 	case S2C_ChatInfo2_CMD:
 		if !useBase {
-			if (DEBUG_CLEANING_UP) {
+			if DEBUG_CLEANING_UP {
 				fmt.Println("Found a chat message, respond now: ")
-			}			
+			}
 			newValue = magicVarFunc("Auth_Buddy_S2C_ChatInfo2")
 		}
 
 	case S2C_InviteMember_CMD:
 		if useBase {
-			if (DEBUG_CLEANING_UP) {
+			if DEBUG_CLEANING_UP {
 				fmt.Println("Found an invite member message, respond now: ")
 			}
 			newValue = magicVarFunc("Discussion_S2C_InviteMember")
@@ -1188,7 +1279,7 @@ func readPendingMessage(conn *net.TCPConn) (*proto.Message, error, byte) {
 
 	case S2C_ChatInfo_CMD:
 		if useBase {
-			if (DEBUG_CLEANING_UP) {
+			if DEBUG_CLEANING_UP {
 				fmt.Println("Found a discussion chat message, respond now: ")
 			}
 			newValue = magicVarFunc("Discussion_S2C_ChatInfo")
@@ -1201,6 +1292,7 @@ func readPendingMessage(conn *net.TCPConn) (*proto.Message, error, byte) {
 	err = proto.Unmarshal(rbuf[1:], res)
 
 	if err != nil {
+		fmt.Println(err)
 		log.Fatal(err)
 	}
 	return &res, err, cmd
@@ -1262,7 +1354,7 @@ func ackPendingMessageToServer(pendingMessage *proto.Message, comm byte, conn *n
 		useBase = true
 		baseCmd = DISCUSSION_PACKET_BASE_COMMAND
 	}
-	if (DEBUG_CLEANING_UP) {
+	if DEBUG_CLEANING_UP {
 		fmt.Println("Reply with message", res)
 	}
 	sendMsg(useBase, byte(baseCmd), replyComm, res, conn)

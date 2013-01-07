@@ -1,0 +1,870 @@
+<TestSuite>
+	<TestSuiteName>Chat</TestSuiteName>
+	<TargetHost>203.117.155.188</TargetHost>
+	<TargetPort>9100</TargetPort>
+	<VarMap>
+		<Var name="email1">
+			<Value>indotest15@test.com</Value>
+		</Var>		
+		<Var name="password1">
+			<Value>e10adc3949ba59abbe56e057f20f883e</Value>
+		</Var>
+		<Var name="name1">
+			<Value>indotest15</Value>
+		</Var>			
+		<Var name="email2">
+			<Value>indotest16@test.com</Value>
+		</Var>		
+		<Var name="password2">
+			<Value>e10adc3949ba59abbe56e057f20f883e</Value>
+		</Var>
+		<Var name="name2">
+			<Value>indotest16</Value>
+		</Var>
+		<Var name="email3">
+			<Value>indotest17@test.com</Value>
+		</Var>		
+		<Var name="password3">
+			<Value>e10adc3949ba59abbe56e057f20f883e</Value>
+		</Var>
+		<Var name="name3">
+			<Value>indotest17</Value>
+		</Var>
+		<Var name="email4">
+			<Value>indotest18@test.com</Value>
+		</Var>		
+		<Var name="name4">
+			<Value>indotest18</Value>
+		</Var>					
+		<Var name="password4">
+			<Value>e10adc3949ba59abbe56e057f20f883e</Value>
+		</Var>					
+		<Var name="mid1">
+			<Value>13456793</Value>
+		</Var>
+		<Var name="msg1">
+			<Value>Test message</Value>
+		</Var>
+		<Var name="mid2">
+			<Value>13456794</Value>
+		</Var>
+		<Var name="msg2">
+			<Value>Test message 1</Value>
+		</Var>
+		<Var name="mid3">
+			<Value>13456795</Value>
+		</Var>
+		<Var name="msg3">
+			<Value>This is Test message 3</Value>
+		</Var>
+		<Var name="mid4">
+			<Value>13456796</Value>
+		</Var>
+		<Var name="msg4">
+			<Value>This is Test message 4</Value>
+		</Var>
+		<Var name="rid11" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid12" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid13" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid14" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid15" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid21" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid22" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid31" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid32" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid41" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid42" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid51" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid52" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid61" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid62" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid71" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid72" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="photoname">
+			<Value>This is a test photo</Value>
+		</Var>
+		<Var name="comment1">
+			<Value>This is a test comment</Value>
+		</Var>
+		<Var name="comment2">
+			<Value>This is a test comment</Value>
+		</Var>
+		<Var name="comment3">
+			<Value>This is a test comment</Value>
+		</Var>
+		<Var name="ts1" isFunc="true">
+			<Value>Helper_Timestamp</Value>
+		</Var>
+		<Var name="ts2" isFunc="true">
+			<Value>Helper_Timestamp</Value>
+		</Var>
+		<Var name="ts3" isFunc="true">
+			<Value>Helper_Timestamp</Value>
+		</Var>
+		<Var name="ts4" isFunc="true">
+			<Value>Helper_Timestamp</Value>
+		</Var>
+		<Var name="ts5" isFunc="true">
+			<Value>Helper_Timestamp</Value>
+		</Var>
+	</VarMap>
+	<IgnoreMessages>
+		<Message>
+			<BaseCommand>0x00</BaseCommand>
+			<Command>0x73</Command>
+			<MessageType>Auth_Buddy_S2C_BuddyOnline</MessageType>
+		</Message>
+	</IgnoreMessages>
+
+	<ListTest>
+		<TestInfo skip="false" repeat="1">
+			<Name>D logs in and post an item. A logs in and post an item. A posts a comment to this item. </Name>
+		</TestInfo>
+		<TestInfo skip="false" repeat="1">
+			<Name>A logs in, posts an item and deletes item created in first case.</Name> 
+		</TestInfo>
+		<TestInfo skip="false" repeat="1">
+			<Name>C logs in, request id list, see item created by A in second case, C posts a comment to this item</Name>
+		</TestInfo>
+		<TestInfo skip="false" repeat="1">
+			<Name>B logs in and request recent summary. Server returns recent summary. B requests recent posts. Server returns recent posts</Name>
+		</TestInfo>
+		<TestInfo skip="false" repeat="1">
+			<Name>A, D logs in and delete all items. </Name>
+		</TestInfo>
+		<TestInfo skip="false" repeat="1">
+			<Name>B logs in and sees no item and deleted item = deleted item. B requests again and sees no item / deleted item.</Name>
+		</TestInfo>
+		<TestInfo skip="false" repeat="1">
+			<Name>C logs in and sees no item and deleted item = deleted item. C requests again and sees no item / deleted item.</Name>
+		</TestInfo>
+	</ListTest>
+
+	<Tests>
+		<!--D logs in and post an item. A logs in and post an item. A posts a comment to this item.-->
+		<Test>
+			<MessageSequence>
+				<!--A logs in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email1}}</Name>
+							<Password>{{.password1}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to A-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId1}}</UserId>
+								<Name>{{.email1}}</Name>
+								<NickName>{{.name1}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--A send message to Server to post an item-->
+				<Message type="DL_PostDailyItem" fromClient="true">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x01</Command>
+					<Data>
+						<DL_PostDailyItem>
+							<Item>
+								<ItemId>1</ItemId>
+								<BasicInfo>
+									<Timestamp>{{.ts1}}</Timestamp>
+								</BasicInfo>
+							</Item>
+							<RequestId>{{.rid11}}</RequestId>
+							<NoNotification>1</NoNotification>
+						</DL_PostDailyItem>
+					</Data>
+				</Message>
+
+				<!--Server send ack message to A -->
+				<Message type="DL_OperationState" fromClient="false">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x01</Command>
+					<Data>
+						<DL_OperationState>
+							<RequestId>{{.rid11}}</RequestId>
+							<ItemId>{{.iid1}}</ItemId>
+						</DL_OperationState>
+					</Data>
+				</Message>
+
+				<!--D log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true" connection="3">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email4}}</Name>
+							<Password>{{.password4}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to D-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false" connection="3">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId4}}</UserId>
+								<Name>{{.email4}}</Name>
+								<NickName>{{.name4}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--D send message to Server -->
+				<Message type="DL_PostDailyItem" fromClient="true" connection="3">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x01</Command>
+					<Data>
+						<DL_PostDailyItem>
+							<Item>
+								<ItemId>1</ItemId>
+								<BasicInfo>
+									<Timestamp>{{.ts2}}</Timestamp>
+								</BasicInfo>
+							</Item>
+							<RequestId>{{.rid12}}</RequestId>
+							<NoNotification>1</NoNotification>
+						</DL_PostDailyItem>
+					</Data>
+				</Message>
+
+				<!--Server send ack message to D -->
+				<Message type="DL_OperationState" fromClient="false" connection="3">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x01</Command>
+					<Data>
+						<DL_OperationState>
+							<RequestId>{{.rid12}}</RequestId>
+							<ItemId>{{.iid2}}</ItemId>
+						</DL_OperationState>
+					</Data>
+				</Message>
+
+				<!--A post a comment to A's item-->
+				<Message type="DL_PostComment" fromClient="true">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x02</Command>
+					<Data>
+						<DL_PostComment>
+							<RequestId>{{.rid13}}</RequestId>
+							<ItemId>{{.iid1}}</ItemId>
+							<Comment>
+								<Content>{{.comment1}}</Content>
+								<Timestamp>{{.ts3}}</Timestamp>
+							</Comment>
+						</DL_PostComment>
+					</Data>
+				</Message>
+
+				<!--Server send ack message to A -->
+				<Message type="DL_OperationState" fromClient="false">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x01</Command>
+					<Data>
+						<DL_OperationState>
+							<RequestId>{{.rid13}}</RequestId>
+							<CommentId>{{.cid1}}</CommentId>
+							<Version>{{.cver1}}</Version>
+						</DL_OperationState>
+					</Data>
+				</Message>
+			</MessageSequence>
+		</Test>
+
+
+		<!--A logs in, posts an item and deletes item created in first case.--> 
+		<Test>
+			<MessageSequence>
+				<!--A logs in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email1}}</Name>
+							<Password>{{.password1}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to A-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId1}}</UserId>
+								<Name>{{.email1}}</Name>
+								<NickName>{{.name1}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--A send message to Server to post an item-->
+				<Message type="DL_PostDailyItem" fromClient="true"
+					wait="1s">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x01</Command>
+					<Data>
+						<DL_PostDailyItem>
+							<Item>
+								<ItemId>1</ItemId>
+								<BasicInfo>
+									<Timestamp>{{.ts4}}</Timestamp>
+								</BasicInfo>
+							</Item>
+							<RequestId>{{.rid21}}</RequestId>
+							<NoNotification>1</NoNotification>
+						</DL_PostDailyItem>
+					</Data>
+				</Message>
+
+				<!--Server send ack message to A -->
+				<Message type="DL_OperationState" fromClient="false">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x01</Command>
+					<Data>
+						<DL_OperationState>
+							<RequestId>{{.rid21}}</RequestId>
+							<ItemId>{{.iid3}}</ItemId>
+						</DL_OperationState>
+					</Data>
+				</Message>
+
+				<!--A send message to Server -->
+				<Message type="DL_DeleteDailyItem" fromClient="true">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x0A</Command>
+					<Data>
+						<DL_DeleteDailyItem>
+							<ItemId>{{.iid1}}</ItemId>
+							<RequestId>{{.rid22}}</RequestId>
+						</DL_DeleteDailyItem>
+					</Data>
+				</Message>
+
+				<!--Server send ack message to A -->
+				<Message type="DL_OperationState" fromClient="false">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x01</Command>
+					<Data>
+						<DL_OperationState>
+							<RequestId>{{.rid22}}</RequestId>
+						</DL_OperationState>
+					</Data>
+				</Message>
+			</MessageSequence>
+		</Test>
+
+		<!--C logs in, request id list, see item created by A. C posts a comment to this item-->
+		<Test>
+			<MessageSequence>
+				<!--C log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email3}}</Name>	
+							<Password>{{.password3}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to C-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId3}}</UserId>
+								<Name>{{.email3}}</Name>		
+								<NickName>{{.name3}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+				
+				<!--C request item list-->
+				<Message type="DL_RequestIDList" fromClient="true">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x04</Command>
+					<Data>
+						<DL_RequestIDList>
+							<RequestId>{{.rid31}}</RequestId>
+							<BuddyId>{{.userId1}}</BuddyId>
+						</DL_RequestIDList>
+					</Data>
+				</Message>
+
+				<!--server return item list with item in case 1-->
+				<Message type="DL_IDListResponse" fromClient="false">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x03</Command>
+					<Data>
+						<DL_IDListResponse>
+							<RequestId>{{.rid31}}</RequestId>
+							<Ids>{{.iid3}}</Ids>
+							<DeletedIds>{{.iid1}}</DeletedIds>
+						</DL_IDListResponse>
+					</Data>
+				</Message>
+
+				<!--C post a comment to this item-->
+				<Message type="DL_PostComment" fromClient="true">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x02</Command>
+					<Data>
+						<DL_PostComment>
+							<RequestId>{{.rid32}}</RequestId>
+							<ItemId>{{.iid3}}</ItemId>
+							<Comment>
+								<Content>{{.comment2}}</Content>
+								<Timestamp>{{.ts5}}</Timestamp>
+							</Comment>
+						</DL_PostComment>
+					</Data>
+				</Message>
+
+				<!--Server send ack message to C -->
+				<Message type="DL_OperationState" fromClient="false">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x01</Command>
+					<Data>
+						<DL_OperationState>
+							<RequestId>{{.rid32}}</RequestId>
+							<CommentId>{{.cid2}}</CommentId>
+							<Version>{{.cver2}}</Version>
+						</DL_OperationState>
+					</Data>
+				</Message>
+			</MessageSequence>
+		</Test>
+
+		<!--B logs in and request recent summary. Server returns recent summary. B requests recent posts. Server returns recent posts-->
+		<Test>
+			<MessageSequence>
+				<!--B logs in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email2}}</Name>	
+							<Password>{{.password2}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to B-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId2}}</UserId>
+								<Name>{{.email2}}</Name>
+								<NickName>{{.name2}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+				
+				<!--B request recent summary-->
+				<Message type="DL_RequestRecentSummary" fromClient="true">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x11</Command>
+					<Data>
+						<DL_RequestRecentSummary>
+							<RequestId>{{.rid41}}</RequestId>
+						</DL_RequestRecentSummary>
+					</Data>
+				</Message>
+
+				<!--server returns recent summary response-->
+				<Message type="DL_RecentSummaryResponse" fromClient="false">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x09</Command>
+					<Data>
+						<DL_RecentSummaryResponse>
+							<RequestId>{{.rid41}}</RequestId>
+							<ItemCount>2</ItemCount>
+							<CommentCount>1</CommentCount>
+						</DL_RecentSummaryResponse>
+					</Data>
+				</Message>
+
+				<!--B request recent posts-->
+				<Message type="DL_RequestRecentPosts" fromClient="true">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x10</Command>
+					<Data>
+						<DL_RequestRecentPosts>
+							<RequestId>{{.rid42}}</RequestId>
+						</DL_RequestRecentPosts>
+					</Data>
+				</Message>
+
+				<!--server returns recent posts-->
+				<Message type="DL_RecentPostsResponse" fromClient="false">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x08</Command>
+					<Data>
+						<DL_RecentPostsResponse>
+							<RequestId>{{.rid42}}</RequestId>
+							<ItemIds>{{.iid3}}</ItemIds>
+							<ItemIds>{{.iid2}}</ItemIds>					
+							<CommentIds>{{.cid2}}</CommentIds>
+						</DL_RecentPostsResponse>
+					</Data>
+				</Message>
+			</MessageSequence>
+		</Test>
+
+		<!--A, D logs in and delete item in 1. -->
+		<Test>
+			<MessageSequence>
+				<!--A log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email1}}</Name>				
+							<Password>{{.password1}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to A-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId1}}</UserId>
+								<Name>{{.email1}}</Name>		
+								<NickName>{{.name1}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--A send message to Server -->
+				<Message type="DL_DeleteDailyItem" fromClient="true">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x0A</Command>
+					<Data>
+						<DL_DeleteDailyItem>
+							<ItemId>{{.iid3}}</ItemId>
+							<RequestId>{{.rid51}}</RequestId>
+						</DL_DeleteDailyItem>
+					</Data>
+				</Message>
+
+				<!--Server send ack message to A -->
+				<Message type="DL_OperationState" fromClient="false">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x01</Command>
+					<Data>
+						<DL_OperationState>
+							<RequestId>{{.rid51}}</RequestId>
+						</DL_OperationState>
+					</Data>
+				</Message>
+
+				<!--D logs in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true" connection="1">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email4}}</Name>
+							<Password>{{.password4}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to D-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false" connection="1">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId4}}</UserId>
+								<Name>{{.email4}}</Name>		
+								<NickName>{{.name4}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--D send messages to Server -->
+				<Message type="DL_DeleteDailyItem" fromClient="true" connection="1">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x0A</Command>
+					<Data>
+						<DL_DeleteDailyItem>
+							<ItemId>{{.iid2}}</ItemId>
+							<RequestId>{{.rid52}}</RequestId>
+						</DL_DeleteDailyItem>
+					</Data>
+				</Message>
+
+				<!--Server send ack message to D-->
+				<Message type="DL_OperationState" fromClient="false" connection="1">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x01</Command>
+					<Data>
+						<DL_OperationState>
+							<RequestId>{{.rid52}}</RequestId>
+						</DL_OperationState>
+					</Data>
+				</Message>
+
+			</MessageSequence>
+		</Test>
+
+		<!--B logs in and sees no item and deleted item = deleted item. B requests again and sees no item / deleted item.-->
+		<Test>
+			<MessageSequence>
+				<!--B log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email2}}</Name>		
+							<Password>{{.password2}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to B-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId2}}</UserId>
+								<Name>{{.email2}}</Name>		
+								<NickName>{{.name2}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+				
+				<Message type="Auth_C2S_HelloInfo" fromClient="true">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<!--B request item list-->
+				<Message type="DL_RequestIDList" fromClient="true">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x05</Command>
+					<Data>
+						<DL_RequestIDList>
+							<RequestId>{{.rid61}}</RequestId>
+						</DL_RequestIDList>
+					</Data>
+				</Message>
+
+				<!--server return item list with item in case 1-->
+				<Message type="DL_IDListResponse" fromClient="false">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x04</Command>
+					<Data>
+						<DL_IDListResponse>
+							<RequestId>{{.rid61}}</RequestId>
+							<DeletedIds>{{.iid2}}</DeletedIds>
+							<DeletedIds>{{.iid3}}</DeletedIds>
+							<DeletedIds>{{.iid1}}</DeletedIds>
+						</DL_IDListResponse>
+					</Data>
+				</Message>
+
+				<!--B request item list-->
+				<Message type="DL_RequestIDList" fromClient="true">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x05</Command>
+					<Data>
+						<DL_RequestIDList>
+							<RequestId>{{.rid62}}</RequestId>
+						</DL_RequestIDList>
+					</Data>
+				</Message>
+
+				<!--server return item list with item in case 1-->
+				<Message type="DL_IDListResponse" fromClient="false">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x04</Command>
+					<Data>
+						<DL_IDListResponse>
+							<RequestId>{{.rid62}}</RequestId>
+						</DL_IDListResponse>
+					</Data>
+				</Message>
+			</MessageSequence>
+		</Test>
+
+		<!--C logs in and sees no item and deleted item = deleted item. C requests again and sees no item / deleted item.-->
+		<Test>
+			<MessageSequence>
+				<!--C log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email3}}</Name>		
+							<Password>{{.password3}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to C-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId3}}</UserId>
+								<Name>{{.email3}}</Name>		
+								<NickName>{{.name3}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--C request item list-->
+				<Message type="DL_RequestIDList" fromClient="true">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x05</Command>
+					<Data>
+						<DL_RequestIDList>
+							<RequestId>{{.rid71}}</RequestId>
+						</DL_RequestIDList>
+					</Data>
+				</Message>
+
+				<!--server return item list with item in case 1-->
+				<Message type="DL_IDListResponse" fromClient="false">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x04</Command>
+					<Data>
+						<DL_IDListResponse>
+							<RequestId>{{.rid71}}</RequestId>
+							<DeletedIds>{{.iid3}}</DeletedIds>
+						</DL_IDListResponse>
+					</Data>
+				</Message>
+
+				<!--C request item list-->
+				<Message type="DL_RequestIDList" fromClient="true">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x05</Command>
+					<Data>
+						<DL_RequestIDList>
+							<RequestId>{{.rid72}}</RequestId>
+						</DL_RequestIDList>
+					</Data>
+				</Message>
+
+				<!--server return item list with item in case 1-->
+				<Message type="DL_IDListResponse" fromClient="false">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x04</Command>
+					<Data>
+						<DL_IDListResponse>
+							<RequestId>{{.rid72}}</RequestId>
+						</DL_IDListResponse>
+					</Data>
+				</Message>
+			</MessageSequence>
+		</Test>
+	</Tests>
+</TestSuite>

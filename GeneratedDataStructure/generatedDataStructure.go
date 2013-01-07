@@ -304,6 +304,9 @@ func init() {
 	var aAuth_C2S_ChangePassword Auth_C2S.ChangePassword
 	Map["Auth_C2S_ChangePassword"] = reflect.TypeOf(aAuth_C2S_ChangePassword)
 	
+	var aAuth_C2S_ChangePluginNotification Auth_C2S.ChangePluginNotification
+	Map["Auth_C2S_ChangePluginNotification"] = reflect.TypeOf(aAuth_C2S_ChangePluginNotification)
+	
 	var aAuth_C2S_CreateChannelRequest Auth_C2S.CreateChannelRequest
 	Map["Auth_C2S_CreateChannelRequest"] = reflect.TypeOf(aAuth_C2S_CreateChannelRequest)
 	
@@ -339,6 +342,9 @@ func init() {
 	
 	var aAuth_C2S_RequestChannelList_RequestChannelType Auth_C2S.RequestChannelList_RequestChannelType
 	Map["Auth_C2S_RequestChannelList_RequestChannelType"] = reflect.TypeOf(aAuth_C2S_RequestChannelList_RequestChannelType)
+	
+	var aAuth_C2S_RequestPluginNotificationInfo Auth_C2S.RequestPluginNotificationInfo
+	Map["Auth_C2S_RequestPluginNotificationInfo"] = reflect.TypeOf(aAuth_C2S_RequestPluginNotificationInfo)
 	
 	var aAuth_C2S_RequestToken Auth_C2S.RequestToken
 	Map["Auth_C2S_RequestToken"] = reflect.TypeOf(aAuth_C2S_RequestToken)
@@ -418,6 +424,9 @@ func init() {
 	var aAuth_S2C_NeedFinishReg Auth_S2C.NeedFinishReg
 	Map["Auth_S2C_NeedFinishReg"] = reflect.TypeOf(aAuth_S2C_NeedFinishReg)
 	
+	var aAuth_S2C_PluginNotificationInfo Auth_S2C.PluginNotificationInfo
+	Map["Auth_S2C_PluginNotificationInfo"] = reflect.TypeOf(aAuth_S2C_PluginNotificationInfo)
+	
 	var aAuth_S2C_RequestAckInfo Auth_S2C.RequestAckInfo
 	Map["Auth_S2C_RequestAckInfo"] = reflect.TypeOf(aAuth_S2C_RequestAckInfo)
 	
@@ -426,6 +435,9 @@ func init() {
 	
 	var aAuth_S2C_UserNotificationInfo Auth_S2C.UserNotificationInfo
 	Map["Auth_S2C_UserNotificationInfo"] = reflect.TypeOf(aAuth_S2C_UserNotificationInfo)
+	
+	var aAuth_S2C_UserPluginNotificationInfo Auth_S2C.UserPluginNotificationInfo
+	Map["Auth_S2C_UserPluginNotificationInfo"] = reflect.TypeOf(aAuth_S2C_UserPluginNotificationInfo)
 	
 	var aC_A_BuddyInfoHolder C_A.BuddyInfoHolder
 	Map["C_A_BuddyInfoHolder"] = reflect.TypeOf(aC_A_BuddyInfoHolder)

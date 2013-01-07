@@ -10,7 +10,7 @@ indotest18 knows indotest16
 	<TestSuiteName>Registration</TestSuiteName>
 	<TargetHost>203.117.155.188</TargetHost>
 	<TargetPort>9100</TargetPort>
-<VarMap>
+	<VarMap>
 		<Var name="email1">
 			<Value>indotest15@test.com</Value>
 		</Var>		
@@ -51,7 +51,13 @@ indotest18 knows indotest16
 			<Value>Discussion 0</Value>
 		</Var>
 	</VarMap>
-
+	<IgnoreMessages>
+		<Message>
+			<BaseCommand>0x00</BaseCommand>
+			<Command>0x73</Command>
+			<MessageType>Auth_Buddy_S2C_BuddyOnline</MessageType>
+		</Message>
+	</IgnoreMessages>
 	<ListTest>
 		<TestInfo skip="false" repeat="1">
 			<Name>A, B, C, D requests my discussion info, sees 1 discussion</Name>

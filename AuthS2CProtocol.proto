@@ -109,11 +109,24 @@ message UserNotificationInfo
 	optional int32 Language = 5;
 	optional int32 Timezone = 6;
 }
+
+message PluginNotificationInfo
+{
+    required int32 Enabled = 1;
+    required string Tag   = 2;
+}
+
+message UserPluginNotificationInfo
+{
+    repeated PluginNotificationInfo infos = 1;
+}
+
 message ChangeNotificationResult
 {
 	optional .Auth.S2C.UserNotificationInfo Notification = 1;
 	optional bytes RequestId = 2;
 }
+
 message ChangePasswordResult
 {
     required bytes RequestId = 1;

@@ -529,6 +529,39 @@ func (this *UserNotificationInfo) GetTimezone() int32 {
 	return 0
 }
 
+type PluginNotificationInfo struct {
+	Enabled          *bool   `protobuf:"varint,1,req" json:"Enabled,omitempty"`
+	Tag              *string `protobuf:"bytes,2,req" json:"Tag,omitempty"`
+	XXX_unrecognized []byte  `json:"-"`
+}
+
+func (this *PluginNotificationInfo) Reset()         { *this = PluginNotificationInfo{} }
+func (this *PluginNotificationInfo) String() string { return proto.CompactTextString(this) }
+func (*PluginNotificationInfo) ProtoMessage()       {}
+
+func (this *PluginNotificationInfo) GetEnabled() bool {
+	if this != nil && this.Enabled != nil {
+		return *this.Enabled
+	}
+	return false
+}
+
+func (this *PluginNotificationInfo) GetTag() string {
+	if this != nil && this.Tag != nil {
+		return *this.Tag
+	}
+	return ""
+}
+
+type UserPluginNotificationInfo struct {
+	Infos            []*PluginNotificationInfo `protobuf:"bytes,1,rep,name=infos" json:"infos,omitempty"`
+	XXX_unrecognized []byte                    `json:"-"`
+}
+
+func (this *UserPluginNotificationInfo) Reset()         { *this = UserPluginNotificationInfo{} }
+func (this *UserPluginNotificationInfo) String() string { return proto.CompactTextString(this) }
+func (*UserPluginNotificationInfo) ProtoMessage()       {}
+
 type ChangeNotificationResult struct {
 	Notification     *UserNotificationInfo `protobuf:"bytes,1,opt" json:"Notification,omitempty"`
 	RequestId        []byte                `protobuf:"bytes,2,opt" json:"RequestId,omitempty"`

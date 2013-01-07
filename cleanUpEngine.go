@@ -40,15 +40,23 @@ const (
 	C2S_ChangeNotification_CMD          = 0x07
 	C2S_RequestUserNotificationInfo_CMD = 0x08
 
-	C2S_AddBuddyResult_CMD              = 0x66
-	C2S_Chat2AckRemote_CMD              = 0x82
-	C2S_InviteMemberResult_CMD   		= 0x08
-	C2S_ChatInfoRecvedAck_CMD   		= 0x0B // discussion chat ack
-	C2S_RequestBuddySimpleInfoList_CMD  = 0x64
-	C2S_DeleteBuddy_CMD 				= 0x67
+	C2S_AddBuddyResult_CMD             = 0x66
+	C2S_Chat2AckRemote_CMD             = 0x82
+	C2S_InviteMemberResult_CMD         = 0x08
+	C2S_ChatInfoRecvedAck_CMD          = 0x0B // discussion chat ack
+	C2S_RequestBuddySimpleInfoList_CMD = 0x64
+	C2S_DeleteBuddy_CMD                = 0x67
 
-	C2S_RequestMyDiscussion_CMD			= 0x09
-	C2S_LeaveDiscussion_CMD				= 0x03
+	C2S_RequestMyDiscussion_CMD = 0x09
+	C2S_LeaveDiscussion_CMD     = 0x03
+
+	C2S_RequestList_CMD     = 0x04
+	C2S_DeleteDailyItem_CMD = 0x0A
+
+	C2S_RequestCircles_CMD = 0x16
+	C2S_RemoveCircle_CMD = 0x15
+
+	S2C_CirclesResponse_CMD = 0x0A
 )
 
 const (
@@ -59,15 +67,19 @@ const (
 	S2C_KeepAliveAck_CMD          = 0x05
 	S2C_NotificationInfo_CMD      = 0x06
 
-	S2C_ChatInfo2_CMD       	  = 0x82
+	S2C_ChatInfo2_CMD             = 0x82
 	S2C_RemoteRequestAddBuddy_CMD = 0x72
-	S2C_InviteMember_CMD		  = 0x09
-	S2C_ChatInfo_CMD    		  = 0x08 // discussion chat ack
-	
-	S2C_BuddySimpleInfoList_CMD	  = 0x65
-	S2C_UserDiscussionList_CMD	  = 0x02
+	S2C_InviteMember_CMD          = 0x09
+	S2C_ChatInfo_CMD              = 0x08 // discussion chat ack
+
+	S2C_BuddySimpleInfoList_CMD = 0x65
+	S2C_UserDiscussionList_CMD  = 0x02
+
+	S2C_DailyListResponse_CMD = 0x03
+	S2C_OperationState_CMD    = 0x01
 
 	DISCUSSION_PACKET_BASE_COMMAND = 0xA0
+	DailyLifeRequest_MAINCMD       = 0xA1
 )
 
 const (
@@ -87,8 +99,8 @@ const (
 )
 
 const (
-	CONN_NUM     = 3
-	READ_TIMEOUT = "3s"
+	CONN_NUM              = 3
+	READ_TIMEOUT          = "2s"
 	DEFAULT_LINGER_PERIOD = 5
 )
 
@@ -99,7 +111,7 @@ const (
 	DEBUG_COMPARE_STRUCT  = false
 
 	DEBUG_PARSING_MESSAGE = false
-	DEBUG_CLEANING_UP	  = true
+	DEBUG_CLEANING_UP     = true
 
 	DEBUG_SENDING_MESSAGE = true
 	DEBUG_READING_MESSAGE = true
@@ -130,10 +142,10 @@ type Var struct {
 
 type CleanUpSuite struct {
 	CleanUpSuiteName string
-	TargetHost    string
-	TargetPort    string
-	GlobalVarMap  []Var       `xml:"VarMap>Var"`
-	CleanUpSequence []Message `xml:"CleanUpSequence>Message"`
+	TargetHost       string
+	TargetPort       string
+	GlobalVarMap     []Var     `xml:"VarMap>Var"`
+	CleanUpSequence  []Message `xml:"CleanUpSequence>Message"`
 }
 
 var keyMap map[string]string
@@ -184,15 +196,24 @@ func startCleanUp(cleanUpSuite *CleanUpSuite) {
 	fmt.Println("Parse var map:")
 	// parse test-suite varmap first
 	parseVarMap(cleanUpSuite.GlobalVarMap)
-	
+
 	fmt.Println("Create connection list to clean up: .....")
 	listConnection := createConnection(addr, cleanUpSuite)
 
 	fmt.Println("Ack pending messages for all users: .....")
 	ackPendingMessageForAllUsers(listConnection)
 
+	fmt.Println("Remove all items: .....")
+	removeAllDailyItemsForAllUsers(listConnection)
+
 	fmt.Println("Remove all discussions: .....")
 	removeAllDiscussionsForAllUsers(listConnection)
+
+	fmt.Println("Remove all circles: .....")
+	removeAllCirclesForAllUsers(listConnection)
+
+	fmt.Println("Remove all items: .....")
+	removeAllDailyItemsForAllUsers(listConnection)
 
 	fmt.Println("Remove all buddies relations: .....")
 	removeAllBuddiesForAllUsers(listConnection)
@@ -202,7 +223,7 @@ func startCleanUp(cleanUpSuite *CleanUpSuite) {
 	}
 }
 
-func createConnection(addr *net.TCPAddr, cleanUpSuite *CleanUpSuite) (map[int]*net.TCPConn){
+func createConnection(addr *net.TCPAddr, cleanUpSuite *CleanUpSuite) map[int]*net.TCPConn {
 	var listConnection = make(map[int]*net.TCPConn)
 
 	// these messages are supposed to be login messages !
@@ -210,7 +231,7 @@ func createConnection(addr *net.TCPAddr, cleanUpSuite *CleanUpSuite) (map[int]*n
 		// parse message (plug in values if necessary)
 		parsedMessage, comm, useBase, baseCmd, err := parseAMessage(message)
 		if err != nil {
-			log.Println("Error in parsing clean up message at message:", i)
+			fmt.Println("Error in parsing clean up message at message:", i)
 			continue
 		}
 		protoParsedMessage := parsedMessage.(proto.Message)
@@ -221,7 +242,7 @@ func createConnection(addr *net.TCPAddr, cleanUpSuite *CleanUpSuite) (map[int]*n
 			// Connection does not exist or closed, create new connection for connection
 			conn, err := net.DialTCP("tcp", nil, addr)
 			if err != nil {
-				log.Print("Cannot establish connection for clean up:", connectionId)
+				fmt.Print("Cannot establish connection for clean up:", connectionId)
 				continue
 			} else {
 				listConnection[connectionId] = conn
@@ -250,7 +271,7 @@ func ackPendingMessageForAllUsers(listConnection map[int]*net.TCPConn) {
 	for pending {
 		pending = false
 		for i, conn := range listConnection {
-			if (DEBUG_CLEANING_UP) {
+			if DEBUG_CLEANING_UP {
 				fmt.Println("Trying to read from connection", i, "and ack all pending messages")
 			}
 			// now all the established connections are the one to be clean up
@@ -260,13 +281,167 @@ func ackPendingMessageForAllUsers(listConnection map[int]*net.TCPConn) {
 					break
 				}
 				if pendingMessage != nil {
-					if (DEBUG_CLEANING_UP) {
+					if DEBUG_CLEANING_UP {
 						fmt.Println("Pending message value: ", *pendingMessage)
 					}
 					// ack server
 					ackPendingMessageToServer(pendingMessage, comm, conn)
 					pending = true
 				}
+			}
+		}
+	}
+}
+
+func removeAllDiscussionsForAllUsers(listConnection map[int]*net.TCPConn) {
+	for {
+		stop := true
+		for i := range listConnection {
+			conn := listConnection[i]
+
+			queryDiscussionMessage := magicVarFunc("Discussion_C2S_RequestMyDiscussion")
+			protoMessage := queryDiscussionMessage.(proto.Message)
+			sendMsg(true, byte(DISCUSSION_PACKET_BASE_COMMAND),
+				C2S_RequestMyDiscussion_CMD, protoMessage, conn)
+			expMsg := magicVarFunc("Discussion_S2C_UserDiscussionList")
+
+			listDiscussionMessagePtr, err := readReply(true, DISCUSSION_PACKET_BASE_COMMAND,
+				S2C_UserDiscussionList_CMD, expMsg.(proto.Message), conn)
+			if err != nil {
+				fmt.Println(err)
+				if err.Error()[0:8] != "Cant read" {
+					stop = false
+				}
+				continue
+			}
+
+			listDiscussion := reflect.Indirect(reflect.ValueOf(*listDiscussionMessagePtr)).FieldByName("Discussion")
+			for index := 0; index < listDiscussion.Len(); index++ {
+				discussion := reflect.Indirect(listDiscussion.Index(index))
+				discussionId := discussion.FieldByName("DiscussionId")
+
+				deleteMessage := magicVarFunc("Discussion_C2S_LeaveDiscussion")
+				structValue := reflect.Indirect(reflect.ValueOf(deleteMessage))
+				structValue.FieldByName("DiscussionId").Set(discussionId)
+				sendMsg(true, byte(DISCUSSION_PACKET_BASE_COMMAND), C2S_LeaveDiscussion_CMD, deleteMessage.(proto.Message), conn)
+			}
+		}
+		if stop {
+			break
+		}
+	}
+}
+
+func removeAllCirclesForAllUsers(listConnection map[int]*net.TCPConn) {
+	for {
+		stop := true
+		for i := range listConnection {
+			conn := listConnection[i]
+
+			queryCircleMessage := magicVarFunc("DL_RequestCircles")
+			structValue := reflect.Indirect(reflect.ValueOf(queryCircleMessage))
+			protoMessage := queryCircleMessage.(proto.Message)
+			requestId := (magicCallFunc("Helper_RequestId", nil)[0])
+			structValue.FieldByName("RequestId").Set(reflect.ValueOf([]byte(requestId.String())))
+			var val int32 = 0
+			structValue.FieldByName("Version").Set(reflect.ValueOf(&val))
+			
+			sendMsg(true, byte(DailyLifeRequest_MAINCMD),
+				C2S_RequestCircles_CMD, protoMessage, conn)
+			expMsg := magicVarFunc("DL_CirclesResponse")
+
+			listCircleMessagePtr, err := readReply(true, DailyLifeRequest_MAINCMD,
+				S2C_CirclesResponse_CMD, expMsg.(proto.Message), conn)
+			if err != nil {
+				fmt.Println(err)
+				if err.Error()[0:8] != "Cant read" {
+					stop = false
+				}
+				continue
+			}
+
+			listCircle := reflect.Indirect(reflect.ValueOf(*listCircleMessagePtr)).FieldByName("Circles")
+			listCircleToDelete := make([]int32, listCircle.Len())
+
+			for index := 0; index < listCircle.Len(); index++ {
+				circle := reflect.Indirect(listCircle.Index(index))
+				circleId := circle.FieldByName("Id")
+				listCircleToDelete[index] = int32(reflect.Indirect(circleId).Int())
+			}
+				
+			deleteMessage := magicVarFunc("DL_RemoveCircle")
+			structValue = reflect.Indirect(reflect.ValueOf(deleteMessage))
+			structValue.FieldByName("CircleIds").Set(reflect.ValueOf(listCircleToDelete))
+				
+			requestId = (magicCallFunc("Helper_RequestId", nil)[0])
+			structValue.FieldByName("RequestId").Set(reflect.ValueOf([]byte(requestId.String())))
+			
+			sendMsg(true, byte(DailyLifeRequest_MAINCMD), C2S_RemoveCircle_CMD, 
+				deleteMessage.(proto.Message), conn)
+		}
+		if stop {
+			break
+		}
+	}
+}
+
+func removeAllDailyItemsForAllUsers(listConnection map[int]*net.TCPConn) {
+	extra := false
+	for {
+		stop := true
+		for i := range listConnection {
+			conn := listConnection[i]
+
+			queryDailyItemMessage := magicVarFunc("DL_RequestIDList")
+			structValue := reflect.Indirect(reflect.ValueOf(queryDailyItemMessage))
+			requestId := (magicCallFunc("Helper_RequestId", nil)[0])
+			structValue.FieldByName("RequestId").Set(reflect.ValueOf([]byte(requestId.String())))
+			var val int32 = 50
+			structValue.FieldByName("ItemCount").Set(reflect.ValueOf(&val))
+
+			protoMessage := queryDailyItemMessage.(proto.Message)
+			sendMsg(true, byte(DailyLifeRequest_MAINCMD),
+				C2S_RequestList_CMD, protoMessage, conn)
+			expMsg := magicVarFunc("DL_IDListResponse")
+
+			listDailyItemMessagePtr, err := readReply(true, DailyLifeRequest_MAINCMD,
+				S2C_DailyListResponse_CMD, expMsg.(proto.Message), conn)
+			if err != nil {
+				fmt.Println(err)
+				if err.Error()[0:8] != "Cant read" {
+					stop = false
+				}
+				continue
+			}
+
+			listDailyItem := reflect.Indirect(reflect.ValueOf(*listDailyItemMessagePtr)).FieldByName("Ids")
+			for index := 0; index < listDailyItem.Len(); index++ {				
+				itemId := listDailyItem.Index(index)
+				itemIdInt := itemId.Int()
+				fmt.Println("Removing item id: ", itemIdInt)
+
+				deleteMessage := magicVarFunc("DL_DeleteDailyItem")
+				structValue := reflect.Indirect(reflect.ValueOf(deleteMessage))
+				structValue.FieldByName("ItemId").Set(reflect.ValueOf(&itemIdInt))
+
+				requestId := (magicCallFunc("Helper_RequestId", nil)[0])
+				structValue.FieldByName("RequestId").Set(reflect.ValueOf([]byte(requestId.String())))
+
+				sendMsg(true, byte(DailyLifeRequest_MAINCMD), C2S_DeleteDailyItem_CMD,
+					deleteMessage.(proto.Message), conn)
+
+				expMsg1 := magicVarFunc("DL_OperationState")				
+				readReply(true, byte(DailyLifeRequest_MAINCMD), S2C_OperationState_CMD, 
+					expMsg1.(proto.Message), conn)
+
+			}
+		}
+		if stop {
+			// after delete items, query 1 time to get rid of the deleted message
+			if extra {
+				break
+			} else {
+				extra = true
 			}
 		}
 	}
@@ -286,9 +461,9 @@ func removeAllBuddiesForAllUsers(listConnection map[int]*net.TCPConn) {
 			expMsg := magicVarFunc("Auth_Buddy_S2C_BuddySimpleInfoList")
 
 			listBuddyMessagePtr, err := readReply(false, 0, S2C_BuddySimpleInfoList_CMD, expMsg.(proto.Message), conn)
-			if (err != nil) {
+			if err != nil {
 				fmt.Println(err)
-				if (err.Error()[0:8] != "Cant read") {
+				if err.Error()[0:8] != "Cant read" {
 					stop = false
 				}
 				continue
@@ -306,52 +481,13 @@ func removeAllBuddiesForAllUsers(listConnection map[int]*net.TCPConn) {
 
 			deleteMessage := magicVarFunc("Auth_Buddy_C2S_DeleteBuddy")
 			structValue := reflect.Indirect(reflect.ValueOf(deleteMessage))
-			structValue.FieldByName("UserId").Set(reflect.ValueOf(listBuddyToDelete))			
+			structValue.FieldByName("UserId").Set(reflect.ValueOf(listBuddyToDelete))
 			sendMsg(false, byte(0), C2S_DeleteBuddy_CMD, deleteMessage.(proto.Message), conn)
 		}
-		if (stop) {
-			break;
+		if stop {
+			break
 		}
 
-	}
-}
-
-func removeAllDiscussionsForAllUsers(listConnection map[int]*net.TCPConn) {
-	for {
-		stop := true
-		for i := range listConnection {
-			conn := listConnection[i]
-
-			queryDiscussionMessage := magicVarFunc("Discussion_C2S_RequestMyDiscussion")
-			protoMessage := queryDiscussionMessage.(proto.Message)
-			sendMsg(true, byte(DISCUSSION_PACKET_BASE_COMMAND), 
-				C2S_RequestMyDiscussion_CMD, protoMessage, conn)
-			expMsg := magicVarFunc("Discussion_S2C_UserDiscussionList")
-
-			listDiscussionMessagePtr, err := readReply(true, DISCUSSION_PACKET_BASE_COMMAND, 
-				S2C_UserDiscussionList_CMD, expMsg.(proto.Message), conn)
-			if (err != nil) {
-				fmt.Println(err)
-				if (err.Error()[0:8] != "Cant read") {
-					stop = false
-				}
-				continue
-			}
-
-			listDiscussion := reflect.Indirect(reflect.ValueOf(*listDiscussionMessagePtr)).FieldByName("Discussion")
-			for index := 0; index < listDiscussion.Len(); index++ {
-				discussion := reflect.Indirect(listDiscussion.Index(index))
-				discussionId := discussion.FieldByName("DiscussionId")
-
-				deleteMessage := magicVarFunc("Discussion_C2S_LeaveDiscussion")
-				structValue := reflect.Indirect(reflect.ValueOf(deleteMessage))
-				structValue.FieldByName("DiscussionId").Set(discussionId)
-				sendMsg(true, byte(DISCUSSION_PACKET_BASE_COMMAND), C2S_LeaveDiscussion_CMD, deleteMessage.(proto.Message), conn)
-			}
-		}
-		if (stop) {
-			break;
-		}
 	}
 }
 
@@ -399,14 +535,14 @@ func readPendingMessage(conn *net.TCPConn) (*proto.Message, error, byte) {
 		baseCmd = 0
 	}
 
-	//log.Print("Buffer read from network: ", rbuf)
+	//fmt.Print("Buffer read from network: ", rbuf)
 
 	var newValue interface{}
 	cmd := rbuf[0]
 	switch cmd {
 	case S2C_RemoteRequestAddBuddy_CMD:
 		if !useBase {
-			if (DEBUG_CLEANING_UP) {
+			if DEBUG_CLEANING_UP {
 				fmt.Println("Found a request add buddy message, respond now: ")
 			}
 			newValue = magicVarFunc("Auth_Buddy_S2C_RemoteRequestAddBuddy")
@@ -414,15 +550,15 @@ func readPendingMessage(conn *net.TCPConn) (*proto.Message, error, byte) {
 
 	case S2C_ChatInfo2_CMD:
 		if !useBase {
-			if (DEBUG_CLEANING_UP) {
+			if DEBUG_CLEANING_UP {
 				fmt.Println("Found a chat message, respond now: ")
-			}			
+			}
 			newValue = magicVarFunc("Auth_Buddy_S2C_ChatInfo2")
 		}
 
 	case S2C_InviteMember_CMD:
 		if useBase {
-			if (DEBUG_CLEANING_UP) {
+			if DEBUG_CLEANING_UP {
 				fmt.Println("Found an invite member message, respond now: ")
 			}
 			newValue = magicVarFunc("Discussion_S2C_InviteMember")
@@ -430,7 +566,7 @@ func readPendingMessage(conn *net.TCPConn) (*proto.Message, error, byte) {
 
 	case S2C_ChatInfo_CMD:
 		if useBase {
-			if (DEBUG_CLEANING_UP) {
+			if DEBUG_CLEANING_UP {
 				fmt.Println("Found a discussion chat message, respond now: ")
 			}
 			newValue = magicVarFunc("Discussion_S2C_ChatInfo")
@@ -504,7 +640,7 @@ func ackPendingMessageToServer(pendingMessage *proto.Message, comm byte, conn *n
 		useBase = true
 		baseCmd = DISCUSSION_PACKET_BASE_COMMAND
 	}
-	if (DEBUG_CLEANING_UP) {
+	if DEBUG_CLEANING_UP {
 		fmt.Println("Reply with message", res)
 	}
 	sendMsg(useBase, byte(baseCmd), replyComm, res, conn)
@@ -519,18 +655,18 @@ func sendMsg(useBase bool, baseCmd byte, cmd byte, msg proto.Message, conn *net.
 	}
 	length := int32(len(data)) + 1
 
-	if (useBase) {
+	if useBase {
 		length = length + 1
 	}
 
-	if (DEBUG_SENDING_MESSAGE) {
-		log.Print("sending message with length: ", length, " base command / command / message: ", baseCmd, cmd, msg)
+	if DEBUG_SENDING_MESSAGE {
+		fmt.Print("sending message with length: ", length, " base command / command / message: ", baseCmd, cmd, msg)
 	}
 
 	buf := new(bytes.Buffer)
 
 	binary.Write(buf, binary.LittleEndian, length)
-	if (useBase) {
+	if useBase {
 		binary.Write(buf, binary.LittleEndian, baseCmd)
 	}
 
@@ -538,7 +674,7 @@ func sendMsg(useBase bool, baseCmd byte, cmd byte, msg proto.Message, conn *net.
 	//binary.Write(buf, binary.LittleEndian, int64(0))
 	buf.Write(data)
 	numSent, err := conn.Write(buf.Bytes())
-	if (err != nil) {
+	if err != nil {
 		log.Fatal("error while sending data to server ", err, " num bytes sent: ", numSent)
 	} else {
 		fmt.Println("MESSAGE SUCCESSFULLY SENT", numSent)
@@ -564,7 +700,7 @@ func readReply(useBase bool, expBaseCmd byte, expCmd byte, expMsg proto.Message,
 		return nil, errors.New("Cant read: Cant read length from socket")
 	}
 
-	if (useBase) {
+	if useBase {
 		length = length - 1
 		var baseCmd byte
 		err = binary.Read(conn, binary.LittleEndian, &baseCmd)
@@ -573,7 +709,7 @@ func readReply(useBase bool, expBaseCmd byte, expCmd byte, expMsg proto.Message,
 			return nil, errors.New("Cant read: Cant read message from socket")
 		}
 
-		if (baseCmd != expBaseCmd) {
+		if baseCmd != expBaseCmd {
 			// finish reading the rest of the message, 
 			// so that it does not affects other message
 			rbuf := make([]byte, length)
@@ -581,7 +717,7 @@ func readReply(useBase bool, expBaseCmd byte, expCmd byte, expMsg proto.Message,
 			// report error
 			fmt.Println("Unexpected BASE CMD")
 			errMsg := fmt.Sprintf("Unexpected BASE CMD %d", baseCmd)
-			return nil, errors.New(errMsg)	
+			return nil, errors.New(errMsg)
 		}
 	}
 
@@ -606,7 +742,7 @@ func readReply(useBase bool, expBaseCmd byte, expCmd byte, expMsg proto.Message,
 		errMsg := fmt.Sprintf("Unexpected CMD %d", cmd)
 		return nil, errors.New(errMsg)
 	}
-	
+
 	newValue := reflect.New(reflect.ValueOf(expMsg).Elem().Type()).Interface()
 	res = newValue.(proto.Message)
 	err = proto.Unmarshal(rbuf[1:], res)
@@ -616,15 +752,15 @@ func readReply(useBase bool, expBaseCmd byte, expCmd byte, expMsg proto.Message,
 		log.Fatal(err)
 	}
 
-	if (DEBUG_READING_MESSAGE) {
-		log.Print("Successfully receive message from network: ", reflect.ValueOf(expMsg).Type(), res)
+	if DEBUG_READING_MESSAGE {
+		fmt.Print("Successfully receive message from network: ", reflect.ValueOf(expMsg).Type(), res)
 	}
 	return &res, err
 }
 
 /**************Compare Values and Bind value from reply message to unbound var in value map*****/
 func compareGetValueForPointer(expPtr reflect.Value, repPtr reflect.Value) (bool, error) {
-	if (DEBUG_COMPARE_POINTER) {
+	if DEBUG_COMPARE_POINTER {
 		fmt.Println("Comparing pointers", expPtr.Elem().IsValid(), repPtr.Elem().IsValid())
 	}
 	// if pointer of expected value is null, just dont compare
@@ -642,7 +778,7 @@ func compareGetValueForPointer(expPtr reflect.Value, repPtr reflect.Value) (bool
 
 	strVar := fmt.Sprintf("%v", expValue.Interface())
 
-	if (DEBUG_COMPARE_POINTER) {
+	if DEBUG_COMPARE_POINTER {
 		fmt.Println("Expected pointer in message has value: ", strVar)
 	}
 
@@ -652,7 +788,7 @@ func compareGetValueForPointer(expPtr reflect.Value, repPtr reflect.Value) (bool
 	// if the expected field is a variable field that's not bound, bind the value of the key now
 	key, present := keyMap[strVar]
 	if present {
-		if (DEBUG_COMPARE_POINTER) {
+		if DEBUG_COMPARE_POINTER {
 			fmt.Println("Unbound pointer variable, bind value to map now")
 		}
 		// bound variable to value, return true
@@ -663,7 +799,7 @@ func compareGetValueForPointer(expPtr reflect.Value, repPtr reflect.Value) (bool
 		if expValue.Kind() != reflect.Struct {
 			isEqual := (expValue.Interface() == repValue.Interface())
 
-			if (DEBUG_COMPARE_POINTER) {
+			if DEBUG_COMPARE_POINTER {
 				fmt.Println("Comparing: ", expValue.Interface(), repValue.Interface(), " equal? ", isEqual)
 			}
 
@@ -681,7 +817,7 @@ func compareGetValueForPointer(expPtr reflect.Value, repPtr reflect.Value) (bool
 }
 
 func compareGetValueForSlice(expSlice reflect.Value, repSlice reflect.Value) (bool, error) {
-	if (DEBUG_COMPARE_SLICE) {
+	if DEBUG_COMPARE_SLICE {
 		fmt.Println("Comparing slices")
 	}
 
@@ -696,12 +832,12 @@ func compareGetValueForSlice(expSlice reflect.Value, repSlice reflect.Value) (bo
 	if canConvert {
 		strVar = string(byteArray)
 	}
-	
+
 	// if the expected field is a variable field that's not bound, (its value exists in key map)
 	// bind the value of the key now
 	key, present := keyMap[strVar]
 	if present {
-		if (DEBUG_COMPARE_SLICE) {
+		if DEBUG_COMPARE_SLICE {
 			fmt.Println("Unbound slice variable, bind value to map now")
 		}
 
@@ -735,7 +871,7 @@ func compareGetValueForSlice(expSlice reflect.Value, repSlice reflect.Value) (bo
 			}
 		}
 	}
-	if dif {	
+	if dif {
 		err = errors.New(errorMsg)
 		result = false
 	}
@@ -743,7 +879,7 @@ func compareGetValueForSlice(expSlice reflect.Value, repSlice reflect.Value) (bo
 }
 
 func compareGetValueForStruct(expStruct reflect.Value, repStruct reflect.Value) (bool, error) {
-	if (DEBUG_COMPARE_STRUCT) {
+	if DEBUG_COMPARE_STRUCT {
 		fmt.Println("Comparing structs")
 	}
 	result := true
@@ -752,7 +888,7 @@ func compareGetValueForStruct(expStruct reflect.Value, repStruct reflect.Value) 
 		expStructField := expStruct.Field(i) // pointer
 		repStructField := repStruct.Field(i) // pointer
 
-		if (DEBUG_COMPARE_STRUCT) {
+		if DEBUG_COMPARE_STRUCT {
 			fmt.Println(expStructField, repStructField, expStructField.Kind())
 		}
 
@@ -801,7 +937,7 @@ func parseVarMap(varMap []Var) {
 	}
 }
 
-func plugValueForVar(message string, varName string, value interface{}) (string) {
+func plugValueForVar(message string, varName string, value interface{}) string {
 	valueToReplace := ""
 	kind := reflect.ValueOf(value).Kind()
 	if kind == reflect.Slice {
@@ -821,7 +957,7 @@ func plugValue(message string) (string, error) {
 	//err := t.Execute(&buffer, valueMap)
 	//fmt.Println("----------------------------------------")
 	//err := t.Execute(os.Stdout, valueMap)
-	for key, value := range(valueMap) {
+	for key, value := range valueMap {
 		message = plugValueForVar(message, key, value)
 	}
 	return message, nil
@@ -853,10 +989,10 @@ func preProcess(rawData string) {
 func fillSliceValueToMessage(rawMessage *interface{}) {
 	protoMsg := (*rawMessage).(proto.Message)
 	message := reflect.ValueOf(protoMsg).Elem()
-	
+
 	for i := 0; i < message.NumField(); i++ {
 		expStructField := message.Field(i) // pointer
-		
+
 		if expStructField.Kind() == reflect.Slice {
 			strVar := ""
 			byteArray, canConvert := expStructField.Interface().([]byte)
@@ -865,7 +1001,7 @@ func fillSliceValueToMessage(rawMessage *interface{}) {
 				strVar = string(byteArray)
 				// if the expected field is a variable field that's not bound, bind the value of the key now
 				key, present := keyMap[strVar]
-				
+
 				if present {
 					if sliceValue, valuePresent := sliceMap[key]; valuePresent {
 						message.Field(i).Set(reflect.ValueOf(sliceValue))
@@ -874,7 +1010,7 @@ func fillSliceValueToMessage(rawMessage *interface{}) {
 			}
 		}
 	}
- 
+
 }
 
 // parse a message from message sequence
@@ -886,7 +1022,7 @@ func parseAMessage(v Message) (interface{}, int, bool, int, error) {
 	// second pass: plug all value to the var in the raw string 
 	addedXmlMessage, err := plugValue(v.Data.Xml)
 
-	if (DEBUG_PARSING_MESSAGE) {
+	if DEBUG_PARSING_MESSAGE {
 		fmt.Println("-------------------------------------------------")
 		fmt.Println("Processing message: ", addedXmlMessage)
 	}
@@ -900,8 +1036,8 @@ func parseAMessage(v Message) (interface{}, int, bool, int, error) {
 	if err != nil {
 		fmt.Printf("error: %v\n", err)
 	}
-	
-	if (DEBUG_PARSING_MESSAGE) {
+
+	if DEBUG_PARSING_MESSAGE {
 		s := reflect.ValueOf(message).Elem()
 		for i := 0; i < s.NumField(); i++ {
 			f := s.Field(i)
@@ -913,15 +1049,20 @@ func parseAMessage(v Message) (interface{}, int, bool, int, error) {
 
 	useBase := true
 	baseCmd, err1 := strconv.ParseInt(v.BaseCommand, 0, 0)
-	if (err1 != nil) {
+	if err1 != nil {
 		useBase = false
 		baseCmd = 0
 	}
-	
+
 	return message, int(cmd), useBase, int(baseCmd), err
 }
 
 /************************* Pointer value helper functions *************************/
+// call a function with a specific name 
+func magicCallFunc(typeName string, in []reflect.Value) []reflect.Value {
+	return GeneratedDataStructure.FuncMap[typeName].Call(in)
+}
+
 // create a zero pointer to a value of the correponding type in the map
 func magicVarFunc(typeName string) interface{} {
 	return reflect.New(GeneratedDataStructure.Map[typeName]).Interface()

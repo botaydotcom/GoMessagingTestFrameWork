@@ -16,6 +16,7 @@ namespace AUTHS2CNS
             KeepAliveAck_CMD = 0x05,
 			NotificationInfo_CMD = 0x06,
             ChangePasswordAck_CMD = 0x07,
+            PluginNotificationInfo_CMD = 0x08,
 
 			DeviceTokenInvalid_CMD = 0x92,
 		};
@@ -91,6 +92,8 @@ namespace AUTHC2SNS
 			ChangeNotification_CMD = 0x07,
 			RequestUserNotificationInfo_CMD = 0x08, 
             ChangePassword_CMD = 0x09,
+			RequestUserPluginNotificationInfo_CMD = 0x0a,
+            ChangePluginNotification_CMD = 0x0b,
 
             DeviceTokenSubmit_CMD = 0x90,
 			DeviceTokenRemove_CMD = 0x91,

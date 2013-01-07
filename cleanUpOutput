@@ -1,0 +1,37 @@
+Testing file: cleanUp.xml
+Start cleaning up now:
+Parse var map:
+Create connection list to clean up: .....
+sending message with length: 63 base command / command / message: 0 2 Name:"indotest15@test.com" Password:"e10adc3949ba59abbe56e057f20f883e" ClientType:1 MachineId:"1" SoftwareVersion:1 MESSAGE SUCCESSFULLY SENT 67
+sending message with length: 63 base command / command / message: 0 2 Name:"indotest16@test.com" Password:"e10adc3949ba59abbe56e057f20f883e" ClientType:1 MachineId:"1" SoftwareVersion:1 MESSAGE SUCCESSFULLY SENT 67
+sending message with length: 63 base command / command / message: 0 2 Name:"indotest17@test.com" Password:"e10adc3949ba59abbe56e057f20f883e" ClientType:1 MachineId:"1" SoftwareVersion:1 MESSAGE SUCCESSFULLY SENT 67
+sending message with length: 63 base command / command / message: 0 2 Name:"indotest18@test.com" Password:"e10adc3949ba59abbe56e057f20f883e" ClientType:1 MachineId:"1" SoftwareVersion:1 MESSAGE SUCCESSFULLY SENT 67
+Ack pending messages for all users: .....
+Trying to read from connection 2 and ack all pending messages
+Trying to read from connection 0 and ack all pending messages
+Trying to read from connection 3 and ack all pending messages
+Trying to read from connection 1 and ack all pending messages
+Remove all items: .....
+sending message with length: 20 base command / command / message: 161 4 request_id:"88949920432129" item_count:50 MESSAGE SUCCESSFULLY SENT 24
+READING: 36 FROM SOCKET
+Successfully receive message from network: *DL.IDListResponse request_id:"88949920432129" cursor_info:<seq_no:0 > item_count:0 max_id:9223372036854775807 min_id:0 sending message with length: 20 base command / command / message: 161 4 request_id:"88949920432130" item_count:50 MESSAGE SUCCESSFULLY SENT 24
+READING: 36 FROM SOCKET
+Successfully receive message from network: *DL.IDListResponse request_id:"88949920432130" cursor_info:<seq_no:0 > item_count:0 max_id:9223372036854775807 min_id:0 sending message with length: 20 base command / command / message: 161 4 request_id:"88949920432131" item_count:50 MESSAGE SUCCESSFULLY SENT 24
+READING: 55 FROM SOCKET
+Successfully receive message from network: *DL.IDListResponse request_id:"88949920432131" ids:136727788492261185 cursor_info:<seq_no:671 > item_count:1 max_id:136727788492261185 min_id:136727788492261185 Removing item id:  136727788492261185
+sending message with length: 28 base command / command / message: 161 10 item_id:136727788492261185 request_id:"88949920432132" MESSAGE SUCCESSFULLY SENT 32
+READING: 22 FROM SOCKET
+Successfully receive message from network: *DL.OperationState request_id:"88949920432132" error_code:655353 sending message with length: 20 base command / command / message: 161 4 request_id:"88949920432133" item_count:50 MESSAGE SUCCESSFULLY SENT 24
+READING: 36 FROM SOCKET
+Successfully receive message from network: *DL.IDListResponse request_id:"88949920432133" cursor_info:<seq_no:0 > item_count:0 max_id:9223372036854775807 min_id:0 sending message with length: 20 base command / command / message: 161 4 request_id:"88949920432134" item_count:50 MESSAGE SUCCESSFULLY SENT 24
+READING: 36 FROM SOCKET
+Successfully receive message from network: *DL.IDListResponse request_id:"88949920432134" cursor_info:<seq_no:0 > item_count:0 max_id:9223372036854775807 min_id:0 sending message with length: 20 base command / command / message: 161 4 request_id:"88949920432135" item_count:50 MESSAGE SUCCESSFULLY SENT 24
+READING: 36 FROM SOCKET
+Successfully receive message from network: *DL.IDListResponse request_id:"88949920432135" cursor_info:<seq_no:0 > item_count:0 max_id:9223372036854775807 min_id:0 sending message with length: 20 base command / command / message: 161 4 request_id:"88949920432136" item_count:50 MESSAGE SUCCESSFULLY SENT 24
+READING: 55 FROM SOCKET
+Successfully receive message from network: *DL.IDListResponse request_id:"88949920432136" ids:136727788492261185 cursor_info:<seq_no:671 > item_count:1 max_id:136727788492261185 min_id:136727788492261185 Removing item id:  136727788492261185
+sending message with length: 28 base command / command / message: 161 10 item_id:136727788492261185 request_id:"88949920432137" MESSAGE SUCCESSFULLY SENT 32
+READING: 22 FROM SOCKET
+Successfully receive message from network: *DL.OperationState request_id:"88949920432137" error_code:655353 sending message with length: 20 base command / command / message: 161 4 request_id:"88949920432138" item_count:50 MESSAGE SUCCESSFULLY SENT 24
+READING: 36 FROM SOCKET
+Successfully receive message from network: *DL.IDListResponse request_id:"88949920432138" cursor_info:<seq_no:0 > item_count:0 max_id:9223372036854775807 min_id:0 
