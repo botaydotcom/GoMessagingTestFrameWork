@@ -1,240 +1,335 @@
 List of debug flag:
 -Comparing:
---Pointer: false
---Slice: false
---Struct: false
+--Pointer: true
+--Slice: true
+--Struct: true
 -Clean up: false
--Parse message: false
+-Parse message: true
 -Read message: true
--Send message: true
+-Send message: false
 -Ignore message: false
-Testing file: plugin_notification.xml
+Testing file: plugin_notification_discussion.xml
+Parsing:  {0x00 0x73 Auth_Buddy_S2C_BuddyOnline}
+Paring global var:  email1  ==>  indotest15@test.com
+Paring global var:  password1  ==>  e10adc3949ba59abbe56e057f20f883e
+Paring global var:  name1  ==>  indotest15
+Paring global var:  email2  ==>  indotest16@test.com
+Paring global var:  password2  ==>  e10adc3949ba59abbe56e057f20f883e
+Paring global var:  name2  ==>  indotest16
+Paring global var:  email3  ==>  indotest17@test.com
+Paring global var:  password3  ==>  e10adc3949ba59abbe56e057f20f883e
+Paring global var:  name3  ==>  indotest17
+Paring global var:  mid1  ==>  13456793
+Paring global var:  msg1  ==>  Test message
+Paring global var:  mid2  ==>  13456794
+Paring global var:  msg2  ==>  Test message 1
+Paring global var:  mid3  ==>  13456795
+Paring global var:  msg3  ==>  This is Test message 3
+Paring global var:  mid4  ==>  13456796
+Paring global var:  msg4  ==>  This is Test message 4
+Paring global var:  rid11  ==>  88984124915713
+Paring global var:  rid12  ==>  88984124915714
+Paring global var:  rid21  ==>  88984124915715
+Paring global var:  rid22  ==>  88984124915716
+Paring global var:  rid31  ==>  88984124915717
+Paring global var:  rid32  ==>  88984124915718
+Paring global var:  rid41  ==>  88984124915719
+Paring global var:  rid51  ==>  88984124915720
+Paring global var:  rid52  ==>  88984124915721
+Paring global var:  rid61  ==>  88984124915722
+Paring global var:  rid62  ==>  88984124915723
+Paring global var:  photoname  ==>  This is a test photo
+Paring global var:  comment  ==>  This is a test comment
+Paring global var:  ts1  ==>  1357789992
+Paring global var:  ts2  ==>  1357789992
+Paring global var:  pluginEnabledOn  ==>  1
+Paring global var:  pluginEnabledOff  ==>  0
+Paring global var:  tag  ==>  ds
+Global var map: map[name1:indotest15 rid51:88984124915720 ts2:1357789992 mid1:13456793 email1:indotest15@test.com ts1:1357789992 rid12:88984124915714 rid62:88984124915723 email2:indotest16@test.com pluginEnabledOn:1 photoname:This is a test photo msg3:This is Test message 3 rid52:88984124915721 msg4:This is Test message 4 password1:e10adc3949ba59abbe56e057f20f883e rid32:88984124915718 mid4:13456796 rid61:88984124915722 rid21:88984124915715 mid2:13456794 rid31:88984124915717 name2:indotest16 email3:indotest17@test.com mid3:13456795 name3:indotest17 msg1:Test message tag:ds pluginEnabledOff:0 rid41:88984124915719 rid22:88984124915716 password2:e10adc3949ba59abbe56e057f20f883e rid11:88984124915713 comment:This is a test comment msg2:Test message 1 password3:e10adc3949ba59abbe56e057f20f883e]
 Running test case: 1 times
-A logs in, set option: push notification dl-off / ds-off
+A logs in, set option: push notification - off
+Parsing variable key:  email1
+Parsing variable key:  password1
+-------------------------------------------------
+Processing message:  
+						<Auth_C2S_LoginInfo>
+							<Name>indotest15@test.com</Name>		
+							<Password>e10adc3949ba59abbe56e057f20f883e</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					
+after unmarshal parsing, error =  <nil>  message =  Name:"indotest15@test.com" Password:"e10adc3949ba59abbe56e057f20f883e" ClientType:1 MachineId:"1" SoftwareVersion:1 
+After filling in slice:  Name:"indotest15@test.com" Password:"e10adc3949ba59abbe56e057f20f883e" ClientType:1 MachineId:"1" SoftwareVersion:1 
 MESSAGE WAIT IS:   |
-Preparing to send a message from server  Auth_C2S_LoginInfo
-sending message base length:  63  command / command / message:  0 2 Name:"indotest15@test.com" Password:"e10adc3949ba59abbe56e057f20f883e" ClientType:1 MachineId:"1" SoftwareVersion:1 
+Parsing variable key:  email1
+Parsing variable key:  name1
+-------------------------------------------------
+Processing message:  
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>0</UserId>
+								<Name>indotest15@test.com</Name>	
+								<NickName>indotest15</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					
+after unmarshal parsing, error =  <nil>  message =  MyInfo:<UserId:0 Name:"indotest15@test.com" NickName:"indotest15" > 
+After filling in slice:  MyInfo:<UserId:0 Name:"indotest15@test.com" NickName:"indotest15" > 
 MESSAGE WAIT IS:   |
-Expecting to receive a message from server  Auth_S2C_LoginUserInfo MyInfo:<UserId:-732235123 Name:"indotest15@test.com" NickName:"indotest15" > 
+Expecting to receive a message from server  Auth_S2C_LoginUserInfo MyInfo:<UserId:0 Name:"indotest15@test.com" NickName:"indotest15" > 
 set read deadline
 read length 75
-Successfully receive message from network:  MyInfo:<UserId:100161 Name:"indotest15@test.com" Level:1 UserType:0 ClientType:1 Status:1 Icon:429933266161898 NickName:"indotest15" Gender:-732235124 Birthday:0 > ServerTime:1357550803 
-reply message, err:  0xf84011f1a0 <nil>
+Successfully receive message from network:  MyInfo:<UserId:100161 Name:"indotest15@test.com" Level:1 UserType:0 ClientType:1 Status:1 Icon:429933266161898 NickName:"indotest15" Gender:-732235124 Birthday:0 > ServerTime:1357790015 
+reply message, err:  0xf8400e5170 <nil>
+Comparing structs
+Domain name: 
+<*TOKEN_S.UserInfo Value> <*TOKEN_S.UserInfo Value> ptr
+Comparing pointers true true
+Domain name: .MyInfo
+Expected pointer in message has value:  {0xf8400d1ac8 0xf8400d57e0 <nil> <nil> <nil> <nil> <nil> 0xf8400d5820 <nil> <nil> []}
+Comparing structs
+Domain name: .MyInfo
+<*int32 Value> <*int32 Value> ptr
+Comparing pointers true true
+Domain name: .MyInfo.UserId
+Unbound pointer variable, bind value to map now
+<*string Value> <*string Value> ptr
+Comparing pointers true true
+Domain name: .MyInfo.Name
+Expected pointer in message has value:  indotest15@test.com
+Comparing:  indotest15@test.com indotest15@test.com  equal?  true
+<*int32 Value> <*int32 Value> ptr
+Comparing pointers false true
+Domain name: .MyInfo.Level
+<*int32 Value> <*int32 Value> ptr
+Comparing pointers false true
+Domain name: .MyInfo.UserType
+<*int32 Value> <*int32 Value> ptr
+Comparing pointers false true
+Domain name: .MyInfo.ClientType
+<*int32 Value> <*int32 Value> ptr
+Comparing pointers false true
+Domain name: .MyInfo.Status
+<*uint64 Value> <*uint64 Value> ptr
+Comparing pointers false true
+Domain name: .MyInfo.Icon
+<*string Value> <*string Value> ptr
+Comparing pointers true true
+Domain name: .MyInfo.NickName
+Expected pointer in message has value:  indotest15
+Comparing:  indotest15 indotest15  equal?  true
+<*int32 Value> <*int32 Value> ptr
+Comparing pointers false true
+Domain name: .MyInfo.Gender
+<*int32 Value> <*int32 Value> ptr
+Comparing pointers false true
+Domain name: .MyInfo.Birthday
+<[]uint8 Value> <[]uint8 Value> slice
+Comparing slices
+Domain name: .MyInfo.XXX_unrecognized
+<*Auth_S2C.LoginUserInfo_LastLoginInfo Value> <*Auth_S2C.LoginUserInfo_LastLoginInfo Value> ptr
+Comparing pointers false false
+Domain name: .LastLogin
+<*int32 Value> <*int32 Value> ptr
+Comparing pointers false true
+Domain name: .ServerTime
+<[]uint8 Value> <[]uint8 Value> slice
+Comparing slices
+Domain name: .XXX_unrecognized
+Parsing variable key:  pluginEnabledOff
+Parsing variable key:  tag
+Parsing variable key:  rid21
+-------------------------------------------------
+Processing message:  
+						<Auth_C2S_ChangePluginNotification>
+							<Enabled>0</Enabled>
+							<Tag>ds</Tag>
+							<RequestId>88984124915715</RequestId>
+						</Auth_C2S_ChangePluginNotification>
+					
+after unmarshal parsing, error =  <nil>  message =  Enabled:false Tag:"ds" RequestId:"88984124915715" 
+After filling in slice:  Enabled:false Tag:"ds" RequestId:"88984124915715" 
 MESSAGE WAIT IS:   |
-Preparing to send a message from server  Auth_C2S_ChangePluginNotification
-sending message base length:  23  command / command / message:  0 11 Enabled:false Tag:"dl" RequestId:"88968447524865" 
+Parsing variable key:  rid21
+-------------------------------------------------
+Processing message:  
+						<Auth_S2C_RequestAckInfo>
+							<Requestid>88984124915715</Requestid>
+						</Auth_S2C_RequestAckInfo>
+					
+after unmarshal parsing, error =  <nil>  message =  requestid:"88984124915715" 
+After filling in slice:  requestid:"88984124915715" 
 MESSAGE WAIT IS:   |
-Expecting to receive a message from server  Auth_S2C_RequestAckInfo requestid:"88968447524865" 
+Expecting to receive a message from server  Auth_S2C_RequestAckInfo requestid:"88984124915715" 
 set read deadline
 read length 17
-Successfully receive message from network:  requestid:"88968447524865" 
-reply message, err:  0xf8400debd0 <nil>
-MESSAGE WAIT IS:   |
-Preparing to send a message from server  Auth_C2S_ChangePluginNotification
-sending message base length:  23  command / command / message:  0 11 Enabled:false Tag:"ds" RequestId:"88968447524866" 
-MESSAGE WAIT IS:   |
-Expecting to receive a message from server  Auth_S2C_RequestAckInfo requestid:"88968447524866" 
-set read deadline
-read length 17
-Successfully receive message from network:  requestid:"88968447524866" 
-reply message, err:  0xf84012e5e0 <nil>
+Successfully receive message from network:  requestid:"88984124915715" 
+reply message, err:  0xf840130650 <nil>
+Comparing structs
+Domain name: 
+<[]uint8 Value> <[]uint8 Value> slice
+Comparing slices
+Domain name: .Requestid
+<*int32 Value> <*int32 Value> ptr
+Comparing pointers false false
+Domain name: .ErrorCode
+<[]uint8 Value> <[]uint8 Value> slice
+Comparing slices
+Domain name: .XXX_unrecognized
 Running test case: 1 times
-A requests notification option list, server returns info - off- off
+A requests notification option list, server returns info - off
+Parsing variable key:  email1
+Parsing variable key:  password1
+-------------------------------------------------
+Processing message:  
+						<Auth_C2S_LoginInfo>
+							<Name>indotest15@test.com</Name>
+							<Password>e10adc3949ba59abbe56e057f20f883e</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					
+after unmarshal parsing, error =  <nil>  message =  Name:"indotest15@test.com" Password:"e10adc3949ba59abbe56e057f20f883e" ClientType:1 MachineId:"1" SoftwareVersion:1 
+After filling in slice:  Name:"indotest15@test.com" Password:"e10adc3949ba59abbe56e057f20f883e" ClientType:1 MachineId:"1" SoftwareVersion:1 
 MESSAGE WAIT IS:   |
-Preparing to send a message from server  Auth_C2S_LoginInfo
-sending message base length:  63  command / command / message:  0 2 Name:"indotest15@test.com" Password:"e10adc3949ba59abbe56e057f20f883e" ClientType:1 MachineId:"1" SoftwareVersion:1 
+Parsing variable key:  userId1
+Parsing variable key:  email1
+Parsing variable key:  name1
+-------------------------------------------------
+Processing message:  
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>100161</UserId>
+								<Name>indotest15@test.com</Name>	
+								<NickName>indotest15</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					
+after unmarshal parsing, error =  <nil>  message =  MyInfo:<UserId:100161 Name:"indotest15@test.com" NickName:"indotest15" > 
+After filling in slice:  MyInfo:<UserId:100161 Name:"indotest15@test.com" NickName:"indotest15" > 
 MESSAGE WAIT IS:   |
 Expecting to receive a message from server  Auth_S2C_LoginUserInfo MyInfo:<UserId:100161 Name:"indotest15@test.com" NickName:"indotest15" > 
 set read deadline
 read length 75
-Successfully receive message from network:  MyInfo:<UserId:100161 Name:"indotest15@test.com" Level:1 UserType:0 ClientType:1 Status:1 Icon:429933266161898 NickName:"indotest15" Gender:-732235124 Birthday:0 > ServerTime:1357550803 
-reply message, err:  0xf8400be3a0 <nil>
+Successfully receive message from network:  MyInfo:<UserId:100161 Name:"indotest15@test.com" Level:1 UserType:0 ClientType:1 Status:1 Icon:429933266161898 NickName:"indotest15" Gender:-732235124 Birthday:0 > ServerTime:1357790015 
+reply message, err:  0xf8400d51b0 <nil>
+Comparing structs
+Domain name: 
+<*TOKEN_S.UserInfo Value> <*TOKEN_S.UserInfo Value> ptr
+Comparing pointers true true
+Domain name: .MyInfo
+Expected pointer in message has value:  {0xf840099e00 0xf8400d5c00 <nil> <nil> <nil> <nil> <nil> 0xf8400d5c50 <nil> <nil> []}
+Comparing structs
+Domain name: .MyInfo
+<*int32 Value> <*int32 Value> ptr
+Comparing pointers true true
+Domain name: .MyInfo.UserId
+Expected pointer in message has value:  100161
+Comparing:  100161 100161  equal?  true
+<*string Value> <*string Value> ptr
+Comparing pointers true true
+Domain name: .MyInfo.Name
+Expected pointer in message has value:  indotest15@test.com
+Comparing:  indotest15@test.com indotest15@test.com  equal?  true
+<*int32 Value> <*int32 Value> ptr
+Comparing pointers false true
+Domain name: .MyInfo.Level
+<*int32 Value> <*int32 Value> ptr
+Comparing pointers false true
+Domain name: .MyInfo.UserType
+<*int32 Value> <*int32 Value> ptr
+Comparing pointers false true
+Domain name: .MyInfo.ClientType
+<*int32 Value> <*int32 Value> ptr
+Comparing pointers false true
+Domain name: .MyInfo.Status
+<*uint64 Value> <*uint64 Value> ptr
+Comparing pointers false true
+Domain name: .MyInfo.Icon
+<*string Value> <*string Value> ptr
+Comparing pointers true true
+Domain name: .MyInfo.NickName
+Expected pointer in message has value:  indotest15
+Comparing:  indotest15 indotest15  equal?  true
+<*int32 Value> <*int32 Value> ptr
+Comparing pointers false true
+Domain name: .MyInfo.Gender
+<*int32 Value> <*int32 Value> ptr
+Comparing pointers false true
+Domain name: .MyInfo.Birthday
+<[]uint8 Value> <[]uint8 Value> slice
+Comparing slices
+Domain name: .MyInfo.XXX_unrecognized
+<*Auth_S2C.LoginUserInfo_LastLoginInfo Value> <*Auth_S2C.LoginUserInfo_LastLoginInfo Value> ptr
+Comparing pointers false false
+Domain name: .LastLogin
+<*int32 Value> <*int32 Value> ptr
+Comparing pointers false true
+Domain name: .ServerTime
+<[]uint8 Value> <[]uint8 Value> slice
+Comparing slices
+Domain name: .XXX_unrecognized
+Parsing variable key:  rid31
+-------------------------------------------------
+Processing message:  
+						<Auth_C2S_RequestPluginNotificationInfo>
+							<RequestId>88984124915717</RequestId>
+						</Auth_C2S_RequestPluginNotificationInfo>
+					
+after unmarshal parsing, error =  <nil>  message =  RequestId:"88984124915717" 
+After filling in slice:  RequestId:"88984124915717" 
 MESSAGE WAIT IS:   |
-Preparing to send a message from server  Auth_C2S_RequestPluginNotificationInfo
-sending message base length:  17  command / command / message:  0 10 RequestId:"88968447524867" 
+Parsing variable key:  pluginEnabledOff
+Parsing variable key:  tag
+-------------------------------------------------
+Processing message:  
+						<Auth_S2C_PluginNotificationInfo>
+							<Enabled>0</Enabled>
+							<Tag>ds</Tag>
+						</Auth_S2C_PluginNotificationInfo>
+					
+after unmarshal parsing, error =  <nil>  message =  
+After filling in slice:  
 MESSAGE WAIT IS:   |
-Expecting to receive a message from server  Auth_S2C_UserPluginNotificationInfo infos:<Enabled:false Tag:"dl" > infos:<Enabled:false Tag:"ds" > 
+Expecting to receive a message from server  Auth_S2C_UserPluginNotificationInfo 
 set read deadline
 read length 17
 Successfully receive message from network:  infos:<Enabled:false Tag:"dl" > infos:<Enabled:false Tag:"ds" > 
-reply message, err:  0xf8400be300 <nil>
-Running test case: 1 times
-A logs in, set option: push notification dl - on
-MESSAGE WAIT IS:   |
-Preparing to send a message from server  Auth_C2S_LoginInfo
-sending message base length:  63  command / command / message:  0 2 Name:"indotest15@test.com" Password:"e10adc3949ba59abbe56e057f20f883e" ClientType:1 MachineId:"1" SoftwareVersion:1 
-MESSAGE WAIT IS:   |
-Expecting to receive a message from server  Auth_S2C_LoginUserInfo MyInfo:<UserId:100161 Name:"indotest15@test.com" NickName:"indotest15" > 
-set read deadline
-read length 75
-Successfully receive message from network:  MyInfo:<UserId:100161 Name:"indotest15@test.com" Level:1 UserType:0 ClientType:1 Status:1 Icon:429933266161898 NickName:"indotest15" Gender:-732235124 Birthday:0 > ServerTime:1357550803 
-reply message, err:  0xf8400de700 <nil>
-MESSAGE WAIT IS:   |
-Preparing to send a message from server  Auth_C2S_ChangePluginNotification
-sending message base length:  23  command / command / message:  0 11 Enabled:true Tag:"dl" RequestId:"88968447524869" 
-MESSAGE WAIT IS:   |
-Expecting to receive a message from server  Auth_S2C_RequestAckInfo requestid:"88968447524869" 
-set read deadline
-read length 17
-Successfully receive message from network:  requestid:"88968447524869" 
-reply message, err:  0xf84014f400 <nil>
-Running test case: 1 times
-A requests notification option list, server returns info -on - off
-MESSAGE WAIT IS:   |
-Preparing to send a message from server  Auth_C2S_LoginInfo
-sending message base length:  63  command / command / message:  0 2 Name:"indotest15@test.com" Password:"e10adc3949ba59abbe56e057f20f883e" ClientType:1 MachineId:"1" SoftwareVersion:1 
-MESSAGE WAIT IS:   |
-Expecting to receive a message from server  Auth_S2C_LoginUserInfo MyInfo:<UserId:100161 Name:"indotest15@test.com" NickName:"indotest15" > 
-set read deadline
-read length 75
-Successfully receive message from network:  MyInfo:<UserId:100161 Name:"indotest15@test.com" Level:1 UserType:0 ClientType:1 Status:1 Icon:429933266161898 NickName:"indotest15" Gender:-732235124 Birthday:0 > ServerTime:1357550803 
-reply message, err:  0xf8400bed40 <nil>
-MESSAGE WAIT IS:   |
-Preparing to send a message from server  Auth_C2S_RequestPluginNotificationInfo
-sending message base length:  17  command / command / message:  0 10 RequestId:"88968447524871" 
-MESSAGE WAIT IS:   |
-Expecting to receive a message from server  Auth_S2C_UserPluginNotificationInfo infos:<Enabled:true Tag:"dl" > infos:<Enabled:false Tag:"ds" > 
-set read deadline
-read length 17
-Successfully receive message from network:  infos:<Enabled:true Tag:"dl" > infos:<Enabled:false Tag:"ds" > 
-reply message, err:  0xf84012e910 <nil>
-Running test case: 1 times
-A logs in, set option: push notification ds - on
-MESSAGE WAIT IS:   |
-Preparing to send a message from server  Auth_C2S_LoginInfo
-sending message base length:  63  command / command / message:  0 2 Name:"indotest15@test.com" Password:"e10adc3949ba59abbe56e057f20f883e" ClientType:1 MachineId:"1" SoftwareVersion:1 
-MESSAGE WAIT IS:   |
-Expecting to receive a message from server  Auth_S2C_LoginUserInfo MyInfo:<UserId:100161 Name:"indotest15@test.com" NickName:"indotest15" > 
-set read deadline
-read length 75
-Successfully receive message from network:  MyInfo:<UserId:100161 Name:"indotest15@test.com" Level:1 UserType:0 ClientType:1 Status:1 Icon:429933266161898 NickName:"indotest15" Gender:-732235124 Birthday:0 > ServerTime:1357550803 
-reply message, err:  0xf8400bef40 <nil>
-MESSAGE WAIT IS:   |
-Preparing to send a message from server  Auth_C2S_ChangePluginNotification
-sending message base length:  23  command / command / message:  0 11 Enabled:true Tag:"ds" RequestId:"88968447524872" 
-MESSAGE WAIT IS:   |
-Expecting to receive a message from server  Auth_S2C_RequestAckInfo requestid:"88968447524872" 
-set read deadline
-read length 17
-Successfully receive message from network:  requestid:"88968447524872" 
-reply message, err:  0xf8400de3d0 <nil>
-Running test case: 1 times
-A requests notification option list, server returns info -on - on
-MESSAGE WAIT IS:   |
-Preparing to send a message from server  Auth_C2S_LoginInfo
-sending message base length:  63  command / command / message:  0 2 Name:"indotest15@test.com" Password:"e10adc3949ba59abbe56e057f20f883e" ClientType:1 MachineId:"1" SoftwareVersion:1 
-MESSAGE WAIT IS:   |
-Expecting to receive a message from server  Auth_S2C_LoginUserInfo MyInfo:<UserId:100161 Name:"indotest15@test.com" NickName:"indotest15" > 
-set read deadline
-read length 75
-Successfully receive message from network:  MyInfo:<UserId:100161 Name:"indotest15@test.com" Level:1 UserType:0 ClientType:1 Status:1 Icon:429933266161898 NickName:"indotest15" Gender:-732235124 Birthday:0 > ServerTime:1357550803 
-reply message, err:  0xf84016f200 <nil>
-MESSAGE WAIT IS:   |
-Preparing to send a message from server  Auth_C2S_RequestPluginNotificationInfo
-sending message base length:  17  command / command / message:  0 10 RequestId:"88968447524874" 
-MESSAGE WAIT IS:   |
-Expecting to receive a message from server  Auth_S2C_UserPluginNotificationInfo infos:<Enabled:true Tag:"dl" > infos:<Enabled:true Tag:"ds" > 
-set read deadline
-read length 17
-Successfully receive message from network:  infos:<Enabled:true Tag:"dl" > infos:<Enabled:true Tag:"ds" > 
-reply message, err:  0xf8400be6e0 <nil>
-Running test case: 1 times
-A logs in, set option: push notification dl - off
-MESSAGE WAIT IS:   |
-Preparing to send a message from server  Auth_C2S_LoginInfo
-sending message base length:  63  command / command / message:  0 2 Name:"indotest15@test.com" Password:"e10adc3949ba59abbe56e057f20f883e" ClientType:1 MachineId:"1" SoftwareVersion:1 
-MESSAGE WAIT IS:   |
-Expecting to receive a message from server  Auth_S2C_LoginUserInfo MyInfo:<UserId:100161 Name:"indotest15@test.com" NickName:"indotest15" > 
-set read deadline
-read length 75
-Successfully receive message from network:  MyInfo:<UserId:100161 Name:"indotest15@test.com" Level:1 UserType:0 ClientType:1 Status:1 Icon:429933266161898 NickName:"indotest15" Gender:-732235124 Birthday:0 > ServerTime:1357550803 
-reply message, err:  0xf84012efb0 <nil>
-MESSAGE WAIT IS:   |
-Preparing to send a message from server  Auth_C2S_ChangePluginNotification
-sending message base length:  23  command / command / message:  0 11 Enabled:false Tag:"dl" RequestId:"88968447524876" 
-MESSAGE WAIT IS:   |
-Expecting to receive a message from server  Auth_S2C_RequestAckInfo requestid:"88968447524876" 
-set read deadline
-read length 17
-Successfully receive message from network:  requestid:"88968447524876" 
-reply message, err:  0xf840168170 <nil>
-Running test case: 1 times
-A requests notification option list, server returns info -off - on
-MESSAGE WAIT IS:   |
-Preparing to send a message from server  Auth_C2S_LoginInfo
-sending message base length:  63  command / command / message:  0 2 Name:"indotest15@test.com" Password:"e10adc3949ba59abbe56e057f20f883e" ClientType:1 MachineId:"1" SoftwareVersion:1 
-MESSAGE WAIT IS:   |
-Expecting to receive a message from server  Auth_S2C_LoginUserInfo MyInfo:<UserId:100161 Name:"indotest15@test.com" NickName:"indotest15" > 
-set read deadline
-read length 75
-Successfully receive message from network:  MyInfo:<UserId:100161 Name:"indotest15@test.com" Level:1 UserType:0 ClientType:1 Status:1 Icon:429933266161898 NickName:"indotest15" Gender:-732235124 Birthday:0 > ServerTime:1357550803 
-reply message, err:  0xf8400ef7f0 <nil>
-MESSAGE WAIT IS:   |
-Preparing to send a message from server  Auth_C2S_RequestPluginNotificationInfo
-sending message base length:  17  command / command / message:  0 10 RequestId:"88968447524878" 
-MESSAGE WAIT IS:   |
-Expecting to receive a message from server  Auth_S2C_UserPluginNotificationInfo infos:<Enabled:false Tag:"dl" > infos:<Enabled:true Tag:"ds" > 
-set read deadline
-read length 17
-Successfully receive message from network:  infos:<Enabled:false Tag:"dl" > infos:<Enabled:true Tag:"ds" > 
-reply message, err:  0xf840168270 <nil>
+reply message, err:  0xf840136bc0 <nil>
+Comparing structs
+Domain name: 
+<[]*Auth_S2C.PluginNotificationInfo Value> <[]*Auth_S2C.PluginNotificationInfo Value> slice
+Comparing slices
+Domain name: .Infos
 --------------------------------------------------------------------------------
 TEST SUITE: Chat
 
-      TEST CASE: A logs in, set option: push notification dl-off / ds-off
-         Repeat time 1: 	CORRECT.   Time taken:  1000 us 
+      TEST CASE: A logs in, set option: push notification - off
+         Repeat time 1: 	CORRECT.   Time taken:  2000 us 
       ---------------------------
-         Total result:       1/ 1 = 100%   Time taken:  1000 us
+         Total result:       1/ 1 = 100%   Time taken:  2000 us
       END OF TEST CASE RESULT
 
 
-      TEST CASE: A requests notification option list, server returns info - off- off
-         Repeat time 1: 	CORRECT.   Time taken:     0 us 
+      TEST CASE: A requests notification option list, server returns info - off
+         Repeat time 1:    INCORRECT. Reason:  Message 4:  Field 0: Slices have different len, expect: 0, get: 2
       ---------------------------
-         Total result:       1/ 1 = 100%   Time taken:     0 us
+         Total result:       0/ 1 =   0%   Time taken:  1000 us
       END OF TEST CASE RESULT
 
 
-      TEST CASE: A logs in, set option: push notification dl - on
-         Repeat time 1: 	CORRECT.   Time taken:     0 us 
-      ---------------------------
-         Total result:       1/ 1 = 100%   Time taken:     0 us
+      TEST CASE: A logs in, set option: push notification - on
+          Skipped!
       END OF TEST CASE RESULT
 
 
-      TEST CASE: A requests notification option list, server returns info -on - off
-         Repeat time 1: 	CORRECT.   Time taken:  1000 us 
-      ---------------------------
-         Total result:       1/ 1 = 100%   Time taken:  1000 us
-      END OF TEST CASE RESULT
-
-
-      TEST CASE: A logs in, set option: push notification ds - on
-         Repeat time 1: 	CORRECT.   Time taken:     0 us 
-      ---------------------------
-         Total result:       1/ 1 = 100%   Time taken:     0 us
-      END OF TEST CASE RESULT
-
-
-      TEST CASE: A requests notification option list, server returns info -on - on
-         Repeat time 1: 	CORRECT.   Time taken:  1000 us 
-      ---------------------------
-         Total result:       1/ 1 = 100%   Time taken:  1000 us
-      END OF TEST CASE RESULT
-
-
-      TEST CASE: A logs in, set option: push notification dl - off
-         Repeat time 1: 	CORRECT.   Time taken:  1000 us 
-      ---------------------------
-         Total result:       1/ 1 = 100%   Time taken:  1000 us
-      END OF TEST CASE RESULT
-
-
-      TEST CASE: A requests notification option list, server returns info -off - on
-         Repeat time 1: 	CORRECT.   Time taken:     0 us 
-      ---------------------------
-         Total result:       1/ 1 = 100%   Time taken:     0 us
+      TEST CASE: A requests notification option list, server returns info - on
+          Skipped!
       END OF TEST CASE RESULT
 
 END OF TEST SUITE RESULT
 --------------------------------------------------------------------------------
+TEST CASE FAILED, STOP!

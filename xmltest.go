@@ -100,6 +100,11 @@ type InnerXml struct {
 	Xml string `xml:",innerxml"`
 }
 
+type UnboundVarDesc struct {
+	VarName string `xml:"name,attr"`
+	Field   string
+}
+
 /*
 	IsPartial    bool   `xml:"isPartial,attr"`
 	PartialField int    `xml:"partialField,attr"`
@@ -112,6 +117,7 @@ type Message struct {
 	Wait        string `xml:"wait,attr"`
 	BaseCommand string
 	Command     string
+	Unbound     []UnboundVarDesc `xml:"Unbound>Var"`
 	Data        InnerXml
 }
 
@@ -232,7 +238,6 @@ func main() {
 	} else {
 		executeTestSuite(ts)
 	}
-
 }
 
 /******************* steps in test ****************************************/
@@ -381,9 +386,12 @@ func performTestCaseOnce(addr *net.TCPAddr, testCase *TestCase, resultChan chan 
 					break
 					// when both reply message / err == nil signals that the message is ignored
 				}
-
 			}
+
 			if err == nil {
+				for _, unboundDesc := range message.Unbound {
+					keyMap[unboundDesc.Field] = unboundDesc.VarName
+				}
 				if comparedResult, err := compareGetValueForProtoMessage(protoParsedMessage, *replyMessage); comparedResult {
 					// CORRECT Reply message.
 				} else {
@@ -621,17 +629,40 @@ func readReply(useBase bool, expBaseCmd byte, expCmd byte, expMsg proto.Message,
 }
 
 /**************Compare Values and Bind value from reply message to unbound var in value map*****/
-func compareGetValueForPointer(expPtr reflect.Value, repPtr reflect.Value) (bool, error) {
+func compareGetValueForPointer(expPtr reflect.Value, repPtr reflect.Value,
+	domainName string) (bool, error) {
 	if DEBUG_COMPARE_POINTER {
 		fmt.Println("Comparing pointers", expPtr.Elem().IsValid(), repPtr.Elem().IsValid())
+		fmt.Println("Domain name:", domainName)
 	}
+	// Now check the current domain name of this pointer
+	// if it is marked as: expecting value, and the variable is not bound
+	// bind the value of the key
+	key, present := keyMap[domainName]
+	if present {
+		if DEBUG_COMPARE_POINTER {
+			fmt.Println("Unbound pointer variable, bind value to map now")
+		}
+		// exp pointer != null. If pointer of reply value is null, return false
+		if !repPtr.Elem().IsValid() {
+			errorMsg := fmt.Sprintf("Reply has no value while expected to get a value for binding")
+			return false, errors.New(errorMsg)
+		}
+		repValue := reflect.Indirect(reflect.ValueOf(repPtr.Interface()))
+		// bound variable to value, return true
+		valueMap[key] = repValue.Interface()
+		delete(keyMap, domainName)
+		// no error
+		return true, nil
+	}
+
 	// if pointer of expected value is null, just dont compare
 	if !expPtr.Elem().IsValid() {
 		return true, nil
 	}
 	expValue := reflect.Indirect(reflect.ValueOf(expPtr.Interface()))
 
-	// if pointer of reply value is null, return false
+	// exp pointer != null. If pointer of reply value is null, return false
 	if !repPtr.Elem().IsValid() {
 		errorMsg := fmt.Sprintf("Reply has no value while expected value is %v", expValue.Interface())
 		return false, errors.New(errorMsg)
@@ -648,7 +679,7 @@ func compareGetValueForPointer(expPtr reflect.Value, repPtr reflect.Value) (bool
 	var err error
 
 	// if the expected field is a variable field that's not bound, bind the value of the key now
-	key, present := keyMap[strVar]
+	key, present = keyMap[strVar]
 	if present {
 		if DEBUG_COMPARE_POINTER {
 			fmt.Println("Unbound pointer variable, bind value to map now")
@@ -658,7 +689,9 @@ func compareGetValueForPointer(expPtr reflect.Value, repPtr reflect.Value) (bool
 	} else {
 		// compare the two value of pointer
 		// if they are not struct, just compare
-		if expValue.Kind() != reflect.Struct {
+		if expValue.Kind() == reflect.Struct {
+			return compareGetValueForStruct(expValue, repValue, domainName)
+		} else {
 			isEqual := (expValue.Interface() == repValue.Interface())
 
 			if DEBUG_COMPARE_POINTER {
@@ -671,20 +704,36 @@ func compareGetValueForPointer(expPtr reflect.Value, repPtr reflect.Value) (bool
 				result = false
 				err = errors.New(errorMsg)
 			}
-		} else { // compare struct
-			return compareGetValueForStruct(expValue, repValue)
 		}
 	}
 	return result, err
 }
 
-func compareGetValueForSlice(expSlice reflect.Value, repSlice reflect.Value) (bool, error) {
+func compareGetValueForSlice(expSlice reflect.Value, repSlice reflect.Value,
+	domainName string) (bool, error) {
 	if DEBUG_COMPARE_SLICE {
 		fmt.Println("Comparing slices")
+		fmt.Println("Domain name:", domainName)
 	}
 
 	result := true
 	var err error
+
+	// Now check the current domain name of this slice
+	// if it is marked as: expecting value, and the variable is not bound
+	// bind the value of the key
+	key, present := keyMap[domainName]
+	if present {
+		if DEBUG_COMPARE_SLICE {
+			fmt.Println("Unbound slice variable, bind value to map now")
+		}
+		// bound variable to value, return true
+		valueMap[key] = repSlice.Interface()
+		delete(keyMap, domainName)
+		// no error
+		return true, nil
+	}
+
 	var errorMsg string
 	dif := false
 
@@ -697,7 +746,7 @@ func compareGetValueForSlice(expSlice reflect.Value, repSlice reflect.Value) (bo
 
 	// if the expected field is a variable field that's not bound, (its value exists in key map)
 	// bind the value of the key now
-	key, present := keyMap[strVar]
+	key, present = keyMap[strVar]
 	if present {
 		if DEBUG_COMPARE_SLICE {
 			fmt.Println("Unbound slice variable, bind value to map now")
@@ -714,14 +763,30 @@ func compareGetValueForSlice(expSlice reflect.Value, repSlice reflect.Value) (bo
 			for index := 0; index < expSlice.Len(); index++ {
 				value1 := expSlice.Index(index)
 				value2 := repSlice.Index(index)
+				currentDomainName := fmt.Sprintf("%s[%d]", domainName, index)
+
 				var isEqual bool
 				if value1.Kind() == reflect.Ptr {
-					isEqual, err = compareGetValueForPointer(value1, value2)
+					isEqual, err = compareGetValueForPointer(value1, value2, currentDomainName)
 				} else if value1.Kind() == reflect.Slice {
-					isEqual, err = compareGetValueForSlice(value1, value2)
+					isEqual, err = compareGetValueForSlice(value1, value2, currentDomainName)
 				} else if value1.Kind() == reflect.Struct {
-					isEqual, err = compareGetValueForStruct(value1, value2)
+					isEqual, err = compareGetValueForStruct(value1, value2, currentDomainName)
 				} else {
+					// Now check the current domain name of this slice element
+					// if it is marked as: expecting value, and the variable is not bound
+					// bind the value of the key					
+					key, present = keyMap[currentDomainName]
+					if present {
+						if DEBUG_COMPARE_SLICE {
+							fmt.Println("Unbound slice element-variable, bind value to map now")
+						}
+						// bound variable to value, return true
+						valueMap[key] = value2.Interface()
+						delete(keyMap, currentDomainName)
+						// no error
+						continue
+					}
 					isEqual = (value1.Interface() == value2.Interface())
 				}
 				if !isEqual {
@@ -740,15 +805,35 @@ func compareGetValueForSlice(expSlice reflect.Value, repSlice reflect.Value) (bo
 	return result, err
 }
 
-func compareGetValueForStruct(expStruct reflect.Value, repStruct reflect.Value) (bool, error) {
+func compareGetValueForStruct(expStruct reflect.Value, repStruct reflect.Value,
+	domainName string) (bool, error) {
 	if DEBUG_COMPARE_STRUCT {
 		fmt.Println("Comparing structs")
+		fmt.Println("Domain name:", domainName)
 	}
+
+	// Now check the current domain name of this struct
+	// if it is marked as: expecting value, and the variable is not bound
+	// bind the value of the key
+	key, present := keyMap[domainName]
+	if present {
+		if DEBUG_COMPARE_STRUCT {
+			fmt.Println("Unbound struct variable, bind value to map now")
+		}
+		// bound variable to value, return true
+		valueMap[key] = repStruct.Interface()
+		delete(keyMap, domainName)
+		// no error
+		return true, nil
+	}
+
 	result := true
 	var err error
 	for i := 0; i < expStruct.NumField(); i++ {
 		expStructField := expStruct.Field(i) // pointer
 		repStructField := repStruct.Field(i) // pointer
+		f := expStruct.Type().Field(i)
+		currentDomainName := fmt.Sprintf("%s.%s", domainName, f.Name)
 
 		if DEBUG_COMPARE_STRUCT {
 			fmt.Println(expStructField, repStructField, expStructField.Kind())
@@ -757,11 +842,14 @@ func compareGetValueForStruct(expStruct reflect.Value, repStruct reflect.Value) 
 		var err1 error
 		var isEqual bool
 		if expStructField.Kind() == reflect.Ptr {
-			isEqual, err1 = compareGetValueForPointer(expStructField, repStructField)
+			isEqual, err1 = compareGetValueForPointer(expStructField,
+				repStructField, currentDomainName)
 		} else if expStructField.Kind() == reflect.Slice {
-			isEqual, err1 = compareGetValueForSlice(expStructField, repStructField)
+			isEqual, err1 = compareGetValueForSlice(expStructField,
+				repStructField, currentDomainName)
 		} else if expStructField.Kind() == reflect.Struct {
-			isEqual, err1 = compareGetValueForStruct(expStructField, repStructField)
+			isEqual, err1 = compareGetValueForStruct(expStructField,
+				repStructField, currentDomainName)
 		}
 		if !isEqual {
 			result = false
@@ -786,7 +874,7 @@ func compareGetValueForProtoMessage(protoExp proto.Message, protoRep proto.Messa
 	expMessage := reflect.ValueOf(protoExp).Elem()
 	repMessage := reflect.ValueOf(protoRep).Elem()
 
-	result, err = compareGetValueForStruct(expMessage, repMessage)
+	result, err = compareGetValueForStruct(expMessage, repMessage, "")
 	return result, err
 
 }
@@ -868,14 +956,14 @@ func preProcess(rawData string) {
 	listVar := regVar.FindAllStringSubmatch(rawData, -1)
 	for _, matchedValue := range listVar {
 		key := matchedValue[1]
-		if (DEBUG_PARSING_MESSAGE) {
+		if DEBUG_PARSING_MESSAGE {
 			fmt.Println("Parsing variable key: ", key)
 		}
 		strMarkValue := ""
 
 		_, present := valueMap[key]
 		if !present {
-			if (DEBUG_PARSING_MESSAGE) {
+			if DEBUG_PARSING_MESSAGE {
 				fmt.Println("Unbound key: ", key)
 			}
 			newMarkValue := START_MARK_VALUE - numVar

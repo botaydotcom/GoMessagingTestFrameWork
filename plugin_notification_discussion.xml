@@ -152,11 +152,16 @@
 
 				<!--Server sends login info to A-->
 				<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
+					<Unbound>
+						<Var name="userId1">
+							<Field>.MyInfo.UserId</Field>
+						</Var>
+					</Unbound>
 					<Command>0x02</Command>
 					<Data>
 						<Auth_S2C_LoginInfoResult>
 							<MyInfo>
-								<UserId>{{.userId1}}</UserId>
+								<UserId>0</UserId>
 								<Name>{{.email1}}</Name>	
 								<NickName>{{.name1}}</NickName>
 							</MyInfo>
@@ -234,8 +239,14 @@
 					<Command>0x08</Command>
 					<Data>
 						<Auth_S2C_PluginNotificationInfo>
-							<Enabled>{{.pluginEnabledOff}}</Enabled>
-							<Tag>{{.tag}}</Tag>
+							<Infos>
+								<Enabled>{{.pluginEnabledOff}}</Enabled>
+								<Tag>{{.tagDl}}</Tag>
+							</Infos>
+							<Infos>
+								<Enabled>{{.pluginEnabledOff}}</Enabled>
+								<Tag>{{.tagDs}}</Tag>
+							</Infos>
 						</Auth_S2C_PluginNotificationInfo>
 					</Data>
 				</Message>

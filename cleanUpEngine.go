@@ -54,7 +54,7 @@ const (
 	C2S_DeleteDailyItem_CMD = 0x0A
 
 	C2S_RequestCircles_CMD = 0x16
-	C2S_RemoveCircle_CMD = 0x15
+	C2S_RemoveCircle_CMD   = 0x15
 
 	S2C_CirclesResponse_CMD = 0x0A
 )
@@ -345,7 +345,7 @@ func removeAllCirclesForAllUsers(listConnection map[int]*net.TCPConn) {
 			structValue.FieldByName("RequestId").Set(reflect.ValueOf([]byte(requestId.String())))
 			var val int32 = 0
 			structValue.FieldByName("Version").Set(reflect.ValueOf(&val))
-			
+
 			sendMsg(true, byte(DailyLifeRequest_MAINCMD),
 				C2S_RequestCircles_CMD, protoMessage, conn)
 			expMsg := magicVarFunc("DL_CirclesResponse")
@@ -368,15 +368,15 @@ func removeAllCirclesForAllUsers(listConnection map[int]*net.TCPConn) {
 				circleId := circle.FieldByName("Id")
 				listCircleToDelete[index] = int32(reflect.Indirect(circleId).Int())
 			}
-				
+
 			deleteMessage := magicVarFunc("DL_RemoveCircle")
 			structValue = reflect.Indirect(reflect.ValueOf(deleteMessage))
 			structValue.FieldByName("CircleIds").Set(reflect.ValueOf(listCircleToDelete))
-				
+
 			requestId = (magicCallFunc("Helper_RequestId", nil)[0])
 			structValue.FieldByName("RequestId").Set(reflect.ValueOf([]byte(requestId.String())))
-			
-			sendMsg(true, byte(DailyLifeRequest_MAINCMD), C2S_RemoveCircle_CMD, 
+
+			sendMsg(true, byte(DailyLifeRequest_MAINCMD), C2S_RemoveCircle_CMD,
 				deleteMessage.(proto.Message), conn)
 		}
 		if stop {
@@ -415,7 +415,7 @@ func removeAllDailyItemsForAllUsers(listConnection map[int]*net.TCPConn) {
 			}
 
 			listDailyItem := reflect.Indirect(reflect.ValueOf(*listDailyItemMessagePtr)).FieldByName("Ids")
-			for index := 0; index < listDailyItem.Len(); index++ {				
+			for index := 0; index < listDailyItem.Len(); index++ {
 				itemId := listDailyItem.Index(index)
 				itemIdInt := itemId.Int()
 				fmt.Println("Removing item id: ", itemIdInt)
@@ -430,8 +430,8 @@ func removeAllDailyItemsForAllUsers(listConnection map[int]*net.TCPConn) {
 				sendMsg(true, byte(DailyLifeRequest_MAINCMD), C2S_DeleteDailyItem_CMD,
 					deleteMessage.(proto.Message), conn)
 
-				expMsg1 := magicVarFunc("DL_OperationState")				
-				readReply(true, byte(DailyLifeRequest_MAINCMD), S2C_OperationState_CMD, 
+				expMsg1 := magicVarFunc("DL_OperationState")
+				readReply(true, byte(DailyLifeRequest_MAINCMD), S2C_OperationState_CMD,
 					expMsg1.(proto.Message), conn)
 
 			}
