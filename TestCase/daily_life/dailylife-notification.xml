@@ -1,5 +1,5 @@
 <TestSuite>
-	<TestSuiteName>Chat</TestSuiteName>
+	<TestSuiteName>DAILY-LIFE</TestSuiteName>
 	<TargetHost>203.117.155.188</TargetHost>
 	<TargetPort>9100</TargetPort>
 	<VarMap>
@@ -231,7 +231,7 @@
 				</Message>
 
 				<!--Server send ack message to A -->
-				<Message type="DL_OperationState" fromClient="false">
+				<Message type="DL_OperationState" fromClient="false" wait="1s">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x01</Command>
 					<Data>
@@ -243,7 +243,7 @@
 				</Message>
 
 				<!--B receives notification-->
-				<Message type="Notif_Notification" fromClient="false" connection="1">
+				<Message type="Notif_Notification" fromClient="false" connection="1" wait="1s">
 					<BaseCommand>0xA5</BaseCommand>
 					<Command>0x01</Command>
 					<Data>
@@ -273,7 +273,7 @@
 				<!--A request item list-->
 				<Message type="DL_RequestIDList" fromClient="true" wait="500ms">
 					<BaseCommand>0xA1</BaseCommand>
-					<Command>0x04</Command>
+					<Command>0x05</Command>
 					<Data>
 						<DL_RequestIDList>
 							<RequestId>{{.rid12}}</RequestId>
@@ -284,7 +284,7 @@
 				<!--server return item list with item in case 1-->
 				<Message type="DL_IDListResponse" fromClient="false">
 					<BaseCommand>0xA1</BaseCommand>
-					<Command>0x03</Command>
+					<Command>0x04</Command>
 					<Data>
 						<DL_IDListResponse>
 							<RequestId>{{.rid12}}</RequestId>
@@ -512,7 +512,7 @@
 				</Message>
 
 				<!--Server send ack message to A -->
-				<Message type="DL_OperationState" fromClient="false">
+				<Message type="DL_OperationState" fromClient="false" wait="1s">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x01</Command>
 					<Data>

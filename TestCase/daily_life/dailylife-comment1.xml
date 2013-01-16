@@ -138,7 +138,7 @@
 					<Command>0x02</Command>
 					<Data>
 						<Auth_C2S_LoginInfo>
-							<Name>{{.email1}}</Name>				
+							<Name>{{.email1}}</Name>			
 							<Password>{{.password1}}</Password>
 							<ClientType>1</ClientType>
 							<MachineId>1</MachineId>
@@ -154,7 +154,7 @@
 						<Auth_S2C_LoginInfoResult>
 							<MyInfo>
 								<UserId>{{.userId1}}</UserId>
-								<Name>{{.email1}}</Name>		
+								<Name>{{.email1}}</Name>
 								<NickName>{{.name1}}</NickName>
 							</MyInfo>
 						</Auth_S2C_LoginInfoResult>
@@ -180,7 +180,7 @@
 				</Message>
 
 				<!--Server send ack message to A -->
-				<Message type="DL_OperationState" fromClient="false">
+				<Message type="DL_OperationState" fromClient="false" wait="1s">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x01</Command>
 					<Data>
@@ -225,7 +225,7 @@
 				</Message>
 				
 				<!--B request item list-->
-				<Message type="DL_RequestIDList" fromClient="true" wait="1s">
+				<Message type="DL_RequestIDList" fromClient="true" wait="2s">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x04</Command>
 					<Data>
@@ -265,7 +265,7 @@
 				</Message>
 
 				<!--Server send ack message to B -->
-				<Message type="DL_OperationState" fromClient="false">
+				<Message type="DL_OperationState" fromClient="false" wait="1s">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x01</Command>
 					<Data>
@@ -444,7 +444,7 @@
 				</Message>
 
 				<!--Server send ack message to A -->
-				<Message type="DL_OperationState" fromClient="false">
+				<Message type="DL_OperationState" fromClient="false" wait="1s">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x01</Command>
 					<Data>

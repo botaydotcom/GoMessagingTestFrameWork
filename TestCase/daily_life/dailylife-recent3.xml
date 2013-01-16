@@ -170,7 +170,7 @@
 			<Name>D logs in and post an item. A logs in and post an item. A posts a comment to this item. </Name>
 		</TestInfo>
 		<TestInfo skip="false" repeat="1">
-			<Name>A logs in, posts an item and deletes item created in first case.</Name> 
+			<Name>B logs in, posts two items.</Name> 
 		</TestInfo>
 		<TestInfo skip="false" repeat="1">
 			<Name>C logs in, request id list, see item created by A in second case, C posts a comment to this item</Name>
@@ -246,7 +246,7 @@
 				</Message>
 
 				<!--Server send ack message to A -->
-				<Message type="DL_OperationState" fromClient="false">
+				<Message type="DL_OperationState" fromClient="false" wait="1s">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x01</Command>
 					<Data>
@@ -304,7 +304,7 @@
 				</Message>
 
 				<!--Server send ack message to D -->
-				<Message type="DL_OperationState" fromClient="false" connection="3">
+				<Message type="DL_OperationState" fromClient="false" connection="3" wait="1s">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x01</Command>
 					<Data>
@@ -332,7 +332,7 @@
 				</Message>
 
 				<!--Server send ack message to A -->
-				<Message type="DL_OperationState" fromClient="false">
+				<Message type="DL_OperationState" fromClient="false" wait="1s">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x01</Command>
 					<Data>
@@ -397,7 +397,7 @@
 				</Message>
 
 				<!--Server send ack message to B -->
-				<Message type="DL_OperationState" fromClient="false">
+				<Message type="DL_OperationState" fromClient="false" wait="1s">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x01</Command>
 					<Data>
@@ -409,8 +409,7 @@
 				</Message>
 
 				<!--B send message to Server to post an item-->
-				<Message type="DL_PostDailyItem" fromClient="true"
-					wait="1s">
+				<Message type="DL_PostDailyItem" fromClient="true">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x01</Command>
 					<Data>
@@ -428,7 +427,7 @@
 				</Message>
 
 				<!--Server send ack message to B -->
-				<Message type="DL_OperationState" fromClient="false">
+				<Message type="DL_OperationState" fromClient="false" wait="1s">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x01</Command>
 					<Data>
@@ -456,7 +455,7 @@
 				</Message>
 
 				<!--Server send ack message to C -->
-				<Message type="DL_OperationState" fromClient="false">
+				<Message type="DL_OperationState" fromClient="false" wait="1s">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x01</Command>
 					<Data>
@@ -542,7 +541,7 @@
 				</Message>
 
 				<!--Server send ack message to C -->
-				<Message type="DL_OperationState" fromClient="false">
+				<Message type="DL_OperationState" fromClient="false" wait="1s">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x01</Command>
 					<Data>
@@ -685,7 +684,7 @@
 				</Message>
 
 				<!--Server send ack message to A -->
-				<Message type="DL_OperationState" fromClient="false" close="true">
+				<Message type="DL_OperationState" fromClient="false" close="true" wait="1s">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x01</Command>
 					<Data>
@@ -736,7 +735,7 @@
 				</Message>
 
 				<!--Server send ack message to D-->
-				<Message type="DL_OperationState" fromClient="false" close="true">
+				<Message type="DL_OperationState" fromClient="false" close="true" wait="1s">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x01</Command>
 					<Data>
@@ -798,7 +797,7 @@
 				</Message>
 
 				<!--Server send ack message to B-->
-				<Message type="DL_OperationState" fromClient="false">
+				<Message type="DL_OperationState" fromClient="false" wait="1s">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x01</Command>
 					<Data>
@@ -809,7 +808,7 @@
 				</Message>
 
 				<!--Server send ack message to B-->
-				<Message type="DL_OperationState" fromClient="false">
+				<Message type="DL_OperationState" fromClient="false" wait="1s">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x01</Command>
 					<Data>

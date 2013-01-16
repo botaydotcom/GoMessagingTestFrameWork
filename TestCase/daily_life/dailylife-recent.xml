@@ -1,5 +1,5 @@
 <TestSuite>
-	<TestSuiteName>Chat</TestSuiteName>
+	<TestSuiteName>DAILY-LIFE</TestSuiteName>
 	<TargetHost>203.117.155.188</TargetHost>
 	<TargetPort>9100</TargetPort>
 	<VarMap>
@@ -198,7 +198,7 @@
 				</Message>
 
 				<!--Server send ack message to A -->
-				<Message type="DL_OperationState" fromClient="false">
+				<Message type="DL_OperationState" fromClient="false" wait="1s">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x01</Command>
 					<Data>
@@ -226,7 +226,7 @@
 				</Message>
 
 				<!--Server send ack message to A -->
-				<Message type="DL_OperationState" fromClient="false">
+				<Message type="DL_OperationState" fromClient="false" wait="1s">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x01</Command>
 					<Data>
@@ -312,7 +312,7 @@
 				</Message>
 
 				<!--Server send ack message to B -->
-				<Message type="DL_OperationState" fromClient="false">
+				<Message type="DL_OperationState" fromClient="false" wait="1s">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x01</Command>
 					<Data>
@@ -357,6 +357,31 @@
 					</Data>
 				</Message>
 				
+				<!--C request recent posts-->
+				<Message type="DL_RequestRecentPosts" fromClient="true">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x10</Command>
+					<Data>
+						<DL_RequestRecentPosts>
+							<RequestId>{{.rid32}}</RequestId>
+						</DL_RequestRecentPosts>
+					</Data>
+				</Message>
+
+				<!--server returns recent posts-->
+				<Message type="DL_RecentPostsResponse" fromClient="false">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x08</Command>
+					<Data>
+						<DL_RecentPostsResponse>
+							<RequestId>{{.rid32}}</RequestId>
+							<ItemIds>{{.iid}}</ItemIds>
+							<CommentIds>{{.cid2}}</CommentIds>
+							<CommentIds>{{.cid1}}</CommentIds>	
+						</DL_RecentPostsResponse>
+					</Data>
+				</Message>
+
 				<!--C request recent summary-->
 				<Message type="DL_RequestRecentSummary" fromClient="true">
 					<BaseCommand>0xA1</BaseCommand>
@@ -378,31 +403,6 @@
 							<ItemCount>1</ItemCount>
 							<CommentCount>2</CommentCount>
 						</DL_RecentSummaryResponse>
-					</Data>
-				</Message>
-
-				<!--C request recent posts-->
-				<Message type="DL_RequestRecentPosts" fromClient="true">
-					<BaseCommand>0xA1</BaseCommand>
-					<Command>0x10</Command>
-					<Data>
-						<DL_RequestRecentPosts>
-							<RequestId>{{.rid32}}</RequestId>
-						</DL_RequestRecentPosts>
-					</Data>
-				</Message>
-
-				<!--server returns recent posts-->
-				<Message type="DL_RecentPostsResponse" fromClient="false">
-					<BaseCommand>0xA1</BaseCommand>
-					<Command>0x08</Command>
-					<Data>
-						<DL_RecentPostsResponse>
-							<RequestId>{{.rid32}}</RequestId>
-							<ItemIds>{{.iid}}</ItemIds>
-							<CommentIds>{{.cid2}}</CommentIds>
-							<CommentIds>{{.cid1}}</CommentIds>					
-						</DL_RecentPostsResponse>
 					</Data>
 				</Message>
 			</MessageSequence>
@@ -452,7 +452,7 @@
 				</Message>
 
 				<!--Server send ack message to A -->
-				<Message type="DL_OperationState" fromClient="false">
+				<Message type="DL_OperationState" fromClient="false" wait="1s">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x01</Command>
 					<Data>

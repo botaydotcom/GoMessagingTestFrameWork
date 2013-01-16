@@ -1,4 +1,5 @@
 package TestEngine
+
 import (
 	"code.google.com/p/goprotobuf/proto"
 	"errors"
@@ -98,6 +99,11 @@ type InnerXml struct {
 	Xml string `xml:",innerxml"`
 }
 
+type UnboundVarDesc struct {
+	VarName string `xml:"name,attr"`
+	Field   string
+}
+
 /*
 	IsPartial    bool   `xml:"isPartial,attr"`
 	PartialField int    `xml:"partialField,attr"`
@@ -110,6 +116,7 @@ type Message struct {
 	Wait        string `xml:"wait,attr"`
 	BaseCommand string
 	Command     string
+	Unbound     []UnboundVarDesc `xml:"Unbound>Var"`
 	Data        InnerXml
 }
 
@@ -219,7 +226,7 @@ func executeTestSuite(testSuite *TestSuite) {
 	targetAddr := testSuite.TargetHost + ":" + testSuite.TargetPort
 	addr, err := net.ResolveTCPAddr("tcp", targetAddr)
 	if err != nil {
-		fmt.Println("Cannot resolve address")
+		timeEncodedPrintln("Cannot resolve address")
 		log.Fatal("Cannot resolve address")
 	}
 
@@ -250,8 +257,9 @@ func executeTestSuite(testSuite *TestSuite) {
 }
 
 func executeTestCase(addr *net.TCPAddr, testInfo *TestInfo, testCase *TestCase) TestCaseResult {
-	fmt.Println("Running test case:", testInfo.Repeat, "times")
+	fmt.Println("-----------")
 	fmt.Println(testInfo.Name)
+	timeEncodedPrintln("Running test case:", testInfo.Repeat, "times")
 
 	prepareCurrentIgnoreMap(testInfo.IgnoreMessages)
 
@@ -318,12 +326,10 @@ func performTestCaseOnce(addr *net.TCPAddr, testCase *TestCase, resultChan chan 
 		}
 		conn := listConnection[connectionId]
 
-		fmt.Println("MESSAGE WAIT IS: ", message.Wait, "|")
-
 		if message.Wait != "" {
 			duration, err := time.ParseDuration(message.Wait)
 			if err == nil {
-				fmt.Println("WAITING FOR: ", duration)
+				timeEncodedPrintln("WAITING FOR: ", duration)
 				time.Sleep(duration)
 			}
 		}
@@ -346,7 +352,7 @@ func performTestCaseOnce(addr *net.TCPAddr, testCase *TestCase, resultChan chan 
 				continue
 			}
 			if DEBUG_READING_MESSAGE {
-				fmt.Println("Expecting to receive a message from server ", message.MessageType)
+				fmt.Println("Expecting to receive a message from server ", message.MessageType, protoParsedMessage)
 			}
 
 			var replyMessage *proto.Message
@@ -354,15 +360,18 @@ func performTestCaseOnce(addr *net.TCPAddr, testCase *TestCase, resultChan chan 
 			for {
 				replyMessage, err = readReply(useBase, byte(baseCmd), byte(comm), protoParsedMessage, conn)
 				if DEBUG_READING_MESSAGE {
-					fmt.Println("reply message, err: ", replyMessage, err)
+					timeEncodedPrintln("reply message, err: ", replyMessage, err)
 				}
 				if replyMessage != nil || err != nil {
 					break
 					// when both reply message / err == nil signals that the message is ignored
 				}
-
 			}
+
 			if err == nil {
+				for _, unboundDesc := range message.Unbound {
+					keyMap[unboundDesc.Field] = unboundDesc.VarName
+				}
 				if comparedResult, err := compareGetValueForProtoMessage(protoParsedMessage, *replyMessage); comparedResult {
 					// CORRECT Reply message.
 				} else {
@@ -404,7 +413,7 @@ func performTestCaseOnce(addr *net.TCPAddr, testCase *TestCase, resultChan chan 
 func sendMsg(useBase bool, baseCmd byte, cmd byte, msg proto.Message, conn *net.TCPConn) {
 	data, err := proto.Marshal(msg)
 	if err != nil {
-		fmt.Println("marshaling error: ", err)
+		timeEncodedPrintln("marshaling error: ", err)
 		log.Fatal("marshaling error: ", err)
 	}
 	length := int32(len(data)) + 1
@@ -414,7 +423,7 @@ func sendMsg(useBase bool, baseCmd byte, cmd byte, msg proto.Message, conn *net.
 	}
 
 	if DEBUG_SENDING_MESSAGE {
-		fmt.Println("sending message base length: ", length, " command / command / message: ", baseCmd, cmd, msg)
+		timeEncodedPrintln("sending message base length: ", length, " command / command / message: ", baseCmd, cmd, msg)
 	}
 
 	buf := new(bytes.Buffer)
@@ -589,28 +598,51 @@ func readReply(useBase bool, expBaseCmd byte, expCmd byte, expMsg proto.Message,
 	err = proto.Unmarshal(rbuf[1:], res)
 
 	if err != nil {
-		fmt.Println(err)
+		timeEncodedPrintln(err)
 		log.Fatal(err)
 	}
 
 	if DEBUG_READING_MESSAGE {
-		fmt.Println("Successfully receive message from network: ", res)
+		timeEncodedPrintln("Successfully receive message from network: ", res)
 	}
 	return &res, err
 }
 
 /**************Compare Values and Bind value from reply message to unbound var in value map*****/
-func compareGetValueForPointer(expPtr reflect.Value, repPtr reflect.Value) (bool, error) {
+func compareGetValueForPointer(expPtr reflect.Value, repPtr reflect.Value,
+	domainName string) (bool, error) {
 	if DEBUG_COMPARE_POINTER {
 		fmt.Println("Comparing pointers", expPtr.Elem().IsValid(), repPtr.Elem().IsValid())
+		fmt.Println("Domain name:", domainName)
 	}
+	// Now check the current domain name of this pointer
+	// if it is marked as: expecting value, and the variable is not bound
+	// bind the value of the key
+	key, present := keyMap[domainName]
+	if present {
+		if DEBUG_COMPARE_POINTER {
+			fmt.Println("Unbound pointer variable, bind value to map now")
+		}
+		// exp pointer != null. If pointer of reply value is null, return false
+		if !repPtr.Elem().IsValid() {
+			errorMsg := fmt.Sprintf("Reply has no value while expected to get a value for binding")
+			return false, errors.New(errorMsg)
+		}
+		repValue := reflect.Indirect(reflect.ValueOf(repPtr.Interface()))
+		// bound variable to value, return true
+		valueMap[key] = repValue.Interface()
+		delete(keyMap, domainName)
+		// no error
+		return true, nil
+	}
+
 	// if pointer of expected value is null, just dont compare
 	if !expPtr.Elem().IsValid() {
 		return true, nil
 	}
 	expValue := reflect.Indirect(reflect.ValueOf(expPtr.Interface()))
 
-	// if pointer of reply value is null, return false
+	// exp pointer != null. If pointer of reply value is null, return false
 	if !repPtr.Elem().IsValid() {
 		errorMsg := fmt.Sprintf("Reply has no value while expected value is %v", expValue.Interface())
 		return false, errors.New(errorMsg)
@@ -627,7 +659,7 @@ func compareGetValueForPointer(expPtr reflect.Value, repPtr reflect.Value) (bool
 	var err error
 
 	// if the expected field is a variable field that's not bound, bind the value of the key now
-	key, present := keyMap[strVar]
+	key, present = keyMap[strVar]
 	if present {
 		if DEBUG_COMPARE_POINTER {
 			fmt.Println("Unbound pointer variable, bind value to map now")
@@ -637,7 +669,9 @@ func compareGetValueForPointer(expPtr reflect.Value, repPtr reflect.Value) (bool
 	} else {
 		// compare the two value of pointer
 		// if they are not struct, just compare
-		if expValue.Kind() != reflect.Struct {
+		if expValue.Kind() == reflect.Struct {
+			return compareGetValueForStruct(expValue, repValue, domainName)
+		} else {
 			isEqual := (expValue.Interface() == repValue.Interface())
 
 			if DEBUG_COMPARE_POINTER {
@@ -650,20 +684,36 @@ func compareGetValueForPointer(expPtr reflect.Value, repPtr reflect.Value) (bool
 				result = false
 				err = errors.New(errorMsg)
 			}
-		} else { // compare struct
-			return compareGetValueForStruct(expValue, repValue)
 		}
 	}
 	return result, err
 }
 
-func compareGetValueForSlice(expSlice reflect.Value, repSlice reflect.Value) (bool, error) {
+func compareGetValueForSlice(expSlice reflect.Value, repSlice reflect.Value,
+	domainName string) (bool, error) {
 	if DEBUG_COMPARE_SLICE {
 		fmt.Println("Comparing slices")
+		fmt.Println("Domain name:", domainName)
 	}
 
 	result := true
 	var err error
+
+	// Now check the current domain name of this slice
+	// if it is marked as: expecting value, and the variable is not bound
+	// bind the value of the key
+	key, present := keyMap[domainName]
+	if present {
+		if DEBUG_COMPARE_SLICE {
+			fmt.Println("Unbound slice variable, bind value to map now")
+		}
+		// bound variable to value, return true
+		valueMap[key] = repSlice.Interface()
+		delete(keyMap, domainName)
+		// no error
+		return true, nil
+	}
+
 	var errorMsg string
 	dif := false
 
@@ -676,7 +726,7 @@ func compareGetValueForSlice(expSlice reflect.Value, repSlice reflect.Value) (bo
 
 	// if the expected field is a variable field that's not bound, (its value exists in key map)
 	// bind the value of the key now
-	key, present := keyMap[strVar]
+	key, present = keyMap[strVar]
 	if present {
 		if DEBUG_COMPARE_SLICE {
 			fmt.Println("Unbound slice variable, bind value to map now")
@@ -693,14 +743,30 @@ func compareGetValueForSlice(expSlice reflect.Value, repSlice reflect.Value) (bo
 			for index := 0; index < expSlice.Len(); index++ {
 				value1 := expSlice.Index(index)
 				value2 := repSlice.Index(index)
+				currentDomainName := fmt.Sprintf("%s[%d]", domainName, index)
+
 				var isEqual bool
 				if value1.Kind() == reflect.Ptr {
-					isEqual, err = compareGetValueForPointer(value1, value2)
+					isEqual, err = compareGetValueForPointer(value1, value2, currentDomainName)
 				} else if value1.Kind() == reflect.Slice {
-					isEqual, err = compareGetValueForSlice(value1, value2)
+					isEqual, err = compareGetValueForSlice(value1, value2, currentDomainName)
 				} else if value1.Kind() == reflect.Struct {
-					isEqual, err = compareGetValueForStruct(value1, value2)
+					isEqual, err = compareGetValueForStruct(value1, value2, currentDomainName)
 				} else {
+					// Now check the current domain name of this slice element
+					// if it is marked as: expecting value, and the variable is not bound
+					// bind the value of the key					
+					key, present = keyMap[currentDomainName]
+					if present {
+						if DEBUG_COMPARE_SLICE {
+							fmt.Println("Unbound slice element-variable, bind value to map now")
+						}
+						// bound variable to value, return true
+						valueMap[key] = value2.Interface()
+						delete(keyMap, currentDomainName)
+						// no error
+						continue
+					}
 					isEqual = (value1.Interface() == value2.Interface())
 				}
 				if !isEqual {
@@ -719,15 +785,35 @@ func compareGetValueForSlice(expSlice reflect.Value, repSlice reflect.Value) (bo
 	return result, err
 }
 
-func compareGetValueForStruct(expStruct reflect.Value, repStruct reflect.Value) (bool, error) {
+func compareGetValueForStruct(expStruct reflect.Value, repStruct reflect.Value,
+	domainName string) (bool, error) {
 	if DEBUG_COMPARE_STRUCT {
 		fmt.Println("Comparing structs")
+		fmt.Println("Domain name:", domainName)
 	}
+
+	// Now check the current domain name of this struct
+	// if it is marked as: expecting value, and the variable is not bound
+	// bind the value of the key
+	key, present := keyMap[domainName]
+	if present {
+		if DEBUG_COMPARE_STRUCT {
+			fmt.Println("Unbound struct variable, bind value to map now")
+		}
+		// bound variable to value, return true
+		valueMap[key] = repStruct.Interface()
+		delete(keyMap, domainName)
+		// no error
+		return true, nil
+	}
+
 	result := true
 	var err error
 	for i := 0; i < expStruct.NumField(); i++ {
 		expStructField := expStruct.Field(i) // pointer
 		repStructField := repStruct.Field(i) // pointer
+		f := expStruct.Type().Field(i)
+		currentDomainName := fmt.Sprintf("%s.%s", domainName, f.Name)
 
 		if DEBUG_COMPARE_STRUCT {
 			fmt.Println(expStructField, repStructField, expStructField.Kind())
@@ -736,11 +822,14 @@ func compareGetValueForStruct(expStruct reflect.Value, repStruct reflect.Value) 
 		var err1 error
 		var isEqual bool
 		if expStructField.Kind() == reflect.Ptr {
-			isEqual, err1 = compareGetValueForPointer(expStructField, repStructField)
+			isEqual, err1 = compareGetValueForPointer(expStructField,
+				repStructField, currentDomainName)
 		} else if expStructField.Kind() == reflect.Slice {
-			isEqual, err1 = compareGetValueForSlice(expStructField, repStructField)
+			isEqual, err1 = compareGetValueForSlice(expStructField,
+				repStructField, currentDomainName)
 		} else if expStructField.Kind() == reflect.Struct {
-			isEqual, err1 = compareGetValueForStruct(expStructField, repStructField)
+			isEqual, err1 = compareGetValueForStruct(expStructField,
+				repStructField, currentDomainName)
 		}
 		if !isEqual {
 			result = false
@@ -765,7 +854,7 @@ func compareGetValueForProtoMessage(protoExp proto.Message, protoRep proto.Messa
 	expMessage := reflect.ValueOf(protoExp).Elem()
 	repMessage := reflect.ValueOf(protoRep).Elem()
 
-	result, err = compareGetValueForStruct(expMessage, repMessage)
+	result, err = compareGetValueForStruct(expMessage, repMessage, "")
 	return result, err
 
 }
@@ -847,10 +936,16 @@ func preProcess(rawData string) {
 	listVar := regVar.FindAllStringSubmatch(rawData, -1)
 	for _, matchedValue := range listVar {
 		key := matchedValue[1]
+		if DEBUG_PARSING_MESSAGE {
+			fmt.Println("Parsing variable key: ", key)
+		}
 		strMarkValue := ""
 
 		_, present := valueMap[key]
 		if !present {
+			if DEBUG_PARSING_MESSAGE {
+				fmt.Println("Unbound key: ", key)
+			}
 			newMarkValue := START_MARK_VALUE - numVar
 			numVar++
 			strMarkValue = strconv.Itoa(newMarkValue)
@@ -908,7 +1003,7 @@ func parseAMessage(v Message) (interface{}, int, bool, int, error) {
 	err = xml.Unmarshal([]byte(addedXmlMessage), message)
 
 	if DEBUG_PARSING_MESSAGE {
-		fmt.Println("after unmarshal parsing, error = ", err, " message = ", message)
+		timeEncodedPrintln("after unmarshal parsing, error = ", err, " message = ", message)
 	}
 
 	// run through the slice map to fill in missing value
@@ -919,14 +1014,14 @@ func parseAMessage(v Message) (interface{}, int, bool, int, error) {
 	}
 
 	if err != nil {
-		fmt.Printf("error: %v\n", err)
+		timeEncodedPrintf("error: %v\n", err)
 	}
 
 	if DEBUG_PARSING_MESSAGE {
 		/*s := reflect.ValueOf(message).Elem()
-		fmt.Println("Message type: ", s.Type())
+		timeEncodedPrintln("Message type: ", s.Type())
 		for i := 0; i < s.NumField(); i++ {
-			fmt.Print("Print value field ", i, " : ")
+			timeEncodedPrint("Print value field ", i, " : ")
 			f := s.Field(i)
 			printValue(f)
 		}*/
@@ -982,7 +1077,7 @@ func getValueForPointer(ptrValue reflect.Value) reflect.Value {
 // use to get the value that a pointer points to
 func getValue(ptrValue reflect.Value) (interface{}, error) {
 	if ptrValue.Kind() == reflect.Ptr {
-		//fmt.Println(value.Kind(), value.Elem())
+		//timeEncodedPrintln(value.Kind(), value.Elem())
 		if ptrValue.Elem().IsValid() {
 			value := reflect.Indirect(reflect.ValueOf(ptrValue.Interface()))
 			if _, ok := value.Interface().(interface {
@@ -1082,7 +1177,7 @@ func readXmlInput(inputFile string) (*TestSuite, error) {
 	var testSuite TestSuite
 	err = xml.Unmarshal(data, &testSuite)
 	if err != nil {
-		fmt.Printf("error: %v\n", err)
+		timeEncodedPrintf("error: %v\n", err)
 		return nil, err
 	}
 	return &testSuite, nil
@@ -1144,7 +1239,7 @@ func cleanUpAfterTest(addr *net.TCPAddr, testCase *TestCase) {
 		// parse message (plug in values if necessary)
 		parsedMessage, comm, useBase, baseCmd, err := parseAMessage(message)
 		if err != nil {
-			fmt.Println("Error in parsing clean up message at message:", i)
+			timeEncodedPrintln("Error in parsing clean up message at message:", i)
 			continue
 		}
 		protoParsedMessage := parsedMessage.(proto.Message)
@@ -1155,7 +1250,7 @@ func cleanUpAfterTest(addr *net.TCPAddr, testCase *TestCase) {
 			// Connection does not exist or closed, create new connection for connection
 			conn, err := net.DialTCP("tcp", nil, addr)
 			if err != nil {
-				fmt.Println("Cannot establish connection for clean up:", connectionId)
+				timeEncodedPrintln("Cannot establish connection for clean up:", connectionId)
 				continue
 			} else {
 				listConnection[connectionId] = conn
@@ -1182,7 +1277,7 @@ func cleanUpAfterTest(addr *net.TCPAddr, testCase *TestCase) {
 		pending = false
 		for i, conn := range listConnection {
 			if DEBUG_CLEANING_UP {
-				fmt.Println("Trying to read from connection", i, "and ack all pending messages")
+				timeEncodedPrintln("Trying to read from connection", i, "and ack all pending messages")
 			}
 			// now all the established connections are the one to be clean up
 			for {
@@ -1192,7 +1287,7 @@ func cleanUpAfterTest(addr *net.TCPAddr, testCase *TestCase) {
 				}
 				if pendingMessage != nil {
 					if DEBUG_CLEANING_UP {
-						fmt.Println("Pending message value: ", *pendingMessage)
+						timeEncodedPrintln("Pending message value: ", *pendingMessage)
 					}
 					// ack server
 					ackPendingMessageToServer(pendingMessage, comm, conn)
@@ -1248,7 +1343,7 @@ func readPendingMessage(conn *net.TCPConn) (*proto.Message, error, byte) {
 		baseCmd = 0
 	}
 
-	//fmt.Println("Buffer read from network: ", rbuf)
+	//timeEncodedPrintln("Buffer read from network: ", rbuf)
 
 	var newValue interface{}
 	cmd := rbuf[0]
@@ -1256,7 +1351,7 @@ func readPendingMessage(conn *net.TCPConn) (*proto.Message, error, byte) {
 	case S2C_RemoteRequestAddBuddy_CMD:
 		if !useBase {
 			if DEBUG_CLEANING_UP {
-				fmt.Println("Found a request add buddy message, respond now: ")
+				timeEncodedPrintln("Found a request add buddy message, respond now: ")
 			}
 			newValue = magicVarFunc("Auth_Buddy_S2C_RemoteRequestAddBuddy")
 		}
@@ -1264,7 +1359,7 @@ func readPendingMessage(conn *net.TCPConn) (*proto.Message, error, byte) {
 	case S2C_ChatInfo2_CMD:
 		if !useBase {
 			if DEBUG_CLEANING_UP {
-				fmt.Println("Found a chat message, respond now: ")
+				timeEncodedPrintln("Found a chat message, respond now: ")
 			}
 			newValue = magicVarFunc("Auth_Buddy_S2C_ChatInfo2")
 		}
@@ -1272,7 +1367,7 @@ func readPendingMessage(conn *net.TCPConn) (*proto.Message, error, byte) {
 	case S2C_InviteMember_CMD:
 		if useBase {
 			if DEBUG_CLEANING_UP {
-				fmt.Println("Found an invite member message, respond now: ")
+				timeEncodedPrintln("Found an invite member message, respond now: ")
 			}
 			newValue = magicVarFunc("Discussion_S2C_InviteMember")
 		}
@@ -1280,7 +1375,7 @@ func readPendingMessage(conn *net.TCPConn) (*proto.Message, error, byte) {
 	case S2C_ChatInfo_CMD:
 		if useBase {
 			if DEBUG_CLEANING_UP {
-				fmt.Println("Found a discussion chat message, respond now: ")
+				timeEncodedPrintln("Found a discussion chat message, respond now: ")
 			}
 			newValue = magicVarFunc("Discussion_S2C_ChatInfo")
 		}
@@ -1292,7 +1387,7 @@ func readPendingMessage(conn *net.TCPConn) (*proto.Message, error, byte) {
 	err = proto.Unmarshal(rbuf[1:], res)
 
 	if err != nil {
-		fmt.Println(err)
+		timeEncodedPrintln(err)
 		log.Fatal(err)
 	}
 	return &res, err, cmd
@@ -1355,7 +1450,22 @@ func ackPendingMessageToServer(pendingMessage *proto.Message, comm byte, conn *n
 		baseCmd = DISCUSSION_PACKET_BASE_COMMAND
 	}
 	if DEBUG_CLEANING_UP {
-		fmt.Println("Reply with message", res)
+		timeEncodedPrintln("Reply with message", res)
 	}
 	sendMsg(useBase, byte(baseCmd), replyComm, res, conn)
+}
+
+func timeEncodedPrintf(format string, a ...interface{}) {
+	fmt.Print(time.Now().Format("Jan _2 15:04:05"), ": ")
+	fmt.Printf(format, a...)
+}
+
+func timeEncodedPrint(a ...interface{}) {
+	fmt.Print(time.Now().Format("Jan _2 15:04:05"), ": ")
+	fmt.Print(a...)
+}
+
+func timeEncodedPrintln(a ...interface{}){
+	fmt.Print(time.Now().Format("Jan _2 15:04:05"), ": ")
+	fmt.Println(a...)
 }

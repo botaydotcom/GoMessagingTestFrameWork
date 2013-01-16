@@ -195,13 +195,22 @@
 			<Name>A deletes D from list buddy</Name>
 		</TestInfo>
 		<TestInfo skip="false" repeat="1">
+			<Name>D requests list items from all buddy, sees no item / no deleted item</Name>
+		</TestInfo>
+		<TestInfo skip="false" repeat="1">
 			<Name>A removes first item</Name>
 		</TestInfo>
 		<TestInfo skip="false" repeat="1">
-			<Name>D requests list items from A, sees no item / no deleted item</Name>
+			<Name>D requests list items from all buddy, sees no item / no deleted item</Name>
 		</TestInfo>
 		<TestInfo skip="false" repeat="1">
 			<Name>A removes second item</Name>
+		</TestInfo>
+		<TestInfo skip="false" repeat="1">
+			<Name>B logs in and sees no item and deleted item = deleted item. B requests again and sees no item / deleted item.</Name>
+		</TestInfo>
+		<TestInfo skip="false" repeat="1">
+			<Name>C logs in and sees no item and deleted item = deleted item. C requests again and sees no item / deleted item.</Name>
 		</TestInfo>
 	</ListTest>
 
@@ -292,10 +301,38 @@
 						</Auth_S2C_LoginInfoResult>
 					</Data>
 				</Message>
+
+				<!--D logs in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true" connection="2">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email4}}</Name>
+							<Password>{{.password4}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to D-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false" connection="2">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId4}}</UserId>
+								<Name>{{.email4}}</Name>
+								<NickName>{{.name4}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
 			</MessageSequence>
 		</Test>
 
-		<!--A posts item with share mode as circle in 1-->
+		<!--A posts item with share mode as public-->
 		<Test>
 			<MessageSequence>
 				<!--A log in-->
@@ -337,17 +374,15 @@
 								<BasicInfo>
 									<Timestamp>{{.ts1}}</Timestamp>
 								</BasicInfo>
-								<ShareMode>2</ShareMode>
 							</Item>
 							<RequestId>{{.rid21}}</RequestId>
 							<NoNotification>1</NoNotification>
-							<CircleIds>{{.ccid}}</CircleIds>
 						</DL_PostDailyItem>
 					</Data>
 				</Message>
 
 				<!--Server send ack message to A -->
-				<Message type="DL_OperationState" fromClient="false">
+				<Message type="DL_OperationState" fromClient="false" wait="1s">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x01</Command>
 					<Data>
@@ -360,15 +395,15 @@
 			</MessageSequence>
 		</Test>
 
-		<!--A invites B to circle.-->
+		<!--A adds D as buddy.-->
 		<Test>
 			<MessageSequence>
 				<!--A log in-->
-				<Message type="Auth_C2S_LoginInfo" fromClient="true">
+				<Message type="Auth_C2S_LoginInfo" fromClient="true">		
 					<Command>0x02</Command>
 					<Data>
 						<Auth_C2S_LoginInfo>
-							<Name>{{.email1}}</Name>	
+							<Name>{{.email1}}</Name>						
 							<Password>{{.password1}}</Password>
 							<ClientType>1</ClientType>
 							<MachineId>1</MachineId>
@@ -377,47 +412,104 @@
 					</Data>
 				</Message>
 
-				<!--Server sends login info to A-->
+				<!--Server sends A log in info-->
 				<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
 					<Command>0x02</Command>
 					<Data>
 						<Auth_S2C_LoginInfoResult>
 							<MyInfo>
 								<UserId>{{.userId1}}</UserId>
-								<Name>{{.email1}}</Name>
+								<Name>{{.email1}}</Name>						
 								<NickName>{{.name1}}</NickName>
 							</MyInfo>
 						</Auth_S2C_LoginInfoResult>
 					</Data>
 				</Message>
 
-				<!--A requests to add B to circle-->
-				<Message type="DL_AddCircleMember" fromClient="true">
-					<BaseCommand>0xA1</BaseCommand>
-					<Command>0x13</Command>
+				<!--D log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true" connection="1">		
+					<Command>0x02</Command>
 					<Data>
-						<DL_AddCircleMember>
-							<RequestId>{{.rid31}}</RequestId>
-							<CircleId>{{.ccid}}</CircleId>
-							<UserIds>{{.userId2}}</UserIds>
-						</DL_AddCircleMember>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email4}}</Name>						
+							<Password>{{.password4}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
 					</Data>
 				</Message>
 
-				<!--Server acks A's request-->
-				<Message type="DL_OperationState" fromClient="false">
-					<BaseCommand>0xA1</BaseCommand>
-					<Command>0x01</Command>
+				<!--Server sends D log in info-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false" connection="1">
+					<Command>0x02</Command>
 					<Data>
-						<DL_OperationState>
-							<RequestId>{{.rid31}}</RequestId>
-						</DL_OperationState>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId4}}</UserId>
+								<Name>{{.email4}}</Name>						
+								<NickName>{{.name4}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--A send message to Server -->
+				<Message type="Auth_Buddy_C2S_RequestAddBuddy" fromClient="true">
+					<Command>0x65</Command>
+					<Data>
+						<Auth_Buddy_C2S_RequestAddBuddy>
+							<UserId>{{.userId4}}</UserId>
+							<Message>{{.msg}}</Message>
+						</Auth_Buddy_C2S_RequestAddBuddy>
+					</Data>
+				</Message>
+
+				<!--Server send message to D -->
+				<Message type="Auth_Buddy_S2C_RemoteRequestAddBuddy" fromClient="false" connection="1">
+					<Command>0x72</Command>
+					<Data>
+						<Auth_Buddy_S2C_RemoteRequestAddBuddy>
+							<FromId>{{.userId1}}</FromId>
+							<Message>{{.msg}}</Message>
+						</Auth_Buddy_S2C_RemoteRequestAddBuddy>
+					</Data>
+				</Message>
+
+				<!--D send accept message to Server -->
+				<Message type="Auth_Buddy_C2S_AddBuddyResult" fromClient="true" connection="1">
+					<Command>0x66</Command>
+					<Data>
+						<Auth_Buddy_C2S_AddBuddyResult>
+							<UserId>{{.userId1}}</UserId>
+							<Action>3</Action>
+						</Auth_Buddy_C2S_AddBuddyResult>
+					</Data>
+				</Message>
+
+				<!--Server send result message to D -->
+				<Message type="Auth_Buddy_S2C_RemoteAddBuddyResult" fromClient="false" connection="1">
+					<Command>0x67</Command>
+					<Data>
+						<Auth_Buddy_S2C_RemoteAddBuddyResult>
+							<FromId>{{.userId1}}</FromId>
+						</Auth_Buddy_S2C_RemoteAddBuddyResult>
+					</Data>
+				</Message>
+
+				<!--Server send result message to A -->
+				<Message type="Auth_Buddy_S2C_RemoteAddBuddyResult" fromClient="false">
+					<Command>0x67</Command>
+					<Data>
+						<Auth_Buddy_S2C_RemoteAddBuddyResult>
+							<FromId>{{.userId4}}</FromId>
+						</Auth_Buddy_S2C_RemoteAddBuddyResult>
 					</Data>
 				</Message>
 			</MessageSequence>
 		</Test>
 
-		<!--A posts item with share mode as circle in 1-->
+		<!--A posts item with share mode as public-->
 		<Test>
 			<MessageSequence>
 				<!--A log in-->
@@ -449,7 +541,7 @@
 				</Message>
 				
 				<!--A send message to Server -->
-				<Message type="DL_PostDailyItem" fromClient="true" wait="1s">
+				<Message type="DL_PostDailyItem" fromClient="true">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x01</Command>
 					<Data>
@@ -459,22 +551,20 @@
 								<BasicInfo>
 									<Timestamp>{{.ts2}}</Timestamp>
 								</BasicInfo>
-								<ShareMode>2</ShareMode>
 							</Item>
-							<RequestId>{{.rid41}}</RequestId>
+							<RequestId>{{.rid31}}</RequestId>
 							<NoNotification>1</NoNotification>
-							<CircleIds>{{.ccid}}</CircleIds>
 						</DL_PostDailyItem>
 					</Data>
 				</Message>
 
 				<!--Server send ack message to A -->
-				<Message type="DL_OperationState" fromClient="false">
+				<Message type="DL_OperationState" fromClient="false" wait="1s">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x01</Command>
 					<Data>
 						<DL_OperationState>
-							<RequestId>{{.rid41}}</RequestId>
+							<RequestId>{{.rid31}}</RequestId>
 							<ItemId>{{.iid1}}</ItemId>
 						</DL_OperationState>
 					</Data>
@@ -482,16 +572,16 @@
 			</MessageSequence>
 		</Test>
 
-		<!--B requests list items from A, see only second item-->
+		<!--D requests list items from A, see both items-->
 		<Test>
 			<MessageSequence>
-				<!--B logs in-->
+				<!--D logs in-->
 				<Message type="Auth_C2S_LoginInfo" fromClient="true">
 					<Command>0x02</Command>
 					<Data>
 						<Auth_C2S_LoginInfo>
-							<Name>{{.email2}}</Name>
-							<Password>{{.password2}}</Password>
+							<Name>{{.email4}}</Name>
+							<Password>{{.password4}}</Password>
 							<ClientType>1</ClientType>
 							<MachineId>1</MachineId>
 							<SoftwareVersion>1</SoftwareVersion>
@@ -499,27 +589,27 @@
 					</Data>
 				</Message>
 
-				<!--Server sends login info to B-->
+				<!--Server sends login info to D-->
 				<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
 					<Command>0x02</Command>
 					<Data>
 						<Auth_S2C_LoginInfoResult>
 							<MyInfo>
-								<UserId>{{.userId2}}</UserId>
-								<Name>{{.email2}}</Name>
-								<NickName>{{.name2}}</NickName>
+								<UserId>{{.userId4}}</UserId>
+								<Name>{{.email4}}</Name>
+								<NickName>{{.name4}}</NickName>
 							</MyInfo>
 						</Auth_S2C_LoginInfoResult>
 					</Data>
 				</Message>
 
-				<!--B request item list-->
+				<!--D request item list-->
 				<Message type="DL_RequestIDList" fromClient="true">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x04</Command>
 					<Data>
 						<DL_RequestIDList>
-							<RequestId>{{.rid51}}</RequestId>
+							<RequestId>{{.rid41}}</RequestId>
 							<BuddyId>{{.userId1}}</BuddyId>
 						</DL_RequestIDList>
 					</Data>
@@ -531,23 +621,24 @@
 					<Command>0x03</Command>
 					<Data>
 						<DL_IDListResponse>
-							<RequestId>{{.rid51}}</RequestId>
+							<RequestId>{{.rid41}}</RequestId>
 							<Ids>{{.iid1}}</Ids>
+							<Ids>{{.iid}}</Ids>
 						</DL_IDListResponse>
 					</Data>
 				</Message>
 			</MessageSequence>
 		</Test>
 
-		<!--A deletes circle-->
+		<!--A deletes D from list buddy-->
 		<Test>
 			<MessageSequence>
 				<!--A log in-->
-				<Message type="Auth_C2S_LoginInfo" fromClient="true">
+				<Message type="Auth_C2S_LoginInfo" fromClient="true">		
 					<Command>0x02</Command>
 					<Data>
 						<Auth_C2S_LoginInfo>
-							<Name>{{.email1}}</Name>		
+							<Name>{{.email1}}</Name>
 							<Password>{{.password1}}</Password>
 							<ClientType>1</ClientType>
 							<MachineId>1</MachineId>
@@ -556,55 +647,27 @@
 					</Data>
 				</Message>
 
-				<!--Server sends login info to A-->
+				<!--Server sends A log in info-->
 				<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
 					<Command>0x02</Command>
 					<Data>
 						<Auth_S2C_LoginInfoResult>
 							<MyInfo>
 								<UserId>{{.userId1}}</UserId>
-								<Name>{{.email1}}</Name>		
+								<Name>{{.email1}}</Name>			
 								<NickName>{{.name1}}</NickName>
 							</MyInfo>
 						</Auth_S2C_LoginInfoResult>
 					</Data>
 				</Message>
 
-				<!--A send message to Server to delete circle -->
-				<Message type="DL_RemoveCircle" fromClient="true">
-					<BaseCommand>0xA1</BaseCommand>
-					<Command>0x15</Command>
-					<Data>
-						<DL_RemoveCircle>
-							<RequestId>{{.rid61}}</RequestId>
-							<CircleIds>{{.ccid}}</CircleIds>
-						</DL_RemoveCircle>
-					</Data>
-				</Message>
-
-				<!--Server send ack message to A -->
-				<Message type="DL_OperationState" fromClient="false" close="true">
-					<BaseCommand>0xA1</BaseCommand>
-					<Command>0x01</Command>
-					<Data>
-						<DL_OperationState>
-							<RequestId>{{.rid61}}</RequestId>
-						</DL_OperationState>
-					</Data>
-				</Message>
-			</MessageSequence>
-		</Test>
-		
-		<!--B requests list items from A, still see the second item-->
-		<Test>
-			<MessageSequence>
-				<!--B logs in-->
-				<Message type="Auth_C2S_LoginInfo" fromClient="true">
+				<!--D log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true" connection="1">		
 					<Command>0x02</Command>
 					<Data>
 						<Auth_C2S_LoginInfo>
-							<Name>{{.email2}}</Name>
-							<Password>{{.password2}}</Password>
+							<Name>{{.email4}}</Name>		
+							<Password>{{.password4}}</Password>
 							<ClientType>1</ClientType>
 							<MachineId>1</MachineId>
 							<SoftwareVersion>1</SoftwareVersion>
@@ -612,47 +675,108 @@
 					</Data>
 				</Message>
 
-				<!--Server sends login info to B-->
-				<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
+				<!--Server sends D log in info-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false" connection="1">
 					<Command>0x02</Command>
 					<Data>
 						<Auth_S2C_LoginInfoResult>
 							<MyInfo>
-								<UserId>{{.userId2}}</UserId>
-								<Name>{{.email2}}</Name>
-								<NickName>{{.name2}}</NickName>
+								<UserId>{{.userId4}}</UserId>
+								<Name>{{.email4}}</Name>			
+								<NickName>{{.name4}}</NickName>
 							</MyInfo>
 						</Auth_S2C_LoginInfoResult>
 					</Data>
 				</Message>
 
-				<!--B request item list-->
+				<!--A send delete message to Server -->
+				<Message type="Auth_Buddy_C2S_DeleteBuddy" fromClient="true">
+					<Command>0x67</Command>
+					<Data>
+						<Auth_Buddy_C2S_DeleteBuddy>
+							<UserId>{{.userId4}}</UserId>
+						</Auth_Buddy_C2S_DeleteBuddy>
+					</Data>
+				</Message>
+
+				<!--Server send "deleted" message to D -->
+				<Message type="Auth_Buddy_S2C_BuddyDeleted" fromClient="false" connection="1">
+					<Command>0x68</Command>
+					<Data>
+						<BuddyDeleted>
+							<UserId>{{.userId1}}</UserId>
+						</BuddyDeleted>
+					</Data>
+				</Message>
+
+				<!--Server send "deleted" message to A -->
+				<Message type="Auth_Buddy_S2C_RemoteAddBuddyResult" fromClient="false" wait="1s">
+					<Command>0x68</Command>
+					<Data>
+						<BuddyDeleted>
+							<UserId>{{.userId4}}</UserId>
+						</BuddyDeleted>
+					</Data>
+				</Message>
+			</MessageSequence>
+		</Test>
+
+		<!--D requests list items from all buddy, sees no item / no deleted item-->
+		<Test>
+			<MessageSequence>
+				<!--D logs in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email4}}</Name>
+							<Password>{{.password4}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to D-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId4}}</UserId>
+								<Name>{{.email4}}</Name>
+								<NickName>{{.name4}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--D request all item list-->
 				<Message type="DL_RequestIDList" fromClient="true">
 					<BaseCommand>0xA1</BaseCommand>
-					<Command>0x04</Command>
+					<Command>0x05</Command>
 					<Data>
 						<DL_RequestIDList>
 							<RequestId>{{.rid71}}</RequestId>
-							<BuddyId>{{.userId1}}</BuddyId>
 						</DL_RequestIDList>
 					</Data>
 				</Message>
 
-				<!--server return item list with item in case 1-->
+				<!--server return item list with no item-->
 				<Message type="DL_IDListResponse" fromClient="false">
 					<BaseCommand>0xA1</BaseCommand>
-					<Command>0x03</Command>
+					<Command>0x04</Command>
 					<Data>
 						<DL_IDListResponse>
 							<RequestId>{{.rid71}}</RequestId>
-							<Ids>{{.iid1}}</Ids>
 						</DL_IDListResponse>
 					</Data>
 				</Message>
 			</MessageSequence>
 		</Test>
 
-		<!--A removes both items-->
+		<!--A removes first item-->
 		<Test>
 			<MessageSequence>
 				<!--A log in-->
@@ -690,56 +814,111 @@
 					<Data>
 						<DL_DeleteDailyItem>
 							<ItemId>{{.iid}}</ItemId>
-							<RequestId>{{.rid81}}</RequestId>
+							<RequestId>{{.rid61}}</RequestId>
 						</DL_DeleteDailyItem>
 					</Data>
 				</Message>
 
 				<!--Server send ack message to A -->
-				<Message type="DL_OperationState" fromClient="false">
+				<Message type="DL_OperationState" fromClient="false" wait="1s">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x01</Command>
 					<Data>
 						<DL_OperationState>
-							<RequestId>{{.rid81}}</RequestId>
+							<RequestId>{{.rid61}}</RequestId>
 						</DL_OperationState>
 					</Data>
 				</Message>
 
-				<!--A send message to Server -->
-				<Message type="DL_DeleteDailyItem" fromClient="true">
+				<!--A request item list-->
+				<Message type="DL_RequestIDList" fromClient="true">
 					<BaseCommand>0xA1</BaseCommand>
-					<Command>0x0A</Command>
+					<Command>0x04</Command>
 					<Data>
-						<DL_DeleteDailyItem>
-							<ItemId>{{.iid1}}</ItemId>
-							<RequestId>{{.rid82}}</RequestId>
-						</DL_DeleteDailyItem>
+						<DL_RequestIDList>
+							<RequestId>{{.rid62}}</RequestId>
+						</DL_RequestIDList>
 					</Data>
 				</Message>
 
-				<!--Server send ack message to A -->
-				<Message type="DL_OperationState" fromClient="false">
+				<!--server return item list with item in case 1-->
+				<Message type="DL_IDListResponse" fromClient="false">
 					<BaseCommand>0xA1</BaseCommand>
-					<Command>0x01</Command>
+					<Command>0x03</Command>
 					<Data>
-						<DL_OperationState>
-							<RequestId>{{.rid82}}</RequestId>
-						</DL_OperationState>
+						<DL_IDListResponse>
+							<RequestId>{{.rid62}}</RequestId>
+							<Ids>{{.iid1}}</Ids>
+						</DL_IDListResponse>
 					</Data>
 				</Message>
 			</MessageSequence>
 		</Test>
 
-		<!--A request circle info, see none-->
+		<!--D requests list items from all buddy, sees no item / no deleted item-->
 		<Test>
 			<MessageSequence>
-				<!--A logs in-->
+				<!--D logs in-->
 				<Message type="Auth_C2S_LoginInfo" fromClient="true">
 					<Command>0x02</Command>
 					<Data>
 						<Auth_C2S_LoginInfo>
-							<Name>{{.email1}}</Name>
+							<Name>{{.email4}}</Name>
+							<Password>{{.password4}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to D-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId4}}</UserId>
+								<Name>{{.email4}}</Name>
+								<NickName>{{.name4}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--D request all item list-->
+				<Message type="DL_RequestIDList" fromClient="true">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x05</Command>
+					<Data>
+						<DL_RequestIDList>
+							<RequestId>{{.rid71}}</RequestId>
+						</DL_RequestIDList>
+					</Data>
+				</Message>
+
+				<!--server return item list with no item-->
+				<Message type="DL_IDListResponse" fromClient="false">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x04</Command>
+					<Data>
+						<DL_IDListResponse>
+							<RequestId>{{.rid71}}</RequestId>
+						</DL_IDListResponse>
+					</Data>
+				</Message>
+			</MessageSequence>
+		</Test>
+
+		<!--A removes second items-->
+		<Test>
+			<MessageSequence>
+				<!--A log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email1}}</Name>	
 							<Password>{{.password1}}</Password>
 							<ClientType>1</ClientType>
 							<MachineId>1</MachineId>
@@ -755,63 +934,38 @@
 						<Auth_S2C_LoginInfoResult>
 							<MyInfo>
 								<UserId>{{.userId1}}</UserId>
-								<Name>{{.email1}}</Name>
+								<Name>{{.email1}}</Name>		
 								<NickName>{{.name1}}</NickName>
 							</MyInfo>
 						</Auth_S2C_LoginInfoResult>
 					</Data>
 				</Message>
 
-				<!--A requests circle from server, no circle-->
-				<Message type="DL_RequestCircles" fromClient="true">
-					<BaseCommand>0xA1</BaseCommand>
-					<Command>0x16</Command>
-					<Data>
-						<DL_RequestCircles>	
-							<RequestId>{{.rid91}}</RequestId>
-							<Version>0</Version>
-						</DL_RequestCircles>
-					</Data>
-				</Message>
-
-				<!--Server returns list with no cicrcle -->
-				<Message type="DL_CirclesResponse" fromClient="false">
+				<!--A send message to Server -->
+				<Message type="DL_DeleteDailyItem" fromClient="true">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x0A</Command>
 					<Data>
-						<DL_CirclesResponse>
-							<RequestId>{{.rid91}}</RequestId>
-							<Version>{{.ccver2}}</Version>
-						</DL_CirclesResponse>
+						<DL_DeleteDailyItem>
+							<ItemId>{{.iid1}}</ItemId>
+							<RequestId>{{.rid81}}</RequestId>
+						</DL_DeleteDailyItem>
 					</Data>
 				</Message>
 
-				<!--A requests circle with newest version-->
-				<Message type="DL_RequestCircles" fromClient="true">
+				<!--Server send ack message to A -->
+				<Message type="DL_OperationState" fromClient="false" wait="1s">
 					<BaseCommand>0xA1</BaseCommand>
-					<Command>0x16</Command>
+					<Command>0x01</Command>
 					<Data>
-						<DL_RequestCircles>							
-							<RequestId>{{.rid92}}</RequestId>
-							<Version>{{.ccver2}}</Version>
-						</DL_RequestCircles>
-					</Data>
-				</Message>
-
-				<!--Server returns empty list -->
-				<Message type="DL_CirclesResponse" fromClient="false">
-					<BaseCommand>0xA1</BaseCommand>
-					<Command>0x0A</Command>
-					<Data>
-						<DL_CirclesResponse>
-							<RequestId>{{.rid92}}</RequestId>
-							<Version>{{.ccver2}}</Version>
-						</DL_CirclesResponse>
+						<DL_OperationState>
+							<RequestId>{{.rid81}}</RequestId>
+						</DL_OperationState>
 					</Data>
 				</Message>
 			</MessageSequence>
 		</Test>
-
+		
 		<!--B logs in and sees no item and deleted item = deleted item. B requests again and sees no item / deleted item.-->
 		<Test>
 			<MessageSequence>
@@ -868,6 +1022,106 @@
 					<Command>0x04</Command>
 					<Data>
 						<DL_RequestIDList>
+							<RequestId>{{.rid91}}</RequestId>
+							<BuddyId>{{.userId1}}</BuddyId>
+						</DL_RequestIDList>
+					</Data>
+				</Message>
+
+				<!--server return item list with item in case 1-->
+				<Message type="DL_IDListResponse" fromClient="false">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x03</Command>
+					<Data>
+						<DL_IDListResponse>
+							<RequestId>{{.rid91}}</RequestId>
+							<DeletedIds>{{.iid1}}</DeletedIds>
+							<DeletedIds>{{.iid}}</DeletedIds>
+						</DL_IDListResponse>
+					</Data>
+				</Message>
+
+				<!--B request item list-->
+				<Message type="DL_RequestIDList" fromClient="true">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x04</Command>
+					<Data>
+						<DL_RequestIDList>
+							<RequestId>{{.rid92}}</RequestId>
+							<BuddyId>{{.userId1}}</BuddyId>
+						</DL_RequestIDList>
+					</Data>
+				</Message>
+
+				<!--server return item list with item in case 1-->
+				<Message type="DL_IDListResponse" fromClient="false">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x03</Command>
+					<Data>
+						<DL_IDListResponse>
+							<RequestId>{{.rid92}}</RequestId>
+						</DL_IDListResponse>
+					</Data>
+				</Message>
+			</MessageSequence>
+		</Test>
+
+		<!--C logs in and sees no item and deleted item = deleted item. C requests again and sees no item / deleted item.-->
+		<Test>
+			<MessageSequence>
+				<!--C log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email3}}</Name>		
+							<Password>{{.password3}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to C-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId3}}</UserId>
+								<Name>{{.email3}}</Name>		
+								<NickName>{{.name3}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+				
+				<Message type="Auth_C2S_HelloInfo" fromClient="true">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<!--C request item list-->
+				<Message type="DL_RequestIDList" fromClient="true">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x04</Command>
+					<Data>
+						<DL_RequestIDList>
 							<RequestId>{{.rid101}}</RequestId>
 							<BuddyId>{{.userId1}}</BuddyId>
 						</DL_RequestIDList>
@@ -882,11 +1136,12 @@
 						<DL_IDListResponse>
 							<RequestId>{{.rid101}}</RequestId>
 							<DeletedIds>{{.iid1}}</DeletedIds>
+							<DeletedIds>{{.iid}}</DeletedIds>
 						</DL_IDListResponse>
 					</Data>
 				</Message>
 
-				<!--B request item list-->
+				<!--C request item list-->
 				<Message type="DL_RequestIDList" fromClient="true">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x04</Command>

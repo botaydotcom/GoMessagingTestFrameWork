@@ -225,7 +225,7 @@
 				</Message>
 
 				<!--Server send ack message to A -->
-				<Message type="DL_OperationState" fromClient="false">
+				<Message type="DL_OperationState" fromClient="false" wait="1s">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x01</Command>
 					<Data>
@@ -283,7 +283,7 @@
 				</Message>
 
 				<!--Server send ack message to D -->
-				<Message type="DL_OperationState" fromClient="false" connection="3">
+				<Message type="DL_OperationState" fromClient="false" connection="3" wait="1s">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x01</Command>
 					<Data>
@@ -377,7 +377,7 @@
 				</Message>
 
 				<!--Server send ack message to A -->
-				<Message type="DL_OperationState" fromClient="false">
+				<Message type="DL_OperationState" fromClient="false" wait="1s">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x01</Command>
 					<Data>
@@ -401,7 +401,7 @@
 				</Message>
 
 				<!--Server send ack message to A -->
-				<Message type="DL_OperationState" fromClient="false">
+				<Message type="DL_OperationState" fromClient="false" wait="1s">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x01</Command>
 					<Data>
@@ -486,7 +486,7 @@
 				</Message>
 
 				<!--Server send ack message to C -->
-				<Message type="DL_OperationState" fromClient="false">
+				<Message type="DL_OperationState" fromClient="false" wait="1s">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x01</Command>
 					<Data>
@@ -590,7 +590,7 @@
 					<Command>0x02</Command>
 					<Data>
 						<Auth_C2S_LoginInfo>
-							<Name>{{.email1}}</Name>				
+							<Name>{{.email1}}</Name>
 							<Password>{{.password1}}</Password>
 							<ClientType>1</ClientType>
 							<MachineId>1</MachineId>
@@ -626,7 +626,7 @@
 				</Message>
 
 				<!--Server send ack message to A -->
-				<Message type="DL_OperationState" fromClient="false">
+				<Message type="DL_OperationState" fromClient="false" wait="1s">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x01</Command>
 					<Data>
@@ -677,7 +677,7 @@
 				</Message>
 
 				<!--Server send ack message to D-->
-				<Message type="DL_OperationState" fromClient="false" connection="1">
+				<Message type="DL_OperationState" fromClient="false" connection="1" wait="1s">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x01</Command>
 					<Data>

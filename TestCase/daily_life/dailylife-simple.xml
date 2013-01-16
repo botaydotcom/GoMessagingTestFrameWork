@@ -124,6 +124,9 @@
 		<TestInfo skip="false" repeat="1">
 			<Name>B logs in and sees no item and deleted item = deleted item. B requests again and sees no item / deleted item.</Name>
 		</TestInfo>
+		<TestInfo skip="false" repeat="1">
+			<Name>C logs in and sees no item and deleted item = deleted item. C requests again and sees no item / deleted item.</Name>
+		</TestInfo>
 	</ListTest>
 
 	<Tests>
@@ -198,7 +201,7 @@
 					</Data>
 				</Message>
 
-				<!--server return item list with item in case 1-->
+				<!--server return item list with no item-->
 				<Message type="DL_IDListResponse" fromClient="false">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x03</Command>
@@ -261,7 +264,7 @@
 				</Message>
 
 				<!--Server send ack message to A -->
-				<Message type="DL_OperationState" fromClient="false">
+				<Message type="DL_OperationState" fromClient="false" wait="1s">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x01</Command>
 					<Data>
@@ -375,7 +378,7 @@
 				</Message>
 
 				<!--Server send ack message to A -->
-				<Message type="DL_OperationState" fromClient="false">
+				<Message type="DL_OperationState" fromClient="false" wait="1s">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x01</Command>
 					<Data>
@@ -480,6 +483,105 @@
 					<Data>
 						<DL_IDListResponse>
 							<RequestId>{{.rid52}}</RequestId>
+						</DL_IDListResponse>
+					</Data>
+				</Message>
+			</MessageSequence>
+		</Test>
+
+		<!--C logs in and sees no item and deleted item = deleted item. C requests again and sees no item / deleted item.-->
+		<Test>
+			<MessageSequence>
+				<!--C log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email3}}</Name>
+							<Password>{{.password3}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to C-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId3}}</UserId>
+								<Name>{{.email3}}</Name>
+								<NickName>{{.name3}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+				
+				<Message type="Auth_C2S_HelloInfo" fromClient="true">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<!--B request item list-->
+				<Message type="DL_RequestIDList" fromClient="true">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x04</Command>
+					<Data>
+						<DL_RequestIDList>
+							<RequestId>{{.rid61}}</RequestId>
+							<BuddyId>{{.userId1}}</BuddyId>
+						</DL_RequestIDList>
+					</Data>
+				</Message>
+
+				<!--server return item list with item in case 1-->
+				<Message type="DL_IDListResponse" fromClient="false">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x03</Command>
+					<Data>
+						<DL_IDListResponse>
+							<RequestId>{{.rid61}}</RequestId>
+							<DeletedIds>{{.iid}}</DeletedIds>
+						</DL_IDListResponse>
+					</Data>
+				</Message>
+
+				<!--C request item list-->
+				<Message type="DL_RequestIDList" fromClient="true">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x04</Command>
+					<Data>
+						<DL_RequestIDList>
+							<RequestId>{{.rid62}}</RequestId>
+							<BuddyId>{{.userId1}}</BuddyId>
+						</DL_RequestIDList>
+					</Data>
+				</Message>
+
+				<!--server return item list with no item-->
+				<Message type="DL_IDListResponse" fromClient="false">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x03</Command>
+					<Data>
+						<DL_IDListResponse>
+							<RequestId>{{.rid62}}</RequestId>
 						</DL_IDListResponse>
 					</Data>
 				</Message>

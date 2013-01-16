@@ -206,21 +206,21 @@ func main() {
 
 	flag.Parse()
 
-	fmt.Println("List of debug flag:")
-	fmt.Println("-Comparing:")
-	fmt.Println("--Pointer:", DEBUG_COMPARE_POINTER)
-	fmt.Println("--Slice:", DEBUG_COMPARE_SLICE)
-	fmt.Println("--Struct:", DEBUG_COMPARE_STRUCT)
+	timeEncodedPrintln("List of debug flag:")
+	timeEncodedPrintln("-Comparing:")
+	timeEncodedPrintln("--Pointer:", DEBUG_COMPARE_POINTER)
+	timeEncodedPrintln("--Slice:", DEBUG_COMPARE_SLICE)
+	timeEncodedPrintln("--Struct:", DEBUG_COMPARE_STRUCT)
 
-	fmt.Println("-Clean up:", DEBUG_CLEANING_UP)
-	fmt.Println("-Parse message:", DEBUG_PARSING_MESSAGE)
+	timeEncodedPrintln("-Clean up:", DEBUG_CLEANING_UP)
+	timeEncodedPrintln("-Parse message:", DEBUG_PARSING_MESSAGE)
 
-	fmt.Println("-Read message:", DEBUG_READING_MESSAGE)
-	fmt.Println("-Send message:", DEBUG_SENDING_MESSAGE)
-	fmt.Println("-Ignore message:", DEBUG_IGNORING_MESSAGE)
+	timeEncodedPrintln("-Read message:", DEBUG_READING_MESSAGE)
+	timeEncodedPrintln("-Send message:", DEBUG_SENDING_MESSAGE)
+	timeEncodedPrintln("-Ignore message:", DEBUG_IGNORING_MESSAGE)
 
 	// open file
-	fmt.Println("Testing file:", inputFile)
+	timeEncodedPrintln("Testing file:", inputFile)
 
 	keyMap = make(map[string]string)
 	valueMap = make(map[string]interface{})
@@ -233,7 +233,7 @@ func main() {
 
 	if err != nil {
 		errorMsg := fmt.Sprintf("Cannot read input file because %v", err)
-		fmt.Println(errorMsg)
+		timeEncodedPrintln(errorMsg)
 		log.Fatal(errorMsg)
 	} else {
 		executeTestSuite(ts)
@@ -245,7 +245,7 @@ func executeTestSuite(testSuite *TestSuite) {
 	targetAddr := testSuite.TargetHost + ":" + testSuite.TargetPort
 	addr, err := net.ResolveTCPAddr("tcp", targetAddr)
 	if err != nil {
-		fmt.Println("Cannot resolve address")
+		timeEncodedPrintln("Cannot resolve address")
 		log.Fatal("Cannot resolve address")
 	}
 
@@ -276,8 +276,9 @@ func executeTestSuite(testSuite *TestSuite) {
 }
 
 func executeTestCase(addr *net.TCPAddr, testInfo *TestInfo, testCase *TestCase) TestCaseResult {
-	fmt.Println("Running test case:", testInfo.Repeat, "times")
+	fmt.Println("-----------")
 	fmt.Println(testInfo.Name)
+	timeEncodedPrintln("Running test case:", testInfo.Repeat, "times")
 
 	prepareCurrentIgnoreMap(testInfo.IgnoreMessages)
 
@@ -344,12 +345,10 @@ func performTestCaseOnce(addr *net.TCPAddr, testCase *TestCase, resultChan chan 
 		}
 		conn := listConnection[connectionId]
 
-		fmt.Println("MESSAGE WAIT IS: ", message.Wait, "|")
-
 		if message.Wait != "" {
 			duration, err := time.ParseDuration(message.Wait)
 			if err == nil {
-				fmt.Println("WAITING FOR: ", duration)
+				timeEncodedPrintln("WAITING FOR: ", duration)
 				time.Sleep(duration)
 			}
 		}
@@ -380,7 +379,7 @@ func performTestCaseOnce(addr *net.TCPAddr, testCase *TestCase, resultChan chan 
 			for {
 				replyMessage, err = readReply(useBase, byte(baseCmd), byte(comm), protoParsedMessage, conn)
 				if DEBUG_READING_MESSAGE {
-					fmt.Println("reply message, err: ", replyMessage, err)
+					timeEncodedPrintln("reply message, err: ", replyMessage, err)
 				}
 				if replyMessage != nil || err != nil {
 					break
@@ -433,7 +432,7 @@ func performTestCaseOnce(addr *net.TCPAddr, testCase *TestCase, resultChan chan 
 func sendMsg(useBase bool, baseCmd byte, cmd byte, msg proto.Message, conn *net.TCPConn) {
 	data, err := proto.Marshal(msg)
 	if err != nil {
-		fmt.Println("marshaling error: ", err)
+		timeEncodedPrintln("marshaling error: ", err)
 		log.Fatal("marshaling error: ", err)
 	}
 	length := int32(len(data)) + 1
@@ -443,7 +442,7 @@ func sendMsg(useBase bool, baseCmd byte, cmd byte, msg proto.Message, conn *net.
 	}
 
 	if DEBUG_SENDING_MESSAGE {
-		fmt.Println("sending message base length: ", length, " command / command / message: ", baseCmd, cmd, msg)
+		timeEncodedPrintln("sending message base length: ", length, " command / command / message: ", baseCmd, cmd, msg)
 	}
 
 	buf := new(bytes.Buffer)
@@ -618,12 +617,12 @@ func readReply(useBase bool, expBaseCmd byte, expCmd byte, expMsg proto.Message,
 	err = proto.Unmarshal(rbuf[1:], res)
 
 	if err != nil {
-		fmt.Println(err)
+		timeEncodedPrintln(err)
 		log.Fatal(err)
 	}
 
 	if DEBUG_READING_MESSAGE {
-		fmt.Println("Successfully receive message from network: ", res)
+		timeEncodedPrintln("Successfully receive message from network: ", res)
 	}
 	return &res, err
 }
@@ -1023,7 +1022,7 @@ func parseAMessage(v Message) (interface{}, int, bool, int, error) {
 	err = xml.Unmarshal([]byte(addedXmlMessage), message)
 
 	if DEBUG_PARSING_MESSAGE {
-		fmt.Println("after unmarshal parsing, error = ", err, " message = ", message)
+		timeEncodedPrintln("after unmarshal parsing, error = ", err, " message = ", message)
 	}
 
 	// run through the slice map to fill in missing value
@@ -1034,14 +1033,14 @@ func parseAMessage(v Message) (interface{}, int, bool, int, error) {
 	}
 
 	if err != nil {
-		fmt.Printf("error: %v\n", err)
+		timeEncodedPrintf("error: %v\n", err)
 	}
 
 	if DEBUG_PARSING_MESSAGE {
 		/*s := reflect.ValueOf(message).Elem()
-		fmt.Println("Message type: ", s.Type())
+		timeEncodedPrintln("Message type: ", s.Type())
 		for i := 0; i < s.NumField(); i++ {
-			fmt.Print("Print value field ", i, " : ")
+			timeEncodedPrint("Print value field ", i, " : ")
 			f := s.Field(i)
 			printValue(f)
 		}*/
@@ -1097,7 +1096,7 @@ func getValueForPointer(ptrValue reflect.Value) reflect.Value {
 // use to get the value that a pointer points to
 func getValue(ptrValue reflect.Value) (interface{}, error) {
 	if ptrValue.Kind() == reflect.Ptr {
-		//fmt.Println(value.Kind(), value.Elem())
+		//timeEncodedPrintln(value.Kind(), value.Elem())
 		if ptrValue.Elem().IsValid() {
 			value := reflect.Indirect(reflect.ValueOf(ptrValue.Interface()))
 			if _, ok := value.Interface().(interface {
@@ -1197,7 +1196,7 @@ func readXmlInput(inputFile string) (*TestSuite, error) {
 	var testSuite TestSuite
 	err = xml.Unmarshal(data, &testSuite)
 	if err != nil {
-		fmt.Printf("error: %v\n", err)
+		timeEncodedPrintf("error: %v\n", err)
 		return nil, err
 	}
 	return &testSuite, nil
@@ -1259,7 +1258,7 @@ func cleanUpAfterTest(addr *net.TCPAddr, testCase *TestCase) {
 		// parse message (plug in values if necessary)
 		parsedMessage, comm, useBase, baseCmd, err := parseAMessage(message)
 		if err != nil {
-			fmt.Println("Error in parsing clean up message at message:", i)
+			timeEncodedPrintln("Error in parsing clean up message at message:", i)
 			continue
 		}
 		protoParsedMessage := parsedMessage.(proto.Message)
@@ -1270,7 +1269,7 @@ func cleanUpAfterTest(addr *net.TCPAddr, testCase *TestCase) {
 			// Connection does not exist or closed, create new connection for connection
 			conn, err := net.DialTCP("tcp", nil, addr)
 			if err != nil {
-				fmt.Println("Cannot establish connection for clean up:", connectionId)
+				timeEncodedPrintln("Cannot establish connection for clean up:", connectionId)
 				continue
 			} else {
 				listConnection[connectionId] = conn
@@ -1297,7 +1296,7 @@ func cleanUpAfterTest(addr *net.TCPAddr, testCase *TestCase) {
 		pending = false
 		for i, conn := range listConnection {
 			if DEBUG_CLEANING_UP {
-				fmt.Println("Trying to read from connection", i, "and ack all pending messages")
+				timeEncodedPrintln("Trying to read from connection", i, "and ack all pending messages")
 			}
 			// now all the established connections are the one to be clean up
 			for {
@@ -1307,7 +1306,7 @@ func cleanUpAfterTest(addr *net.TCPAddr, testCase *TestCase) {
 				}
 				if pendingMessage != nil {
 					if DEBUG_CLEANING_UP {
-						fmt.Println("Pending message value: ", *pendingMessage)
+						timeEncodedPrintln("Pending message value: ", *pendingMessage)
 					}
 					// ack server
 					ackPendingMessageToServer(pendingMessage, comm, conn)
@@ -1363,7 +1362,7 @@ func readPendingMessage(conn *net.TCPConn) (*proto.Message, error, byte) {
 		baseCmd = 0
 	}
 
-	//fmt.Println("Buffer read from network: ", rbuf)
+	//timeEncodedPrintln("Buffer read from network: ", rbuf)
 
 	var newValue interface{}
 	cmd := rbuf[0]
@@ -1371,7 +1370,7 @@ func readPendingMessage(conn *net.TCPConn) (*proto.Message, error, byte) {
 	case S2C_RemoteRequestAddBuddy_CMD:
 		if !useBase {
 			if DEBUG_CLEANING_UP {
-				fmt.Println("Found a request add buddy message, respond now: ")
+				timeEncodedPrintln("Found a request add buddy message, respond now: ")
 			}
 			newValue = magicVarFunc("Auth_Buddy_S2C_RemoteRequestAddBuddy")
 		}
@@ -1379,7 +1378,7 @@ func readPendingMessage(conn *net.TCPConn) (*proto.Message, error, byte) {
 	case S2C_ChatInfo2_CMD:
 		if !useBase {
 			if DEBUG_CLEANING_UP {
-				fmt.Println("Found a chat message, respond now: ")
+				timeEncodedPrintln("Found a chat message, respond now: ")
 			}
 			newValue = magicVarFunc("Auth_Buddy_S2C_ChatInfo2")
 		}
@@ -1387,7 +1386,7 @@ func readPendingMessage(conn *net.TCPConn) (*proto.Message, error, byte) {
 	case S2C_InviteMember_CMD:
 		if useBase {
 			if DEBUG_CLEANING_UP {
-				fmt.Println("Found an invite member message, respond now: ")
+				timeEncodedPrintln("Found an invite member message, respond now: ")
 			}
 			newValue = magicVarFunc("Discussion_S2C_InviteMember")
 		}
@@ -1395,7 +1394,7 @@ func readPendingMessage(conn *net.TCPConn) (*proto.Message, error, byte) {
 	case S2C_ChatInfo_CMD:
 		if useBase {
 			if DEBUG_CLEANING_UP {
-				fmt.Println("Found a discussion chat message, respond now: ")
+				timeEncodedPrintln("Found a discussion chat message, respond now: ")
 			}
 			newValue = magicVarFunc("Discussion_S2C_ChatInfo")
 		}
@@ -1407,7 +1406,7 @@ func readPendingMessage(conn *net.TCPConn) (*proto.Message, error, byte) {
 	err = proto.Unmarshal(rbuf[1:], res)
 
 	if err != nil {
-		fmt.Println(err)
+		timeEncodedPrintln(err)
 		log.Fatal(err)
 	}
 	return &res, err, cmd
@@ -1470,7 +1469,22 @@ func ackPendingMessageToServer(pendingMessage *proto.Message, comm byte, conn *n
 		baseCmd = DISCUSSION_PACKET_BASE_COMMAND
 	}
 	if DEBUG_CLEANING_UP {
-		fmt.Println("Reply with message", res)
+		timeEncodedPrintln("Reply with message", res)
 	}
 	sendMsg(useBase, byte(baseCmd), replyComm, res, conn)
+}
+
+func timeEncodedPrintf(format string, a ...interface{}) {
+	fmt.Print(time.Now().Format("Jan _2 15:04:05"), ": ")
+	fmt.Printf(format, a...)
+}
+
+func timeEncodedPrint(a ...interface{}) {
+	fmt.Print(time.Now().Format("Jan _2 15:04:05"), ": ")
+	fmt.Print(a...)
+}
+
+func timeEncodedPrintln(a ...interface{}){
+	fmt.Print(time.Now().Format("Jan _2 15:04:05"), ": ")
+	fmt.Println(a...)
 }

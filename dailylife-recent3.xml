@@ -1,5 +1,5 @@
 <TestSuite>
-	<TestSuiteName>Chat</TestSuiteName>
+	<TestSuiteName>DAILY LIFE</TestSuiteName>
 	<TargetHost>203.117.155.188</TargetHost>
 	<TargetPort>9100</TargetPort>
 	<VarMap>
@@ -170,7 +170,7 @@
 			<Name>D logs in and post an item. A logs in and post an item. A posts a comment to this item. </Name>
 		</TestInfo>
 		<TestInfo skip="false" repeat="1">
-			<Name>A logs in, posts an item and deletes item created in first case.</Name> 
+			<Name>B logs in, posts two items.</Name> 
 		</TestInfo>
 		<TestInfo skip="false" repeat="1">
 			<Name>C logs in, request id list, see item created by A in second case, C posts a comment to this item</Name>
@@ -455,7 +455,7 @@
 					</Data>
 				</Message>
 
-				<!--Server send ack message to C -->
+				<!--Server send ack message to B -->
 				<Message type="DL_OperationState" fromClient="false">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x01</Command>
@@ -785,17 +785,6 @@
 						</DL_DeleteDailyItem>
 					</Data>
 				</Message>
-				<!--B send messages to Server -->
-				<Message type="DL_DeleteDailyItem" fromClient="true">
-					<BaseCommand>0xA1</BaseCommand>
-					<Command>0x0A</Command>
-					<Data>
-						<DL_DeleteDailyItem>
-							<ItemId>{{.iid4}}</ItemId>
-							<RequestId>{{.rid54}}</RequestId>
-						</DL_DeleteDailyItem>
-					</Data>
-				</Message>
 
 				<!--Server send ack message to B-->
 				<Message type="DL_OperationState" fromClient="false">
@@ -805,6 +794,18 @@
 						<DL_OperationState>
 							<RequestId>{{.rid53}}</RequestId>
 						</DL_OperationState>
+					</Data>
+				</Message>
+				
+				<!--B send messages to Server -->
+				<Message type="DL_DeleteDailyItem" fromClient="true">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x0A</Command>
+					<Data>
+						<DL_DeleteDailyItem>
+							<ItemId>{{.iid4}}</ItemId>
+							<RequestId>{{.rid54}}</RequestId>
+						</DL_DeleteDailyItem>
 					</Data>
 				</Message>
 

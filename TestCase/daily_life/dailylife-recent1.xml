@@ -213,7 +213,7 @@
 				</Message>
 
 				<!--Server send ack message to A -->
-				<Message type="DL_OperationState" fromClient="false">
+				<Message type="DL_OperationState" fromClient="false" wait="1s">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x01</Command>
 					<Data>
@@ -271,7 +271,7 @@
 				</Message>
 
 				<!--Server send ack message to D -->
-				<Message type="DL_OperationState" fromClient="false" connection="3">
+				<Message type="DL_OperationState" fromClient="false" connection="3" wait="1s">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x01</Command>
 					<Data>
@@ -299,7 +299,7 @@
 				</Message>
 
 				<!--Server send ack message to A -->
-				<Message type="DL_OperationState" fromClient="false">
+				<Message type="DL_OperationState" fromClient="false" wait="1s">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x01</Command>
 					<Data>
@@ -340,7 +340,7 @@
 				</Message>
 
 				<!--B requests all item list-->
-				<Message type="DL_RequestIDList" fromClient="true" connection="1">
+				<Message type="DL_RequestIDList" fromClient="true" connection="1" wait="3s">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x05</Command>
 					<Data>
@@ -467,7 +467,7 @@
 				</Message>
 
 				<!--Server send ack message to C -->
-				<Message type="DL_OperationState" fromClient="false">
+				<Message type="DL_OperationState" fromClient="false" wait="1s">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x01</Command>
 					<Data>
@@ -511,30 +511,6 @@
 						</Auth_S2C_LoginInfoResult>
 					</Data>
 				</Message>
-				
-				<!--B request recent summary-->
-				<Message type="DL_RequestRecentSummary" fromClient="true">
-					<BaseCommand>0xA1</BaseCommand>
-					<Command>0x11</Command>
-					<Data>
-						<DL_RequestRecentSummary>
-							<RequestId>{{.rid31}}</RequestId>
-						</DL_RequestRecentSummary>
-					</Data>
-				</Message>
-
-				<!--server returns recent summary response-->
-				<Message type="DL_RecentSummaryResponse" fromClient="false">
-					<BaseCommand>0xA1</BaseCommand>
-					<Command>0x09</Command>
-					<Data>
-						<DL_RecentSummaryResponse>
-							<RequestId>{{.rid31}}</RequestId>
-							<ItemCount>2</ItemCount>
-							<CommentCount>2</CommentCount>
-						</DL_RecentSummaryResponse>
-					</Data>
-				</Message>
 
 				<!--B request recent posts-->
 				<Message type="DL_RequestRecentPosts" fromClient="true">
@@ -559,6 +535,30 @@
 							<CommentIds>{{.cid2}}</CommentIds>
 							<CommentIds>{{.cid1}}</CommentIds>
 						</DL_RecentPostsResponse>
+					</Data>
+				</Message>
+				
+				<!--B request recent summary-->
+				<Message type="DL_RequestRecentSummary" fromClient="true">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x11</Command>
+					<Data>
+						<DL_RequestRecentSummary>
+							<RequestId>{{.rid31}}</RequestId>
+						</DL_RequestRecentSummary>
+					</Data>
+				</Message>
+
+				<!--server returns recent summary response-->
+				<Message type="DL_RecentSummaryResponse" fromClient="false">
+					<BaseCommand>0xA1</BaseCommand>
+					<Command>0x09</Command>
+					<Data>
+						<DL_RecentSummaryResponse>
+							<RequestId>{{.rid31}}</RequestId>
+							<ItemCount>2</ItemCount>
+							<CommentCount>2</CommentCount>
+						</DL_RecentSummaryResponse>
 					</Data>
 				</Message>
 			</MessageSequence>
@@ -608,7 +608,7 @@
 				</Message>
 
 				<!--Server send ack message to A -->
-				<Message type="DL_OperationState" fromClient="false">
+				<Message type="DL_OperationState" fromClient="false" wait="1s">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x01</Command>
 					<Data>
@@ -659,7 +659,7 @@
 				</Message>
 
 				<!--Server send ack message to D-->
-				<Message type="DL_OperationState" fromClient="false" connection="1">
+				<Message type="DL_OperationState" fromClient="false" connection="1" wait="1s">
 					<BaseCommand>0xA1</BaseCommand>
 					<Command>0x01</Command>
 					<Data>
