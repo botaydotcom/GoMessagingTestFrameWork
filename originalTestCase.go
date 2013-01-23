@@ -83,7 +83,7 @@ func Execute(inputMessages []interface{}, outputMessages []interface{}) {
 	}
 
 	for i := 0; i < CONN_NUM; i++ {
-	//    <-chans[i]
+		//    <-chans[i]
 		<-chans[2]
 	}
 }
@@ -156,7 +156,7 @@ func sendLogin(conn *net.TCPConn) {
 	password := string(m.Sum(nil))
 	password = hex.EncodeToString([]byte(password))
 	loginInfo := &Auth_C2S.LoginInfo{
-		Name:            proto.String("	"),
+		Name: proto.String("	"),
 		Passworld:       proto.String(password),
 		ClientType:      proto.Int32(1),
 		MachineId:       proto.String("ddd"),

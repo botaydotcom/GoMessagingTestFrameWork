@@ -56,7 +56,8 @@ const (
 	C2S_RequestCircles_CMD = 0x16
 	C2S_RemoveCircle_CMD   = 0x15
 
-	S2C_CirclesResponse_CMD = 0x0A
+	C2S_RequestBoundAccount_CMD = 0x42
+	C2S_RequestUnBindAccount_CMD = 0x43
 )
 
 const (
@@ -77,6 +78,11 @@ const (
 
 	S2C_DailyListResponse_CMD = 0x03
 	S2C_OperationState_CMD    = 0x01
+
+	S2C_CirclesResponse_CMD = 0x0A
+
+	S2C_BoundedAccountsResponse_CMD = 0x42
+	S2C_AccoundUnBindResponse_CMD = 0x43
 
 	DISCUSSION_PACKET_BASE_COMMAND = 0xA0
 	DailyLifeRequest_MAINCMD       = 0xA1
@@ -203,6 +209,9 @@ func startCleanUp(cleanUpSuite *CleanUpSuite) {
 	fmt.Println("Ack pending messages for all users: .....")
 	ackPendingMessageForAllUsers(listConnection)
 
+	fmt.Println("Remove all bound accounts: .....")
+	removeAllBoundAccountsForAllUsers(listConnection)
+
 	fmt.Println("Remove all items: .....")
 	removeAllDailyItemsForAllUsers(listConnection)
 
@@ -288,6 +297,64 @@ func ackPendingMessageForAllUsers(listConnection map[int]*net.TCPConn) {
 					ackPendingMessageToServer(pendingMessage, comm, conn)
 					pending = true
 				}
+			}
+		}
+	}
+}
+
+func removeAllBoundAccountsForAllUsers(listConnection map[int]*net.TCPConn) {
+	extra := false
+	for {
+		stop := true
+		for i := range listConnection {
+			conn := listConnection[i]
+
+			queryBoundAccountMessage := magicVarFunc("AccountBinding_RequestBoundAccounts")
+			structValue := reflect.Indirect(reflect.ValueOf(queryBoundAccountMessage))
+			requestId := (magicCallFunc("Helper_RequestId", nil)[0])
+			structValue.FieldByName("RequestId").Set(reflect.ValueOf([]byte(requestId.String())))
+			
+			protoMessage := queryBoundAccountMessage.(proto.Message)
+			sendMsg(false, 0,
+				C2S_RequestBoundAccount_CMD, protoMessage, conn)
+			expMsg := magicVarFunc("AccountBinding_BoundedAccountsResponse")
+
+			listBoundAccountMessagePtr, err := readReply(false, 0,
+				S2C_BoundedAccountsResponse_CMD, expMsg.(proto.Message), conn)
+			if err != nil {
+				fmt.Println(err)
+				if err.Error()[0:8] != "Cant read" {
+					stop = false
+				}
+				continue
+			}
+
+			listBoundAccount := reflect.Indirect(reflect.ValueOf(*listBoundAccountMessagePtr)).FieldByName("Accounts")
+			for index := 0; index < listBoundAccount.Len(); index++ {
+				boundAcc := listBoundAccount.Index(index)
+				fmt.Println("Removing bound account: ", boundAcc)
+
+				deleteMessage := magicVarFunc("AccountBinding_UnBindRequest")
+				structValue := reflect.Indirect(reflect.ValueOf(deleteMessage))
+				structValue.FieldByName("Account").Set(boundAcc)
+
+				requestId := (magicCallFunc("Helper_RequestId", nil)[0])
+				structValue.FieldByName("RequestId").Set(reflect.ValueOf([]byte(requestId.String())))
+
+				sendMsg(false, 0, C2S_RequestUnBindAccount_CMD,
+					deleteMessage.(proto.Message), conn)
+
+				expMsg1 := magicVarFunc("AccountBinding_UnBindResponse")
+				readReply(false, 0, S2C_AccoundUnBindResponse_CMD,
+					expMsg1.(proto.Message), conn)
+			}
+		}
+		if stop {
+			// after delete items, query 1 time to get rid of the deleted message
+			if extra {
+				break
+			} else {
+				extra = true
 			}
 		}
 	}

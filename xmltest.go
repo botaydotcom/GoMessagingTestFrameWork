@@ -617,6 +617,7 @@ func readReply(useBase bool, expBaseCmd byte, expCmd byte, expMsg proto.Message,
 	err = proto.Unmarshal(rbuf[1:], res)
 
 	if err != nil {
+		fmt.Println("Error when receiving message from server:")
 		timeEncodedPrintln(err)
 		log.Fatal(err)
 	}
@@ -1484,7 +1485,7 @@ func timeEncodedPrint(a ...interface{}) {
 	fmt.Print(a...)
 }
 
-func timeEncodedPrintln(a ...interface{}){
+func timeEncodedPrintln(a ...interface{}) {
 	fmt.Print(time.Now().Format("Jan _2 15:04:05"), ": ")
 	fmt.Println(a...)
 }

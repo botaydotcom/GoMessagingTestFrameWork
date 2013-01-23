@@ -112,7 +112,7 @@ message UserNotificationInfo
 
 message PluginNotificationInfo
 {
-    required int32 Enabled = 1;
+    required bool Enabled = 1;
     required string Tag   = 2;
 }
 

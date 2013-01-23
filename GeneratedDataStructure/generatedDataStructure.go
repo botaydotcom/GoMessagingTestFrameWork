@@ -5,6 +5,8 @@ import (
 	
 	"reflect"
 	
+	"xmltest/btalkTest/AccountBinding"
+	
 	"xmltest/btalkTest/Auth_Buddy_C2S"
 	
 	"xmltest/btalkTest/Auth_Buddy_S2C"
@@ -33,6 +35,39 @@ var Map map[string] reflect.Type
 
 func init() {
 	Map = make(map[string] reflect.Type)
+	
+	var aAccountBinding_BindRequest AccountBinding.BindRequest
+	Map["AccountBinding_BindRequest"] = reflect.TypeOf(aAccountBinding_BindRequest)
+	
+	var aAccountBinding_BindResponse AccountBinding.BindResponse
+	Map["AccountBinding_BindResponse"] = reflect.TypeOf(aAccountBinding_BindResponse)
+	
+	var aAccountBinding_BoundAccount AccountBinding.BoundAccount
+	Map["AccountBinding_BoundAccount"] = reflect.TypeOf(aAccountBinding_BoundAccount)
+	
+	var aAccountBinding_BoundedAccountsResponse AccountBinding.BoundedAccountsResponse
+	Map["AccountBinding_BoundedAccountsResponse"] = reflect.TypeOf(aAccountBinding_BoundedAccountsResponse)
+	
+	var aAccountBinding_Buddy AccountBinding.Buddy
+	Map["AccountBinding_Buddy"] = reflect.TypeOf(aAccountBinding_Buddy)
+	
+	var aAccountBinding_Contact AccountBinding.Contact
+	Map["AccountBinding_Contact"] = reflect.TypeOf(aAccountBinding_Contact)
+	
+	var aAccountBinding_ContactUpdateRequest AccountBinding.ContactUpdateRequest
+	Map["AccountBinding_ContactUpdateRequest"] = reflect.TypeOf(aAccountBinding_ContactUpdateRequest)
+	
+	var aAccountBinding_ContactUpdateResponse AccountBinding.ContactUpdateResponse
+	Map["AccountBinding_ContactUpdateResponse"] = reflect.TypeOf(aAccountBinding_ContactUpdateResponse)
+	
+	var aAccountBinding_RequestBoundAccounts AccountBinding.RequestBoundAccounts
+	Map["AccountBinding_RequestBoundAccounts"] = reflect.TypeOf(aAccountBinding_RequestBoundAccounts)
+	
+	var aAccountBinding_UnBindRequest AccountBinding.UnBindRequest
+	Map["AccountBinding_UnBindRequest"] = reflect.TypeOf(aAccountBinding_UnBindRequest)
+	
+	var aAccountBinding_UnBindResponse AccountBinding.UnBindResponse
+	Map["AccountBinding_UnBindResponse"] = reflect.TypeOf(aAccountBinding_UnBindResponse)
 	
 	var aAuth_Buddy_C2S_AddBuddyResult Auth_Buddy_C2S.AddBuddyResult
 	Map["Auth_Buddy_C2S_AddBuddyResult"] = reflect.TypeOf(aAuth_Buddy_C2S_AddBuddyResult)
