@@ -221,7 +221,7 @@
 			<Name>A, B, C logs in. A, B, C removes all their contacts</Name>
 		</TestInfo>
 		<TestInfo skip="false" repeat="1">
-			<Name>A, B, C logs in. A, B, C request to unbind their phone number from their accoun, server returns unbind response</Name>
+			<Name>A, B, C logs in. A, B, C request to unbind their phone number from their account, server returns unbind response</Name>
 		</TestInfo>
 		<TestInfo skip="false" repeat="1">
 			<Name>A, B, C logs in. A, B, C removes others from each's buddy list</Name>

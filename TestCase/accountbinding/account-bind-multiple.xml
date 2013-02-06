@@ -163,10 +163,10 @@
 			<Value>mobile</Value>
 		</Var>
 		<Var name="mno" isFunc="false">
-			<Value>telephone number</Value>
+			<Value>6500123456</Value>
 		</Var>
 		<Var name="mno1" isFunc="false">
-			<Value>telephone number 1</Value>
+			<Value>6500123457</Value>
 		</Var>
 		<Var name="eNoParam" isFunc="false">
 			<Value>needVerificationError</Value>
@@ -221,10 +221,10 @@
 		<TestInfo skip="false" repeat="1">
 			<Name>A logs in. A requests bound account. Server returns 2 bound account response</Name>
 		</TestInfo>
-		<TestInfo skip="true" repeat="1">
+		<TestInfo skip="false" repeat="1">
 			<Name>A logs in. A request to unbind his 2 phone number from his account with a valid parameter, server returns unbind response</Name>
 		</TestInfo>
-		<TestInfo skip="true" repeat="1">
+		<TestInfo skip="false" repeat="1">
 			<Name>A logs in. A requests bound account. Server returns  no-bound account response</Name>
 		</TestInfo>
 	</ListTest>
