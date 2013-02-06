@@ -1,0 +1,256 @@
+<TestSuite>
+	<TestSuiteName>OAUTH</TestSuiteName>
+	<TargetHost>203.117.155.188</TargetHost>
+	<TargetPort>9100</TargetPort>
+	<VarMap>
+		<Var name="didA1" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="mobile" isFunc="false">
+			<Value>mobile</Value>
+		</Var>
+		<Var name="mno1" isFunc="false">
+			<Value>65008000011</Value>
+		</Var>
+		<Var name="mobileName">
+			<Value>65008000011</Value>
+		</Var>
+		<Var name="nickName">
+			<Value>mobile-indotest15</Value>
+		</Var>			
+		<Var name="mid1">
+			<Value>13456793</Value>
+		</Var>
+		<Var name="msg1">
+			<Value>Test message</Value>
+		</Var>
+		<Var name="mid2">
+			<Value>13456794</Value>
+		</Var>
+		<Var name="msg2">
+			<Value>Test message 1</Value>
+		</Var>
+		<Var name="mid3">
+			<Value>13456795</Value>
+		</Var>
+		<Var name="msg3">
+			<Value>This is Test message 3</Value>
+		</Var>
+		<Var name="mid4">
+			<Value>13456796</Value>
+		</Var>
+		<Var name="msg4">
+			<Value>This is Test message 4</Value>
+		</Var>
+		<Var name="rid11" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid12" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid13" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid14" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid15" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid21" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid22" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid31" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid32" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid41" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid42" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid51" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid52" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid61" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid62" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid71" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid72" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid81" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid82" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid91" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid92" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid101" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="eNoParam" isFunc="false">
+			<Value>needVerificationError</Value>
+		</Var>
+		<Var name="eVersionCode" isFunc="false">
+			<Value>2</Value>
+		</Var>
+		<Var name="eNoParamCode" isFunc="false">
+			<Value>10</Value>
+		</Var>
+		<Var name="eInvlParamCode" isFunc="false">
+			<Value>9</Value>
+		</Var>
+		<Var name="eExpiredParamCode" isFunc="false">
+			<Value>8</Value>
+		</Var>
+		<Var name="invlParam" isFunc="false">
+			<Value>23456</Value>
+		</Var>
+		<Var name="param" isFunc="false">
+			<Value>123456</Value>
+		</Var>
+		<Var name="OAuthVersion">
+			<Value>10110</Value>
+		</Var>		
+	</VarMap>
+	<IgnoreMessages>
+		<Message>
+			<BaseCommand>0x00</BaseCommand>
+			<Command>0x73</Command>
+			<MessageType>Auth_Buddy_S2C_BuddyOnline</MessageType>
+		</Message>
+	</IgnoreMessages>
+
+	<ListTest>
+		<TestInfo skip="false" repeat="1">
+			<Name>Login using a phone number and unbind the phone number from that account.</Name>
+		</TestInfo>
+	</ListTest>
+
+	<Tests>
+		<!--A logs in and requests to unbind their phone number from their accounts, server returns unbind response-->
+		<Test>
+			<MessageSequence>
+				<!--A requests to logs in using OAuth-->
+				<Message type="Auth_C2S_OAuthLogin" fromClient="true">
+					<ByteEncoded>
+						<Var type="Auth_C2S_OAuthRawInfo" >
+							<Field>.OAuthInfo</Field>
+							<Data>						
+								<Auth_C2S_OAuthRawInfo>
+									<Provider>mobile</Provider>
+									<Account>{{.mno1}}</Account>
+									<Content></Content>
+								</Auth_C2S_OAuthRawInfo>
+							</Data>
+						</Var>
+					</ByteEncoded>
+					<Command>0x04</Command>
+					<Data>
+						<Auth_C2S_OAuthLogin>
+							<OAuthInfo>0</OAuthInfo>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>{{.OAuthVersion}}</SoftwareVersion>
+							<DeviceId>{{.didA1}}</DeviceId>
+						</Auth_C2S_OAuthLogin>
+					</Data>
+				</Message>
+
+				<!--Server returns with error-->
+				<Message type="Auth_S2C_ErrorInfo" fromClient="false">
+					<Command>0x20</Command>
+					<Data>
+						<Auth_S2C_ErrorInfo>
+							<Type>{{.eNoParamCode}}</Type>
+						</Auth_S2C_ErrorInfo>
+					</Data>
+				</Message>
+				
+				<!--A requests to logs in using OAuth (can log in without vCode)-->
+				<Message type="Auth_C2S_OAuthLogin" fromClient="true">
+					<ByteEncoded>
+						<Var type="Auth_C2S_OAuthRawInfo" >
+							<Field>.OAuthInfo</Field>
+							<Data>						
+								<Auth_C2S_OAuthRawInfo>
+									<Provider>mobile</Provider>
+									<Account>{{.mno1}}</Account>
+									<Content>{{.param}}</Content>
+								</Auth_C2S_OAuthRawInfo>
+							</Data>
+						</Var>
+					</ByteEncoded>
+					<Command>0x04</Command>
+					<Data>
+						<Auth_C2S_OAuthLogin>
+							<OAuthInfo>0</OAuthInfo>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>{{.OAuthVersion}}</SoftwareVersion>
+							<DeviceId>{{.didA1}}</DeviceId>
+						</Auth_C2S_OAuthLogin>
+					</Data>
+				</Message>
+
+				<!--Server sends log in info to A-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId1}}</UserId>
+								<Name>{{.mobileName}}</Name>
+								<NickName>{{.nickName}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--A requests to unbind account -->
+				<Message type="AccountBinding_UnBindRequest" fromClient="true">
+					<Command>0x43</Command>
+					<Data>
+						<AccountBinding_BindRequest>
+							<Account>
+								<Provider>{{.mobile}}</Provider>
+								<Account>{{.mno1}}</Account>
+							</Account>
+							<RequestId>{{.rid11}}</RequestId>
+						</AccountBinding_BindRequest>
+					</Data>
+				</Message>
+
+				<!--Server returns with unbind response-->
+				<Message type="AccountBinding_UnBindResponse" fromClient="false">
+					<Command>0x43</Command>
+					<Data>
+						<AccountBinding_BindResponse>
+							<RequestId>{{.rid11}}</RequestId>
+						</AccountBinding_BindResponse>
+					</Data>
+				</Message>
+			</MessageSequence>
+		</Test>
+	</Tests>
+</TestSuite>

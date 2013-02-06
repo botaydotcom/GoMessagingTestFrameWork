@@ -48,6 +48,12 @@ message RequestBoundAccounts
 	required bytes request_id = 1;
 }
 
+message RequestContactList
+{
+	required int32 version = 1;
+	optional string provider = 2;
+}
+
 // S2C
 message BindResponse
 {
@@ -67,10 +73,18 @@ message ContactUpdateResponse
 	repeated Buddy added_buddies = 3;        // buddies have been added
 	repeated Buddy buddy_requests = 4;       // buddy requests have been sent, waiting for acceptance
 	repeated Buddy buddy_recommendation = 5; // buddy recommendations (who have you in their contacts).
+	repeated Buddy existing_buddies = 6;     // these are already buddies before this update.
 }
 
 message BoundedAccountsResponse
 {
     repeated BoundAccount accounts = 1;
 	required bytes        request_id = 2;
+}
+
+message ContactListResponse
+{
+	required int32 version = 1;
+	repeated Buddy contacts = 2;
+	optional string provider = 3;
 }

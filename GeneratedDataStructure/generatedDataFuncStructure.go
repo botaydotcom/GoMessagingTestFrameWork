@@ -14,6 +14,8 @@ var FuncMap map[string] reflect.Value
 func init() {
 	FuncMap = make(map[string] reflect.Value)
 	
+	FuncMap["Helper_GetOAuthRaw"] = reflect.ValueOf(Helper.GetOAuthRaw)
+	
 	FuncMap["Helper_IncTimestamp"] = reflect.ValueOf(Helper.IncTimestamp)
 	
 	FuncMap["Helper_Md5For"] = reflect.ValueOf(Helper.Md5For)

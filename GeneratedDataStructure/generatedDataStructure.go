@@ -54,6 +54,9 @@ func init() {
 	var aAccountBinding_Contact AccountBinding.Contact
 	Map["AccountBinding_Contact"] = reflect.TypeOf(aAccountBinding_Contact)
 	
+	var aAccountBinding_ContactListResponse AccountBinding.ContactListResponse
+	Map["AccountBinding_ContactListResponse"] = reflect.TypeOf(aAccountBinding_ContactListResponse)
+	
 	var aAccountBinding_ContactUpdateRequest AccountBinding.ContactUpdateRequest
 	Map["AccountBinding_ContactUpdateRequest"] = reflect.TypeOf(aAccountBinding_ContactUpdateRequest)
 	
@@ -62,6 +65,9 @@ func init() {
 	
 	var aAccountBinding_RequestBoundAccounts AccountBinding.RequestBoundAccounts
 	Map["AccountBinding_RequestBoundAccounts"] = reflect.TypeOf(aAccountBinding_RequestBoundAccounts)
+	
+	var aAccountBinding_RequestContactList AccountBinding.RequestContactList
+	Map["AccountBinding_RequestContactList"] = reflect.TypeOf(aAccountBinding_RequestContactList)
 	
 	var aAccountBinding_UnBindRequest AccountBinding.UnBindRequest
 	Map["AccountBinding_UnBindRequest"] = reflect.TypeOf(aAccountBinding_UnBindRequest)

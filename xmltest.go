@@ -105,6 +105,12 @@ type UnboundVarDesc struct {
 	Field   string
 }
 
+type ByteEncodedVarDesc struct {
+	MessageType string `xml:"type,attr"`
+	Field   	string
+	Data 		InnerXml
+}
+
 /*
 	IsPartial    bool   `xml:"isPartial,attr"`
 	PartialField int    `xml:"partialField,attr"`
@@ -118,6 +124,8 @@ type Message struct {
 	BaseCommand string
 	Command     string
 	Unbound     []UnboundVarDesc `xml:"Unbound>Var"`
+	ForceCheck  []string 	 `xml:"ForceCheck>FieldName"`
+	ByteEncoded []ByteEncodedVarDesc `xml:"ByteEncoded>Var"`
 	Data        InnerXml
 }
 
@@ -125,6 +133,7 @@ type Var struct {
 	Name   string `xml:"name,attr"`
 	IsFunc bool   `xml:"isFunc,attr"`
 	Value  string
+	Params []string
 }
 
 type IgnoreMessageSignature struct {
@@ -172,6 +181,9 @@ type TestSuiteResult struct {
 	Skip            []bool
 	TestCaseResults []TestCaseResult
 }
+
+
+var forceCheckMap map[string]bool
 
 var keyMap map[string]string
 var valueMap map[string]interface{}
@@ -391,6 +403,10 @@ func performTestCaseOnce(addr *net.TCPAddr, testCase *TestCase, resultChan chan 
 				for _, unboundDesc := range message.Unbound {
 					keyMap[unboundDesc.Field] = unboundDesc.VarName
 				}
+
+				// mark force check map for this message
+				prepareForceCheckMap(message.ForceCheck)
+				
 				if comparedResult, err := compareGetValueForProtoMessage(protoParsedMessage, *replyMessage); comparedResult {
 					// CORRECT Reply message.
 				} else {
@@ -656,9 +672,14 @@ func compareGetValueForPointer(expPtr reflect.Value, repPtr reflect.Value,
 		return true, nil
 	}
 
-	// if pointer of expected value is null, just dont compare
-	if !expPtr.Elem().IsValid() {
-		return true, nil
+	// if pointer of expected value is null, just dont compare, except when it's force check
+	if !expPtr.Elem().IsValid(){
+		if DEBUG_COMPARE_POINTER {
+			fmt.Println("No expected value, check force check for:", domainName, "forceCheckMap:", forceCheckMap)
+		}
+		if _, present = forceCheckMap[domainName]; !present {
+			return true, nil
+		}
 	}
 	expValue := reflect.Indirect(reflect.ValueOf(expPtr.Interface()))
 
@@ -886,7 +907,11 @@ func parseVarMap(varMap []Var) {
 		if !newVar.IsFunc {
 			valueMap[newVar.Name] = newVar.Value
 		} else {
-			valueMap[newVar.Name] = magicCallFunc(newVar.Value, nil)[0]
+			params:= make([]reflect.Value, 0)
+			for _, value:= range newVar.Params {
+				params = append(params, reflect.ValueOf(value))
+			}
+			valueMap[newVar.Name] = magicCallFunc(newVar.Value, params)[0]
 		}
 		if DEBUG_PARSING_MESSAGE {
 			fmt.Println("Paring global var: ", newVar.Name, " ==> ", valueMap[newVar.Name])
@@ -911,6 +936,13 @@ func parseGlobalIgnoreMessages(ignoreMessages []IgnoreMessageSignature) {
 		cmd, _ := strconv.ParseInt(messageType.Command, 0, 0)
 		signature := calculateSignature(int(baseCmd), int(cmd))
 		globalIgnoreMessages[signature] = messageType.MessageType
+	}
+}
+
+func prepareForceCheckMap(forceCheckList []string) {
+	forceCheckMap = make(map[string]bool)
+	for _, value := range forceCheckList {
+		forceCheckMap[value] = true
 	}
 }
 
@@ -1005,6 +1037,109 @@ func fillSliceValueToMessage(rawMessage *interface{}) {
 
 }
 
+
+
+/**************Try to fill in byte-encoded value*****/
+
+func visitPointerPluginByteEncoded(refPtrMessage *reflect.Value, value reflect.Value,
+	domainName string, expectedDomainName string) (bool, error){
+	if DEBUG_PARSING_MESSAGE {
+		fmt.Println("Try to fill byte-encoded value to pointer:")
+		fmt.Println("Domain name:", domainName)
+	}
+
+	ptrMessage := *refPtrMessage
+
+	message := reflect.Indirect(ptrMessage)
+	if (domainName == expectedDomainName) {
+		message.Set(value)
+		return true, nil
+	} else {
+		if message.Kind() == reflect.Struct {
+			return visitStructPluginByteEncoded(&message, value, domainName, expectedDomainName)
+		} 
+	}
+	return false, nil
+}
+
+func visitSlicePluginByteEncoded(refSliceMessage *reflect.Value, value reflect.Value,
+	domainName string, expectedDomainName string) (bool, error){
+	if DEBUG_PARSING_MESSAGE {
+		fmt.Println("Try to fill in byte encoded value to slice")
+		fmt.Println("Domain name:", domainName)
+	}
+
+
+	stop := false
+	var err error
+
+	sliceMessage := *refSliceMessage
+	for index := 0; index < sliceMessage.Len(); index++ {
+		currentDomainName := fmt.Sprintf("%s[%d]", domainName, index)
+		field := sliceMessage.Index(index)		
+
+		if field.Kind() == reflect.Ptr {
+			stop, err = visitPointerPluginByteEncoded(&field,
+				value, currentDomainName, expectedDomainName)
+		} else if field.Kind() == reflect.Struct {
+			stop, err = visitStructPluginByteEncoded(&field,
+				value, currentDomainName, expectedDomainName)
+		} else {
+			if (currentDomainName == expectedDomainName) {
+				sliceMessage.Field(index).Set(value)
+				return true, nil
+			} else if field.Kind() == reflect.Slice {
+				stop, err = visitSlicePluginByteEncoded(&field,
+				value, currentDomainName, expectedDomainName)
+			} 
+		}
+		if (stop) {
+			break
+		}
+	}
+		
+	return stop, err
+}
+
+func visitStructPluginByteEncoded(refStructMessage *reflect.Value, value reflect.Value,
+	domainName string, expectedDomainName string) (bool, error) {
+	if DEBUG_PARSING_MESSAGE {
+		fmt.Println("Try to fill in byte encoded value")
+		fmt.Println("Domain name:", domainName)
+	}
+
+	stop := true
+	var err error
+
+	structMessage := *refStructMessage
+	for i := 0; i < structMessage.NumField(); i++ {
+		f := structMessage.Type().Field(i)
+		currentDomainName := fmt.Sprintf("%s.%s", domainName, f.Name)
+		field := structMessage.Field(i)
+
+		if field.Kind() == reflect.Ptr {
+			stop, err = visitPointerPluginByteEncoded(&field,
+				value, currentDomainName, expectedDomainName)
+		} else if field.Kind() == reflect.Struct {
+			stop, err = visitStructPluginByteEncoded(&field,
+				value, currentDomainName, expectedDomainName)
+		} else {
+			if (currentDomainName == expectedDomainName) {
+				structMessage.Field(i).Set(value)
+				return true, nil
+			} else if field.Kind() == reflect.Slice {
+				stop, err = visitSlicePluginByteEncoded(&field,
+				value, currentDomainName, expectedDomainName)
+			} 
+		}
+		if (stop) {
+			return stop, err
+		}
+	}
+	return stop, err
+}
+
+
 // parse a message from message sequence
 // return: message / command / use base command? / base command / error
 func parseAMessage(v Message) (interface{}, int, bool, int, error) {
@@ -1019,8 +1154,28 @@ func parseAMessage(v Message) (interface{}, int, bool, int, error) {
 		fmt.Println("Processing message: ", addedXmlMessage)
 	}
 
+	// parse message
 	message := magicVarFunc(v.MessageType)
 	err = xml.Unmarshal([]byte(addedXmlMessage), message)
+
+	if (len(v.ByteEncoded) != 0) {
+		for _, byteEncoded := range v.ByteEncoded {
+			preProcess(byteEncoded.Data.Xml)
+			addedXmlMessage, err := plugValue(byteEncoded.Data.Xml)
+			if DEBUG_PARSING_MESSAGE {				
+				fmt.Println("Byte encoded message: ", addedXmlMessage)
+			}
+			if err != nil {
+				timeEncodedPrintf("error: %v\n", err)
+				log.Fatal(err)
+			}
+			value := magicVarFunc(byteEncoded.MessageType)
+			err = xml.Unmarshal([]byte(addedXmlMessage), value)
+			byteEncodedData, _ := proto.Marshal(value.(proto.Message))
+			reflectMessage := reflect.Indirect(reflect.ValueOf(message))
+			visitStructPluginByteEncoded(&reflectMessage, reflect.ValueOf(byteEncodedData), "", byteEncoded.Field)
+		}
+	}
 
 	if DEBUG_PARSING_MESSAGE {
 		timeEncodedPrintln("after unmarshal parsing, error = ", err, " message = ", message)

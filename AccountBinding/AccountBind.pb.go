@@ -211,6 +211,30 @@ func (this *RequestBoundAccounts) GetRequestId() []byte {
 	return nil
 }
 
+type RequestContactList struct {
+	Version          *int32  `protobuf:"varint,1,req,name=version" json:"version,omitempty"`
+	Provider         *string `protobuf:"bytes,2,opt,name=provider" json:"provider,omitempty"`
+	XXX_unrecognized []byte  `json:"-"`
+}
+
+func (this *RequestContactList) Reset()         { *this = RequestContactList{} }
+func (this *RequestContactList) String() string { return proto.CompactTextString(this) }
+func (*RequestContactList) ProtoMessage()       {}
+
+func (this *RequestContactList) GetVersion() int32 {
+	if this != nil && this.Version != nil {
+		return *this.Version
+	}
+	return 0
+}
+
+func (this *RequestContactList) GetProvider() string {
+	if this != nil && this.Provider != nil {
+		return *this.Provider
+	}
+	return ""
+}
+
 type BindResponse struct {
 	RequestId        []byte        `protobuf:"bytes,1,req,name=request_id" json:"request_id,omitempty"`
 	Account          *BoundAccount `protobuf:"bytes,2,opt,name=account" json:"account,omitempty"`
@@ -257,6 +281,7 @@ type ContactUpdateResponse struct {
 	AddedBuddies        []*Buddy `protobuf:"bytes,3,rep,name=added_buddies" json:"added_buddies,omitempty"`
 	BuddyRequests       []*Buddy `protobuf:"bytes,4,rep,name=buddy_requests" json:"buddy_requests,omitempty"`
 	BuddyRecommendation []*Buddy `protobuf:"bytes,5,rep,name=buddy_recommendation" json:"buddy_recommendation,omitempty"`
+	ExistingBuddies     []*Buddy `protobuf:"bytes,6,rep,name=existing_buddies" json:"existing_buddies,omitempty"`
 	XXX_unrecognized    []byte   `json:"-"`
 }
 
@@ -293,6 +318,31 @@ func (this *BoundedAccountsResponse) GetRequestId() []byte {
 		return this.RequestId
 	}
 	return nil
+}
+
+type ContactListResponse struct {
+	Version          *int32   `protobuf:"varint,1,req,name=version" json:"version,omitempty"`
+	Contacts         []*Buddy `protobuf:"bytes,2,rep,name=contacts" json:"contacts,omitempty"`
+	Provider         *string  `protobuf:"bytes,3,opt,name=provider" json:"provider,omitempty"`
+	XXX_unrecognized []byte   `json:"-"`
+}
+
+func (this *ContactListResponse) Reset()         { *this = ContactListResponse{} }
+func (this *ContactListResponse) String() string { return proto.CompactTextString(this) }
+func (*ContactListResponse) ProtoMessage()       {}
+
+func (this *ContactListResponse) GetVersion() int32 {
+	if this != nil && this.Version != nil {
+		return *this.Version
+	}
+	return 0
+}
+
+func (this *ContactListResponse) GetProvider() string {
+	if this != nil && this.Provider != nil {
+		return *this.Provider
+	}
+	return ""
 }
 
 func init() {

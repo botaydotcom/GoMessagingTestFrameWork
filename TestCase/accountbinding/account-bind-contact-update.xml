@@ -1,0 +1,1266 @@
+<TestSuite>
+	<TestSuiteName>Account binding</TestSuiteName>
+	<TargetHost>203.117.155.188</TargetHost>
+	<TargetPort>9100</TargetPort>
+	<VarMap>
+		<Var name="email1">
+			<Value>indotest15@test.com</Value>
+		</Var>		
+		<Var name="password1">
+			<Value>e10adc3949ba59abbe56e057f20f883e</Value>
+		</Var>
+		<Var name="name1">
+			<Value>indotest15</Value>
+		</Var>			
+		<Var name="email2">
+			<Value>indotest16@test.com</Value>
+		</Var>		
+		<Var name="password2">
+			<Value>e10adc3949ba59abbe56e057f20f883e</Value>
+		</Var>
+		<Var name="name2">
+			<Value>indotest16</Value>
+		</Var>
+		<Var name="email3">
+			<Value>indotest17@test.com</Value>
+		</Var>		
+		<Var name="password3">
+			<Value>e10adc3949ba59abbe56e057f20f883e</Value>
+		</Var>
+		<Var name="name3">
+			<Value>indotest17</Value>
+		</Var>
+		<Var name="email4">
+			<Value>indotest18@test.com</Value>
+		</Var>		
+		<Var name="name4">
+			<Value>indotest18</Value>
+		</Var>					
+		<Var name="password4">
+			<Value>e10adc3949ba59abbe56e057f20f883e</Value>
+		</Var>					
+		<Var name="mid1">
+			<Value>13456793</Value>
+		</Var>
+		<Var name="msg1">
+			<Value>Test message</Value>
+		</Var>
+		<Var name="mid2">
+			<Value>13456794</Value>
+		</Var>
+		<Var name="msg2">
+			<Value>Test message 1</Value>
+		</Var>
+		<Var name="mid3">
+			<Value>13456795</Value>
+		</Var>
+		<Var name="msg3">
+			<Value>This is Test message 3</Value>
+		</Var>
+		<Var name="mid4">
+			<Value>13456796</Value>
+		</Var>
+		<Var name="msg4">
+			<Value>This is Test message 4</Value>
+		</Var>
+		<Var name="rid11" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid12" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid13" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid14" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid15" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid21" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid22" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid31" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid32" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid41" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid42" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid51" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid52" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid61" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid62" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid71" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid72" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid81" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid82" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid91" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid92" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid101" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="photoname">
+			<Value>This is a test photo</Value>
+		</Var>
+		<Var name="comment1">
+			<Value>This is a test comment</Value>
+		</Var>
+		<Var name="comment2">
+			<Value>This is a test comment1</Value>
+		</Var>
+		<Var name="comment3">
+			<Value>This is a test comment2</Value>
+		</Var>
+		<Var name="ts1" isFunc="true">
+			<Value>Helper_Timestamp</Value>
+		</Var>
+		<Var name="ts2" isFunc="true">
+			<Value>Helper_Timestamp</Value>
+		</Var>
+		<Var name="ts3" isFunc="true">
+			<Value>Helper_Timestamp</Value>
+		</Var>
+		<Var name="ts4" isFunc="true">
+			<Value>Helper_Timestamp</Value>
+		</Var>
+		<Var name="ts5" isFunc="true">
+			<Value>Helper_Timestamp</Value>
+		</Var>
+		<Var name="ts6" isFunc="true">
+			<Value>Helper_Timestamp</Value>
+		</Var>
+		<Var name="mobile" isFunc="false">
+			<Value>mobile</Value>
+		</Var>
+		<Var name="mno1" isFunc="false">
+			<Value>650080001</Value>
+		</Var>
+		<Var name="mno2" isFunc="false">
+			<Value>650080002</Value>
+		</Var>
+		<Var name="mno3" isFunc="false">
+			<Value>650080003</Value>
+		</Var>
+		<Var name="eNoParam" isFunc="false">
+			<Value>needVerificationError</Value>
+		</Var>
+		<Var name="eNoParamCode" isFunc="false">
+			<Value>10</Value>
+		</Var>
+		<Var name="eInvlParamCode" isFunc="false">
+			<Value>9</Value>
+		</Var>
+		<Var name="eExpiredParamCode" isFunc="false">
+			<Value>8</Value>
+		</Var>
+		<Var name="invlParam" isFunc="false">
+			<Value>23456</Value>
+		</Var>
+		<Var name="param" isFunc="false">
+			<Value>123456</Value>
+		</Var>
+	</VarMap>
+	<IgnoreMessages>
+		<Message>
+			<BaseCommand>0x00</BaseCommand>
+			<Command>0x73</Command>
+			<MessageType>Auth_Buddy_S2C_BuddyOnline</MessageType>
+		</Message>
+	</IgnoreMessages>
+
+	<ListTest>
+		<TestInfo skip="false" repeat="1">
+			<Name>A logs in. A request to bind his account to a phone number 1 with a valid parameter, server returns bind response</Name>
+		</TestInfo>
+		<TestInfo skip="false" repeat="1">
+			<Name>B logs in. B request to bind his account to a phone number 2 with a valid parameter, server returns bind response</Name>
+		</TestInfo>
+		<TestInfo skip="false" repeat="1">
+			<Name>A logs in. A updates contact list which has number 2, 3. </Name>
+		</TestInfo>
+		<TestInfo skip="false" repeat="1">
+			<Name>B logs in. A buddy request  from A is sent to B. B updates contact list which has number 1, 3. A and B are added as friends</Name>
+		</TestInfo>
+		<TestInfo skip="false" repeat="1">
+			<Name>C logs in. C request to bind his account to a phone number 3 with a valid parameter, server returns bind response</Name>
+		</TestInfo>
+		<TestInfo skip="false" repeat="1">
+			<Name>C logs in. C updates his contact list with number 1. A and C are added as friend, and B is returned in list recommendation</Name>
+		</TestInfo>
+		<TestInfo skip="false" repeat="1">
+			<Name>A, B, C logs in. A, B, C removes all their contacts</Name>
+		</TestInfo>
+		<TestInfo skip="false" repeat="1">
+			<Name>A, B, C logs in. A, B, C request to unbind their phone number from their accoun, server returns unbind response</Name>
+		</TestInfo>
+		<TestInfo skip="false" repeat="1">
+			<Name>A, B, C logs in. A, B, C removes others from each's buddy list</Name>
+		</TestInfo>
+	</ListTest>
+
+	<Tests>
+		<!--A logs in. A request to bind his account to a phone number 1 with a valid parameter, server returns bind response-->
+		<Test>
+			<MessageSequence>
+				<!--A logs in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email1}}</Name>
+							<Password>{{.password1}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to A-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId1}}</UserId>
+								<Name>{{.email1}}</Name>
+								<NickName>{{.name1}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--A requests to bind account -->
+				<Message type="AccountBinding_BindRequest" fromClient="true">
+					<Command>0x40</Command>
+					<Data>
+						<AccountBinding_BindRequest>
+							<Account>
+								<Provider>{{.mobile}}</Provider>
+								<Account>{{.mno1}}</Account>
+							</Account>
+							<RequestId>{{.rid11}}</RequestId>
+						</AccountBinding_BindRequest>
+					</Data>
+				</Message>
+
+				<!--Server returns with error-->
+				<Message type="Auth_S2C_ErrorInfo" fromClient="false">
+					<Command>0x20</Command>
+					<Data>
+						<Auth_S2C_ErrorInfo>
+							<Type>{{.eNoParamCode}}</Type>
+						</Auth_S2C_ErrorInfo>
+					</Data>
+				</Message>
+		
+				<!--A requests to bind account -->
+				<Message type="AccountBinding_BindRequest" fromClient="true">
+					<Command>0x40</Command>
+					<Data>
+						<AccountBinding_BindRequest>
+							<Account>
+								<Provider>{{.mobile}}</Provider>
+								<Account>{{.mno1}}</Account>
+								<Parameter>{{.param}}</Parameter>
+							</Account>
+							<RequestId>{{.rid12}}</RequestId>
+						</AccountBinding_BindRequest>
+					</Data>
+				</Message>
+
+				<!--Server returns with bind response-->
+				<Message type="AccountBinding_BindResponse" fromClient="false">
+					<Command>0x40</Command>
+					<Data>
+						<AccountBinding_BindResponse>
+							<RequestId>{{.rid12}}</RequestId>
+							<Account>
+								<Provider>{{.mobile}}</Provider>
+								<Account>{{.mno1}}</Account>
+								<Parameter>{{.param}}</Parameter>
+							</Account>
+						</AccountBinding_BindResponse>
+					</Data>
+				</Message>
+			</MessageSequence>
+		</Test>
+
+		<!--B logs in. B request to bind his account to a phone number 2 with a valid parameter, server returns bind response-->
+		<Test>
+			<MessageSequence>
+				<!--B logs in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email2}}</Name>
+							<Password>{{.password2}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to B-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId2}}</UserId>
+								<Name>{{.email2}}</Name>
+								<NickName>{{.name2}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--B requests to bind account -->
+				<Message type="AccountBinding_BindRequest" fromClient="true">
+					<Command>0x40</Command>
+					<Data>
+						<AccountBinding_BindRequest>
+							<Account>
+								<Provider>{{.mobile}}</Provider>
+								<Account>{{.mno2}}</Account>
+							</Account>
+							<RequestId>{{.rid21}}</RequestId>
+						</AccountBinding_BindRequest>
+					</Data>
+				</Message>
+
+				<!--Server returns with error-->
+				<Message type="Auth_S2C_ErrorInfo" fromClient="false">
+					<Command>0x20</Command>
+					<Data>
+						<Auth_S2C_ErrorInfo>
+							<Type>{{.eNoParamCode}}</Type>
+						</Auth_S2C_ErrorInfo>
+					</Data>
+				</Message>
+		
+				<!--B requests to bind account -->
+				<Message type="AccountBinding_BindRequest" fromClient="true">
+					<Command>0x40</Command>
+					<Data>
+						<AccountBinding_BindRequest>
+							<Account>
+								<Provider>{{.mobile}}</Provider>
+								<Account>{{.mno2}}</Account>
+								<Parameter>{{.param}}</Parameter>
+							</Account>
+							<RequestId>{{.rid22}}</RequestId>
+						</AccountBinding_BindRequest>
+					</Data>
+				</Message>
+
+				<!--Server returns with bind response-->
+				<Message type="AccountBinding_BindResponse" fromClient="false">
+					<Command>0x40</Command>
+					<Data>
+						<AccountBinding_BindResponse>
+							<RequestId>{{.rid22}}</RequestId>
+							<Account>
+								<Provider>{{.mobile}}</Provider>
+								<Account>{{.mno2}}</Account>
+								<Parameter>{{.param}}</Parameter>
+							</Account>
+						</AccountBinding_BindResponse>
+					</Data>
+				</Message>
+			</MessageSequence>
+		</Test>
+
+
+		<!--A logs in. A updates contact list which has number 2, 3. -->
+		<Test>
+			<MessageSequence>
+				<!--A logs in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email1}}</Name>
+							<Password>{{.password1}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to A-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId1}}</UserId>
+								<Name>{{.email1}}</Name>
+								<NickName>{{.name1}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--A requests to update his contact account -->
+				<Message type="AccountBinding_ContactUpdateRequest" fromClient="true">
+					<Command>0x41</Command>
+					<Data>
+						<AccountBinding_ContactUpdateRequest>
+							<RequestId>{{.rid31}}</RequestId>
+							<OldVersion>0</OldVersion>
+							<AddedContacts>
+								<Account>{{.mno2}}</Account>
+							</AddedContacts>
+							<AddedContacts>
+								<Account>{{.mno3}}</Account>
+							</AddedContacts>
+							<Provider>{{.mobile}}</Provider>
+						</AccountBinding_ContactUpdateRequest>
+					</Data>
+				</Message>
+
+				<!--Server returns result-->
+				<Message type="AccountBinding_ContactUpdateResponse" fromClient="false">
+					<Command>0x41</Command>
+					<Data>
+						<AccountBinding_ContactUpdateResponse>
+							<RequestId>{{.rid31}}</RequestId>
+							<Version>{{.vid11}}</Version>
+							<BuddyRequests>
+								<UserId>{{.userId2}}</UserId>
+								<Account>{{.mno2}}</Account>
+							</BuddyRequests>
+						</AccountBinding_ContactUpdateResponse>
+					</Data>
+				</Message>
+			</MessageSequence>
+		</Test>
+
+		<!--B logs in. B updates contact list which has number 2, 3. -->
+		<Test>
+			<MessageSequence>
+				<!--B logs in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email2}}</Name>
+							<Password>{{.password2}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to B-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId2}}</UserId>
+								<Name>{{.email2}}</Name>
+								<NickName>{{.name2}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+
+
+				<!--A logs in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true" connection="1">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email1}}</Name>
+							<Password>{{.password1}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to A-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false"  connection="1">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId1}}</UserId>
+								<Name>{{.email1}}</Name>
+								<NickName>{{.name1}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--Server send message to B -->
+				<Message type="Auth_Buddy_S2C_RemoteRequestAddBuddy" fromClient="false">
+					<Command>0x72</Command>
+					<Data>
+						<Auth_Buddy_S2C_RemoteRequestAddBuddy>
+							<FromId>{{.userId1}}</FromId>
+						</Auth_Buddy_S2C_RemoteRequestAddBuddy>
+					</Data>
+				</Message>			
+
+				<!--B send reject message to Server -->
+				<Message type="Auth_Buddy_C2S_AddBuddyResult" fromClient="true" >
+					<Command>0x66</Command>
+					<Data>
+						<Auth_Buddy_C2S_AddBuddyResult>
+							<UserId>{{.userId1}}</UserId>
+							<Action>2</Action>
+						</Auth_Buddy_C2S_AddBuddyResult>
+					</Data>
+				</Message>
+	
+
+				<!--B requests to update his contact account -->
+				<Message type="AccountBinding_ContactUpdateRequest" fromClient="true">
+					<Command>0x41</Command>
+					<Data>
+						<AccountBinding_ContactUpdateRequest>
+							<RequestId>{{.rid41}}</RequestId>
+							<OldVersion>0</OldVersion>
+							<AddedContacts>
+								<Account>{{.mno1}}</Account>
+							</AddedContacts>
+							<AddedContacts>
+								<Account>{{.mno3}}</Account>
+							</AddedContacts>
+							<Provider>{{.mobile}}</Provider>
+						</AccountBinding_ContactUpdateRequest>
+					</Data>
+				</Message>
+
+				<!--Server send result message to B -->
+				<Message type="Auth_Buddy_S2C_RemoteAddBuddyResult" fromClient="false">
+					<Command>0x67</Command>
+					<Data>
+						<Auth_Buddy_S2C_RemoteAddBuddyResult>
+							<FromId>{{.userId1}}</FromId>
+						</Auth_Buddy_S2C_RemoteAddBuddyResult>
+					</Data>
+				</Message>
+
+				<!--Server returns result-->
+				<Message type="AccountBinding_ContactUpdateResponse" fromClient="false">
+					<Command>0x41</Command>
+					<Data>
+						<AccountBinding_ContactUpdateResponse>
+							<RequestId>{{.rid41}}</RequestId>
+							<Version>{{.vid12}}</Version>
+							<AddedBuddies>
+								<UserId>{{.userId1}}</UserId>
+								<Account>{{.mno1}}</Account>
+							</AddedBuddies>
+						</AccountBinding_ContactUpdateResponse>
+					</Data>
+				</Message>
+
+				<!--Server send result message to A -->
+				<Message type="Auth_Buddy_S2C_RemoteAddBuddyResult" fromClient="false"  connection="1">
+					<Command>0x67</Command>
+					<Data>
+						<Auth_Buddy_S2C_RemoteAddBuddyResult>
+							<FromId>{{.userId2}}</FromId>
+						</Auth_Buddy_S2C_RemoteAddBuddyResult>
+					</Data>
+				</Message>
+			</MessageSequence>
+		</Test>
+
+
+		<!--C logs in. C request to bind his account to a phone number 3 with a valid parameter, server returns bind response-->
+		<Test>
+			<MessageSequence>
+				<!--C logs in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email3}}</Name>
+							<Password>{{.password3}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to C-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId3}}</UserId>
+								<Name>{{.email3}}</Name>
+								<NickName>{{.name3}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--C requests to bind account -->
+				<Message type="AccountBinding_BindRequest" fromClient="true">
+					<Command>0x40</Command>
+					<Data>
+						<AccountBinding_BindRequest>
+							<Account>
+								<Provider>{{.mobile}}</Provider>
+								<Account>{{.mno3}}</Account>
+							</Account>
+							<RequestId>{{.rid51}}</RequestId>
+						</AccountBinding_BindRequest>
+					</Data>
+				</Message>
+
+				<!--Server returns with error-->
+				<Message type="Auth_S2C_ErrorInfo" fromClient="false">
+					<Command>0x20</Command>
+					<Data>
+						<Auth_S2C_ErrorInfo>
+							<Type>{{.eNoParamCode}}</Type>
+						</Auth_S2C_ErrorInfo>
+					</Data>
+				</Message>
+		
+				<!--C requests to bind account -->
+				<Message type="AccountBinding_BindRequest" fromClient="true">
+					<Command>0x40</Command>
+					<Data>
+						<AccountBinding_BindRequest>
+							<Account>
+								<Provider>{{.mobile}}</Provider>
+								<Account>{{.mno3}}</Account>
+								<Parameter>{{.param}}</Parameter>
+							</Account>
+							<RequestId>{{.rid52}}</RequestId>
+						</AccountBinding_BindRequest>
+					</Data>
+				</Message>
+
+				<!--Server returns with bind response-->
+				<Message type="AccountBinding_BindResponse" fromClient="false">
+					<Command>0x40</Command>
+					<Data>
+						<AccountBinding_BindResponse>
+							<RequestId>{{.rid52}}</RequestId>
+							<Account>
+								<Provider>{{.mobile}}</Provider>
+								<Account>{{.mno3}}</Account>
+								<Parameter>{{.param}}</Parameter>
+							</Account>
+						</AccountBinding_BindResponse>
+					</Data>
+				</Message>
+			</MessageSequence>
+		</Test>
+
+		<!--C logs in. C updates contact list which has number 1. -->
+		<Test>
+			<MessageSequence>
+				<!--C logs in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email3}}</Name>
+							<Password>{{.password3}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to C-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId3}}</UserId>
+								<Name>{{.email3}}</Name>
+								<NickName>{{.name3}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+
+				<!--A logs in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true" connection="1">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email1}}</Name>
+							<Password>{{.password1}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to A-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false"  connection="1">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId1}}</UserId>
+								<Name>{{.email1}}</Name>
+								<NickName>{{.name1}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--C requests to update his contact account with number of A-->
+				<Message type="AccountBinding_ContactUpdateRequest" fromClient="true">
+					<Command>0x41</Command>
+					<Data>
+						<AccountBinding_ContactUpdateRequest>
+							<RequestId>{{.rid61}}</RequestId>
+							<OldVersion>0</OldVersion>
+							<AddedContacts>
+								<Account>{{.mno1}}</Account>
+							</AddedContacts>
+							<Provider>{{.mobile}}</Provider>
+						</AccountBinding_ContactUpdateRequest>
+					</Data>
+				</Message>
+
+				<!--Server send result message to C -->
+				<Message type="Auth_Buddy_S2C_RemoteAddBuddyResult" fromClient="false">
+					<Command>0x67</Command>
+					<Data>
+						<Auth_Buddy_S2C_RemoteAddBuddyResult>
+							<FromId>{{.userId1}}</FromId>
+						</Auth_Buddy_S2C_RemoteAddBuddyResult>
+					</Data>
+				</Message>
+
+				<!--Server returns result-->
+				<Message type="AccountBinding_ContactUpdateResponse" fromClient="false">
+					<Command>0x41</Command>
+					<Data>
+						<AccountBinding_ContactUpdateResponse>
+							<RequestId>{{.rid61}}</RequestId>
+							<Version>{{.vid13}}</Version>
+							<AddedBuddies>
+								<UserId>{{.userId1}}</UserId>
+								<Account>{{.mno1}}</Account>
+							</AddedBuddies>
+							<BuddyRecommendation>
+								<UserId>{{.userId2}}</UserId>
+							</BuddyRecommendation>
+						</AccountBinding_ContactUpdateResponse>
+					</Data>
+				</Message>
+
+				<!--Server send result message to A -->
+				<Message type="Auth_Buddy_S2C_RemoteAddBuddyResult" fromClient="false"  connection="1">
+					<Command>0x67</Command>
+					<Data>
+						<Auth_Buddy_S2C_RemoteAddBuddyResult>
+							<FromId>{{.userId3}}</FromId>
+						</Auth_Buddy_S2C_RemoteAddBuddyResult>
+					</Data>
+				</Message>
+			</MessageSequence>
+		</Test>
+
+		<!--A, B, C log in and remove all their contacts -->
+		<Test>
+			<MessageSequence>
+				<!--A logs in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email1}}</Name>
+							<Password>{{.password1}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to A-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId1}}</UserId>
+								<Name>{{.email1}}</Name>
+								<NickName>{{.name1}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--A requests to update his contact account -->
+				<Message type="AccountBinding_ContactUpdateRequest" fromClient="true" close="true">
+					<Command>0x41</Command>
+					<Data>
+						<AccountBinding_ContactUpdateRequest>
+							<RequestId>{{.rid71}}</RequestId>
+							<OldVersion>0</OldVersion>
+							<RemovedContacts>
+								<Account>{{.mno2}}</Account>
+							</RemovedContacts>
+							<RemovedContacts>
+								<Account>{{.mno3}}</Account>
+							</RemovedContacts>
+							<Provider>{{.mobile}}</Provider>
+						</AccountBinding_ContactUpdateRequest>
+					</Data>
+				</Message>
+
+				
+				<!--B logs in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email2}}</Name>
+							<Password>{{.password2}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to B-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId2}}</UserId>
+								<Name>{{.email2}}</Name>
+								<NickName>{{.name2}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--B requests to update his contact account -->
+				<Message type="AccountBinding_ContactUpdateRequest" fromClient="true" close="true">
+					<Command>0x41</Command>
+					<Data>
+						<AccountBinding_ContactUpdateRequest>
+							<RequestId>{{.rid71}}</RequestId>
+							<OldVersion>0</OldVersion>
+							<RemovedContacts>
+								<Account>{{.mno1}}</Account>
+							</RemovedContacts>
+							<RemovedContacts>
+								<Account>{{.mno3}}</Account>
+							</RemovedContacts>
+							<Provider>{{.mobile}}</Provider>
+						</AccountBinding_ContactUpdateRequest>
+					</Data>
+				</Message>
+
+				
+				<!--C logs in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email3}}</Name>
+							<Password>{{.password3}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to C-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId3}}</UserId>
+								<Name>{{.email3}}</Name>
+								<NickName>{{.name3}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--C requests to update his contact account -->
+				<Message type="AccountBinding_ContactUpdateRequest" fromClient="true">
+					<Command>0x41</Command>
+					<Data>
+						<AccountBinding_ContactUpdateRequest>
+							<RequestId>{{.rid71}}</RequestId>
+							<OldVersion>0</OldVersion>
+							<RemovedContacts>
+								<Account>{{.mno1}}</Account>
+							</RemovedContacts>
+							<Provider>{{.mobile}}</Provider>
+						</AccountBinding_ContactUpdateRequest>
+					</Data>
+				</Message>
+			</MessageSequence>
+		</Test>
+
+		<!--A, B, C logs in. A, B, C request to unbind their phone number from their accounts, server returns unbind response-->
+		<Test>
+			<MessageSequence>
+				<!--A logs in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email1}}</Name>
+							<Password>{{.password1}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to A-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId1}}</UserId>
+								<Name>{{.email1}}</Name>
+								<NickName>{{.name1}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--A requests to unbind account -->
+				<Message type="AccountBinding_UnBindRequest" fromClient="true">
+					<Command>0x43</Command>
+					<Data>
+						<AccountBinding_BindRequest>
+							<Account>
+								<Provider>{{.mobile}}</Provider>
+								<Account>{{.mno1}}</Account>
+							</Account>
+							<RequestId>{{.rid81}}</RequestId>
+						</AccountBinding_BindRequest>
+					</Data>
+				</Message>
+
+				<!--Server returns with unbind response-->
+				<Message type="AccountBinding_UnBindResponse" fromClient="false" close="true">
+					<Command>0x43</Command>
+					<Data>
+						<AccountBinding_BindResponse>
+							<RequestId>{{.rid81}}</RequestId>
+						</AccountBinding_BindResponse>
+					</Data>
+				</Message>
+
+				<!--B logs in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email2}}</Name>
+							<Password>{{.password2}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to B-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId2}}</UserId>
+								<Name>{{.email2}}</Name>
+								<NickName>{{.name2}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--B requests to unbind account -->
+				<Message type="AccountBinding_UnBindRequest" fromClient="true">
+					<Command>0x43</Command>
+					<Data>
+						<AccountBinding_BindRequest>
+							<Account>
+								<Provider>{{.mobile}}</Provider>
+								<Account>{{.mno2}}</Account>
+							</Account>
+							<RequestId>{{.rid81}}</RequestId>
+						</AccountBinding_BindRequest>
+					</Data>
+				</Message>
+
+				<!--Server returns with unbind response-->
+				<Message type="AccountBinding_UnBindResponse" fromClient="false" close="true">
+					<Command>0x43</Command>
+					<Data>
+						<AccountBinding_BindResponse>
+							<RequestId>{{.rid81}}</RequestId>
+						</AccountBinding_BindResponse>
+					</Data>
+				</Message>
+
+				<!--C logs in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email3}}</Name>
+							<Password>{{.password3}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to C-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId3}}</UserId>
+								<Name>{{.email3}}</Name>
+								<NickName>{{.name3}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--C requests to unbind account -->
+				<Message type="AccountBinding_UnBindRequest" fromClient="true">
+					<Command>0x43</Command>
+					<Data>
+						<AccountBinding_BindRequest>
+							<Account>
+								<Provider>{{.mobile}}</Provider>
+								<Account>{{.mno3}}</Account>
+							</Account>
+							<RequestId>{{.rid81}}</RequestId>
+						</AccountBinding_BindRequest>
+					</Data>
+				</Message>
+
+				<!--Server returns with unbind response-->
+				<Message type="AccountBinding_UnBindResponse" fromClient="false">
+					<Command>0x43</Command>
+					<Data>
+						<AccountBinding_BindResponse>
+							<RequestId>{{.rid81}}</RequestId>
+						</AccountBinding_BindResponse>
+					</Data>
+				</Message>
+			</MessageSequence>
+		</Test>
+
+		<!--A, B, C logs in. A removes B, C from A's buddy list-->
+		<Test>
+			<MessageSequence>
+				<!--A log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true">		
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email1}}</Name>						
+							<Password>{{.password1}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends A log in info-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId1}}</UserId>
+								<Name>{{.email1}}</Name>						
+								<NickName>{{.name1}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--B log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true" connection="1">		
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email2}}</Name>						
+							<Password>{{.password2}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends B log in info-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false" connection="1">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId2}}</UserId>
+								<Name>{{.email2}}</Name>						
+								<NickName>{{.name2}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--C log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true" connection="2">		
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email3}}</Name>						
+							<Password>{{.password3}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends C log in info-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false" connection="2">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId3}}</UserId>
+								<Name>{{.email3}}</Name>						
+								<NickName>{{.name3}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--A send delete message to Server -->
+				<Message type="Auth_Buddy_C2S_DeleteBuddy" fromClient="true">
+					<Command>0x67</Command>
+					<Data>
+						<Auth_Buddy_C2S_DeleteBuddy>
+							<UserId>{{.userId2}}</UserId>
+						</Auth_Buddy_C2S_DeleteBuddy>
+					</Data>
+				</Message>
+
+				<!--Server send message to B -->
+				<Message type="Auth_Buddy_S2C_BuddyDeleted" fromClient="false" connection="1">
+					<Command>0x68</Command>
+					<Data>
+						<BuddyDeleted>
+							<UserId>{{.userId1}}</UserId>
+						</BuddyDeleted>
+					</Data>
+				</Message>
+
+				<!--Server send result message to A -->
+				<Message type="Auth_Buddy_S2C_RemoteAddBuddyResult" fromClient="false">
+					<Command>0x68</Command>
+					<Data>
+						<BuddyDeleted>
+							<UserId>{{.userId2}}</UserId>
+						</BuddyDeleted>
+					</Data>
+				</Message>
+
+				<!--A send delete message to Server -->
+				<Message type="Auth_Buddy_C2S_DeleteBuddy" fromClient="true">
+					<Command>0x67</Command>
+					<Data>
+						<Auth_Buddy_C2S_DeleteBuddy>
+							<UserId>{{.userId3}}</UserId>
+						</Auth_Buddy_C2S_DeleteBuddy>
+					</Data>
+				</Message>
+
+				<!--Server send message to B -->
+				<Message type="Auth_Buddy_S2C_BuddyDeleted" fromClient="false" connection="2">
+					<Command>0x68</Command>
+					<Data>
+						<BuddyDeleted>
+							<UserId>{{.userId1}}</UserId>
+						</BuddyDeleted>
+					</Data>
+				</Message>
+
+				<!--Server send result message to A -->
+				<Message type="Auth_Buddy_S2C_RemoteAddBuddyResult" fromClient="false">
+					<Command>0x68</Command>
+					<Data>
+						<BuddyDeleted>
+							<UserId>{{.userId3}}</UserId>
+						</BuddyDeleted>
+					</Data>
+				</Message>
+			</MessageSequence>
+		</Test>
+	</Tests>
+</TestSuite>

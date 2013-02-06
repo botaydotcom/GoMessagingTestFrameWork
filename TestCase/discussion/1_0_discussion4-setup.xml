@@ -64,7 +64,7 @@ indotest18 knows indotest16
 			<Name>All log in to get user ids</Name>
 		</TestInfo>
 		<TestInfo skip="false" repeat="1">
-			<Name>A, B, C, D logs in. A create discussion with invitation B, C. B, C log in, receive invitation and accept. D logs in, receives invitation and accepts</Name>
+			<Name>A, B, C, D logs in. A create discussion with invitation B, C. B, C log in, receive invitation and accept. D logs in, does not ack. D logs in again, receives invitation and accepts</Name>
 		</TestInfo>
 		<TestInfo skip="true" repeat="1">
 			<Name>Clean up</Name>
@@ -189,7 +189,7 @@ indotest18 knows indotest16
 			</MessageSequence>
 		</Test>
 
-		<!--A, B, C, D logs in. A create discussion with invitation B, C. B, C log in, receive invitation and accept. D logs in, receives invitation and accepts.-->
+		<!--A, B, C, D logs in. A create discussion with invitation B, C. B, C log in, receive invitation and accept. D logs in, does not ack. D logs in again, receives invitation and accepts.-->
 		<Test>
 			<MessageSequence>
 				<!--A log in-->
@@ -438,6 +438,57 @@ indotest18 knows indotest16
 							<DiscussionId>{{.did}}</DiscussionId>
 							<Members>{{.userId4}}</Members>
 						</Discussion_C2S_CreateDiscussion>				
+					</Data>
+				</Message>
+
+				<!--D logs in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true" connection="3">		
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email4}}</Name>						
+							<Password>{{.password4}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to D-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false" connection="3">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId4}}</UserId>
+								<Name>{{.email4}}</Name>						
+								<NickName>{{.name4}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--Server sends B info that D's online-->
+				<Message type="Auth_Buddy_S2C_BuddyOnline" fromClient="false" connection="1">
+					<Command>0x73</Command>
+					<Data>
+						<Auth_Buddy_S2C_BuddyOnline>
+							<UserId>{{.userId4}}</UserId>							
+						</Auth_Buddy_S2C_BuddyOnline>
+					</Data>
+				</Message>
+
+				<!--Server sends invitation to D-->
+				<Message type="Discussion_S2C_InviteMember" fromClient="false" connection="3" close="true">
+					<BaseCommand>0xA0</BaseCommand>
+					<Command>0x09</Command>
+					<Data>
+						<Discussion_S2C_InviteMember>
+							<DiscussionId>{{.did}}</DiscussionId>
+							<FromId>{{.userId2}}</FromId>
+							<InviteId>{{.iid3}}</InviteId>
+						</Discussion_S2C_InviteMember>				
 					</Data>
 				</Message>
 

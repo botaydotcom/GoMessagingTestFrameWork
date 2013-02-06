@@ -160,7 +160,7 @@
 			<Value>mobile</Value>
 		</Var>
 		<Var name="mno" isFunc="false">
-			<Value>telephone number</Value>
+			<Value>6500123456</Value>
 		</Var>
 		<Var name="eNoParam" isFunc="false">
 			<Value>needVerificationError</Value>
