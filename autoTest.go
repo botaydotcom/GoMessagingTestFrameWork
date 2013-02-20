@@ -12,7 +12,7 @@ import (
 
 const (
 	DEFAULT_EXTENSION  = "xml"
-	RESET_ITERATION    = 1000
+	RESET_ITERATION    = 100000
 	SLEEP_BETWEEN_TEST = 100 // milisecond
 	TIME_OUT_FOR_READ  = 10
 )
@@ -54,7 +54,11 @@ func visit(currentPath string, f os.FileInfo, err error) error {
 
 func main() {
 	var inputDir string
+	var numIteration int
+	var sleepTime int
 	flag.StringVar(&inputDir, "inputDir", "TestCase", "The inputDir to be parsed")
+	flag.IntVar(&numIteration, "numItr", -1, "The number of iteration to run. Negative means infinite")
+
 	flag.BoolVar(&DEBUG_COMPARE_POINTER, "cmp_ptr", false, "Debug compare pointer")
 	flag.BoolVar(&DEBUG_COMPARE_SLICE, "cmp_slc", false, "Debug compare slice")
 	flag.BoolVar(&DEBUG_COMPARE_STRUCT, "cmp_str", false, "Debug compare struct")
@@ -67,6 +71,7 @@ func main() {
 	flag.BoolVar(&DEBUG_IGNORING_MESSAGE, "ignore", false, "Debug ignore messages")
 
 	flag.IntVar(&timeOut, "timeOut", TIME_OUT_FOR_READ, "The time (s) to wait when trying to read from server")
+	flag.IntVar(&sleepTime, "sleepTime", SLEEP_BETWEEN_TEST, "The time (ms) to wait between subsequent iterations")
 
 	flag.Parse()
 	flagMap = make(map[string]bool)
@@ -87,9 +92,10 @@ func main() {
 
 	iteration := 0
 	for {
-		if iteration == RESET_ITERATION {
-			iteration = 0
+		if (iteration == numIteration) {
+			break
 		}
+
 		iteration++
 		fmt.Println("ITERATION NUMBER:", iteration)
 
@@ -99,6 +105,7 @@ func main() {
 			fmt.Println(err)
 		}
 
-		time.Sleep(SLEEP_BETWEEN_TEST * time.Millisecond)
+		sleepDuration, _ := time.ParseDuration(fmt.Sprintf("%dms", sleepTime))
+		time.Sleep(sleepDuration)
 	}
 }

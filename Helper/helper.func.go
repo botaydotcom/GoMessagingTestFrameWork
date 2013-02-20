@@ -5,7 +5,8 @@ import (
 	"crypto/md5"
 	"fmt"
 	"code.google.com/p/goprotobuf/proto"
-	"xmltest/btalkTest/Auth_C2S"	
+	"xmltest/btalkTest/Auth_C2S"
+	"sync"
 )
 
 var counter int64
@@ -42,4 +43,34 @@ func GetOAuthRaw(provider string, account string, param string) (string) {
 	}
 	data, _ := proto.Marshal(oauthInfo)
 	return (string)(data)
+}
+
+var userMin int = 0
+var userMax int = 20000
+var counterUser int = 0
+var mutex sync.Mutex
+
+func getNextUserNumber() int{
+	(&mutex).Lock()
+	counterUser++
+	result := (userMin + counterUser) % userMax
+	(&mutex).Unlock()
+	return result
+}
+
+func getCurrentUserNumber() int{
+	(&mutex).Lock()
+	result := (userMin + counterUser) % userMax
+	(&mutex).Unlock()
+	return result
+}
+
+func GetNextUserEmail() string {
+	user := fmt.Sprintf("indotrial_user_%d@test.com", getNextUserNumber())
+	return user
+}
+
+func GetCurrentUserName() string {
+	user := fmt.Sprintf("indotrial_user_%d", getCurrentUserNumber())
+	return user
 }
