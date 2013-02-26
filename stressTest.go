@@ -51,6 +51,7 @@ var totalConcurrentConnection = 0
 type ClientResult struct {
 	IsSuccessful bool  // success or not
 	ExecuteTime time.Duration
+	ResponseTime time.Duration
 	Reason error
 }
 
@@ -199,11 +200,14 @@ func startAClient(testSuite *StressTestEngine.TestSuite, resultChannel chan Clie
 	testSuiteResult := StressTestEngine.ExecuteTestSuite(addr, testSuite)
 	changeNumConnection(-1)
 	duration := time.Since(startTestTime)
+	defaultDuration, _ := time.ParseDuration("0s")
 	result := ClientResult {
 		IsSuccessful: testSuiteResult.IsCorrect,
 		ExecuteTime: duration,
+		ResponseTime: defaultDuration,
 		Reason: testSuiteResult.Reason,
 	}
+	result.ResponseTime, _ = time.ParseDuration(fmt.Sprintf("%dns", testSuiteResult.TimeTaken))
 	if DEBUG_STEP  {
 		fmt.Println("FINISH A CLIENT RUNNING:", testSuite.TestSuiteName)
 	}
@@ -217,6 +221,11 @@ type AggregateResult struct {
 	AverageExecuteTime time.Duration
 	TotalSuccessExecuteTime time.Duration
 	AverageSuccessExecuteTime time.Duration
+
+	TotalResponseTime time.Duration
+	AverageResponseTime time.Duration
+	TotalSuccessResponseTime time.Duration
+	AverageSuccessResponseTime time.Duration
 }
 
 func statisicRoutine() {
@@ -237,6 +246,10 @@ func statisicRoutine() {
 		AverageExecuteTime: defaultDuration,
 		TotalSuccessExecuteTime: defaultDuration,
 		AverageSuccessExecuteTime: defaultDuration,
+		TotalResponseTime: defaultDuration,
+		AverageResponseTime: defaultDuration,
+		TotalSuccessResponseTime: defaultDuration,
+		AverageSuccessResponseTime: defaultDuration,
 	}
 
 	for ((!finishSpawningClient) || (!finishExecuteClient)) {
@@ -272,28 +285,52 @@ func statisicRoutine() {
 func mergeResult(clientResult ClientResult, 
 	aggregateResult *AggregateResult){
 	aggregateResult.TotalFinished++
+
 	aggregateResult.TotalExecuteTime = aggregateResult.TotalExecuteTime + clientResult.ExecuteTime
 	totalNanosecond := aggregateResult.TotalExecuteTime.Nanoseconds()
 	average := float64(totalNanosecond) / float64(aggregateResult.TotalFinished)
 	averageDuration := fmt.Sprintf("%.2fns", average)
 	aggregateResult.AverageExecuteTime, _ = time.ParseDuration(averageDuration)
 
+	aggregateResult.TotalResponseTime = aggregateResult.TotalResponseTime + clientResult.ResponseTime
+	totalNanosecond = aggregateResult.TotalResponseTime.Nanoseconds()
+	average = float64(totalNanosecond) / float64(aggregateResult.TotalFinished)
+	averageDuration = fmt.Sprintf("%.2fns", average)
+	aggregateResult.AverageResponseTime, _ = time.ParseDuration(averageDuration)
+
+
 	if clientResult.IsSuccessful {
 		aggregateResult.NumCorrect++
+
 		aggregateResult.TotalSuccessExecuteTime = aggregateResult.TotalSuccessExecuteTime + clientResult.ExecuteTime
 		totalNanosecond = aggregateResult.TotalSuccessExecuteTime.Nanoseconds()
 		average = float64(totalNanosecond) / float64(aggregateResult.NumCorrect)
 		averageDuration := fmt.Sprintf("%.2fns", average)
-		aggregateResult.AverageSuccessExecuteTime, _ = time.ParseDuration(averageDuration)	
+		aggregateResult.AverageSuccessExecuteTime, _ = time.ParseDuration(averageDuration)
+
+		aggregateResult.TotalSuccessResponseTime = aggregateResult.TotalSuccessResponseTime + clientResult.ResponseTime
+		totalNanosecond = aggregateResult.TotalSuccessResponseTime.Nanoseconds()
+		average = float64(totalNanosecond) / float64(aggregateResult.NumCorrect)
+		averageDuration = fmt.Sprintf("%.2fns", average)
+		aggregateResult.AverageSuccessResponseTime, _ = time.ParseDuration(averageDuration)
 	} else {
 		if clientResult.Reason == nil {
 			clientResult.Reason = errors.New("Unknown")
 		} 	
+
 		reg, _ := regexp.Compile("WSARecv tcp \\d{0,3}.\\d{0,3}.\\d{0,3}.\\d{0,3}:\\d{0,5}: resource temporarily unavailable")
 		matchResult := reg.FindStringIndex(clientResult.Reason.Error())
 		if  matchResult != nil{
-			message := clientResult.Reason.Error()[:matchResult[0] - 1]
+			message := clientResult.Reason.Error()[:matchResult[0]]
 			fullMessage := message + "WSARecv tcp <address:port>: resource temporarily unavailable"
+			clientResult.Reason = errors.New(fullMessage)
+		}
+
+		reg1, _ := regexp.Compile("tcp \\d{0,3}.\\d{0,3}.\\d{0,3}.\\d{0,3}:\\d{0,5}: A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond.")
+		matchResult = reg1.FindStringIndex(clientResult.Reason.Error())
+		if  matchResult != nil{
+			message := clientResult.Reason.Error()[:matchResult[0]]
+			fullMessage := message + "tcp <address:port>: A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond."
 			clientResult.Reason = errors.New(fullMessage)
 		}
 
@@ -318,18 +355,30 @@ func reportStatistic(totalConnection int, result AggregateResult) {
 	fmt.Println("NUMBER OF CONCURRENT CONNECTION:", totalConnection)
 	fmt.Printf("NUMBER OF FINISHED CLIENTS: %d\n", result.TotalFinished)
 	if (result.TotalFinished != 0) {
-	percentCorrect := float64(result.NumCorrect) / float64(result.TotalFinished) * 100
-	fmt.Printf("NUMBER OF SUCCESSFUL CLIENTS: %d, ACCOUNT FOR: %3.2f %% \n", result.NumCorrect, percentCorrect)
+		percentCorrect := float64(result.NumCorrect) / float64(result.TotalFinished) * 100
+		fmt.Printf("NUMBER OF SUCCESSFUL CLIENTS: %d, ACCOUNT FOR: %3.2f %% \n", result.NumCorrect, percentCorrect)
 		totalTimeInMillis := int(result.TotalExecuteTime.Nanoseconds() / 1000000)
 		averageTimeInMillis := float64(result.TotalExecuteTime.Nanoseconds()) / 1000000 / float64(result.TotalFinished)
 		fmt.Printf("TOTAL RUNNING TIME FOR ALL CLIENTS  : %d MILLISECONDS \n", totalTimeInMillis)
 		fmt.Printf("AVERAGE RUNNING TIME FOR ALL CLIENTS: %3.2f MILLISECONDS \n", averageTimeInMillis)
-	fmt.Println("---------------------------------------")
+		fmt.Println("---------------------------------------")
 		totalTimeInMillis = int(result.TotalSuccessExecuteTime.Nanoseconds() / 1000000)
 		averageTimeInMillis = float64(result.TotalSuccessExecuteTime.Nanoseconds()) / 1000000 / float64(result.NumCorrect)
 		fmt.Printf("TOTAL RUNNING TIME FOR ALL SUCCESSFUL CLIENTS  : %d MILLISECONDS \n", totalTimeInMillis)
 		fmt.Printf("AVERAGE RUNNING TIME FOR ALL SUCCESSFUL CLIENTS: %3.2f MILLISECONDS \n", averageTimeInMillis)
+
+		totalTimeInMillis = int(result.TotalResponseTime.Nanoseconds() / 1000000)
+		averageTimeInMillis = float64(result.TotalResponseTime.Nanoseconds()) / 1000000 / float64(result.TotalFinished)
+		fmt.Printf("TOTAL RESPONSE TIME FOR ALL CLIENTS  : %d MILLISECONDS \n", totalTimeInMillis)
+		fmt.Printf("AVERAGE RESPONSE TIME FOR ALL CLIENTS: %3.2f MILLISECONDS \n", averageTimeInMillis)
+		fmt.Println("---------------------------------------")
+		totalTimeInMillis = int(result.TotalSuccessResponseTime.Nanoseconds() / 1000000)
+		averageTimeInMillis = float64(result.TotalSuccessResponseTime.Nanoseconds()) / 1000000 / float64(result.NumCorrect)
+		fmt.Printf("TOTAL RESPONSE TIME FOR ALL SUCCESSFUL CLIENTS  : %d MILLISECONDS \n", totalTimeInMillis)
+		fmt.Printf("AVERAGE RESPONSE TIME FOR ALL SUCCESSFUL CLIENTS: %3.2f MILLISECONDS \n", averageTimeInMillis)
 	}
+
+
 	fmt.Println("-------------------------------------------------------------")
 }
 

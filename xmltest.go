@@ -96,6 +96,8 @@ var DEBUG_SENDING_MESSAGE bool = false
 var DEBUG_READING_MESSAGE bool = false
 var DEBUG_IGNORING_MESSAGE bool = false
 
+var DEBUG_CALLING_FUNC bool = true
+
 type InnerXml struct {
 	Xml string `xml:",innerxml"`
 }
@@ -215,6 +217,8 @@ func main() {
 	flag.BoolVar(&DEBUG_READING_MESSAGE, "read", false, "Debug read messages")
 	flag.BoolVar(&DEBUG_SENDING_MESSAGE, "send", false, "Debug send messages")
 	flag.BoolVar(&DEBUG_IGNORING_MESSAGE, "ignore", false, "Debug ignore messages")
+
+	flag.BoolVar(&DEBUG_CALLING_FUNC, "func", false, "Debug calling function")
 
 	flag.Parse()
 
@@ -911,7 +915,7 @@ func parseVarMap(varMap []Var) {
 			for _, value:= range newVar.Params {
 				params = append(params, reflect.ValueOf(value))
 			}
-			valueMap[newVar.Name] = magicCallFunc(newVar.Value, params)[0]
+			valueMap[newVar.Name] = magicCallFunc(newVar.Value, params)[0].Interface()
 		}
 		if DEBUG_PARSING_MESSAGE {
 			fmt.Println("Paring global var: ", newVar.Name, " ==> ", valueMap[newVar.Name])
@@ -966,6 +970,10 @@ func plugValueForVar(message string, varName string, value interface{}) string {
 	if kind == reflect.Slice {
 		// dont plug value here	
 	} else {
+		if (DEBUG_PARSING_MESSAGE) {
+			fmt.Println("plug value to var:", varName, "-", value)
+		}
+	
 		reg, _ := regexp.Compile("{{." + varName + "}}")
 		valueToReplace = fmt.Sprintf("%v", reflect.Indirect(reflect.ValueOf(value)).Interface())
 		message = reg.ReplaceAllString(message, valueToReplace)
@@ -983,7 +991,7 @@ func plugValue(message string) (string, error) {
 
 // pre-process a message and put unbound variable to value map
 func preProcess(rawData string) {
-	regVar = regexp.MustCompile("{{.([a-zA-Z0-9]*)}}")
+	regVar = regexp.MustCompile("{{.([a-zA-Z0-9_]*)}}")
 	var processedData = rawData
 	listVar := regVar.FindAllStringSubmatch(rawData, -1)
 	for _, matchedValue := range listVar {
@@ -1011,28 +1019,46 @@ func preProcess(rawData string) {
 }
 
 func fillSliceValueToMessage(rawMessage *interface{}) {
+	if (DEBUG_PARSING_MESSAGE) {
+		fmt.Println("fill slice to message:", rawMessage)
+	}
+	
 	protoMsg := (*rawMessage).(proto.Message)
 	message := reflect.ValueOf(protoMsg).Elem()
 
 	for i := 0; i < message.NumField(); i++ {
 		expStructField := message.Field(i) // pointer
-
 		if expStructField.Kind() == reflect.Slice {
 			strVar := ""
 			byteArray, canConvert := expStructField.Interface().([]byte)
-
+	
 			if canConvert {
 				strVar = string(byteArray)
+				if (DEBUG_PARSING_MESSAGE) {
+					fmt.Println("Field", i, "is a slice. String Value current = \n", strVar)
+				}
 				// if the expected field is a variable field that's not bound, bind the value of the key now
-				key, present := keyMap[strVar]
-
+				key, present := keyMap[strVar]			
 				if present {
+					// this is to fill a byte value receive from server to the same var
 					if sliceValue, valuePresent := sliceMap[key]; valuePresent {
 						message.Field(i).Set(reflect.ValueOf(sliceValue))
 					}
+				} else {
+					// this is to fill a byte value from a function value to the same var
+					matchValue := regVar.FindStringSubmatch(strVar)
+					if (DEBUG_PARSING_MESSAGE) {
+						fmt.Println("Match value:", matchValue)
+					}
+					if (matchValue != nil) {
+						key = matchValue[1]	
+						if sliceValue, valuePresent := valueMap[key]; valuePresent {
+							message.Field(i).Set(reflect.ValueOf(sliceValue))
+						}						
+					}
 				}
-			}
-		}
+			} 
+		} 
 	}
 
 }
@@ -1219,6 +1245,12 @@ func parseAMessage(v Message) (interface{}, int, bool, int, error) {
 /************************* Pointer value helper functions *************************/
 // call a function with a specific name 
 func magicCallFunc(typeName string, in []reflect.Value) []reflect.Value {
+	if (DEBUG_CALLING_FUNC) {
+		fmt.Println("Calling func:", typeName)
+		for i, x:= range in {
+			fmt.Println("Argument:", i, "is:", x)
+		}
+	}
 	return GeneratedDataStructure.FuncMap[typeName].Call(in)
 }
 

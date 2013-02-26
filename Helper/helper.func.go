@@ -7,6 +7,14 @@ import (
 	"code.google.com/p/goprotobuf/proto"
 	"xmltest/btalkTest/Auth_C2S"
 	"sync"
+	"io/ioutil"
+	"os"
+	"log"
+	"strconv"
+)
+
+const (
+	FILE_CHUNK_SIZE = 10000
 )
 
 var counter int64
@@ -73,4 +81,63 @@ func GetNextUserEmail() string {
 func GetCurrentUserName() string {
 	user := fmt.Sprintf("indotrial_user_%d", getCurrentUserNumber())
 	return user
+}
+
+func FileContent(fileName string) ([]byte) {
+	data, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	return data
+}
+
+func FileContentMultiPart(fileName string, partIdStr string) ([]byte) {
+	partId, _ := strconv.ParseInt(partIdStr, 0, 0)
+	data, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	fileSize := getFileSize(fileName)
+	//fmt.Println("Trying to get offset for file", fileName, "part:", partId)
+	offsetStart, offsetEnd := getOffsetForPart(fileSize, partId)
+	//fmt.Println("result:", offsetStart, offsetEnd)
+	return data[offsetStart:offsetEnd]
+}
+
+func getOffsetForPart(fileSize int64, partId int64)(int64, int64) {
+	if int64(partId) * FILE_CHUNK_SIZE > fileSize {
+		return -1, -1
+	}
+	start := int64(partId) * FILE_CHUNK_SIZE
+	end := int64(partId + 1) * FILE_CHUNK_SIZE
+
+	if end > fileSize {
+		end = fileSize
+	}
+	return start, end
+}
+
+func getFileSize(fileName string) (int64) {
+	info, err := os.Stat(fileName)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	return info.Size()
+}
+
+func FileSize(fileName string) (string) {
+	fileSize := getFileSize(fileName)
+	result := fmt.Sprintf("%d", fileSize)
+	return result
+}
+
+func numFilePart(fileName string) (int64) {
+	fileSize := getFileSize(fileName)
+	return (fileSize - 1) / 10000 + 1
+}
+
+func NumFilePart(fileName string) (string) {
+	numPart := numFilePart(fileName)
+	result := fmt.Sprintf("%d", numPart)
+	return result
 }

@@ -169,6 +169,7 @@ type TestSuite struct {
 type TestResult struct {
 	IsCorrect bool
 	Reason    error
+
 	TimeTaken int64
 }
 
@@ -236,16 +237,18 @@ func ExecuteTestSuite(addr *net.TCPAddr, testSuite *TestSuite) (CaseResult){
 	parseVarMap(testSuite.GlobalVarMap, &data)
 	readTimeOut = READ_PENDING_TIMEOUT
 	var result CaseResult 
-	result.IsCorrect = false
+	result.IsCorrect = true
 	skipped := false
 	for i := range testSuite.ListTestInfos {
 		if !skipped && !testSuite.ListTestInfos[i].Skip {
 			testCaseResult := executeTestCase(addr, &(testSuite.ListTestInfos[i]), &(testSuite.ListTestCases[i]), &data)
-			if testCaseResult.IsCorrect {
-				result.IsCorrect = true
-			} else {
+			if !testCaseResult.IsCorrect {
+				result.IsCorrect = false
 				result.Reason = testCaseResult.Reason
-			}
+				result.TimeTaken = result.TimeTaken + testCaseResult.TimeTaken
+				break
+			} 
+			
 		}
 	}
 	
@@ -348,7 +351,10 @@ func PerformTestCaseOnce(addr *net.TCPAddr, testCase *TestCase, data *Data) (Tes
 			var replyMessage *proto.Message
 			var err error
 			for {
+				begin := time.Now()
 				replyMessage, err = readReply(useBase, byte(baseCmd), byte(comm), protoParsedMessage, conn, data)
+				end := time.Now()
+				totalTime += end.Sub(begin).Nanoseconds()
 				if DEBUG_READING_MESSAGE {
 					TimeEncodedPrintln("reply message, err: ", replyMessage, err)
 				}
@@ -873,7 +879,7 @@ func parseVarMap(varMap []Var, data *Data) {
 			for _, value:= range newVar.Params {
 				params = append(params, reflect.ValueOf(value))
 			}
-			data.ValueMap[newVar.Name] = magicCallFunc(newVar.Value, params)[0]
+			data.ValueMap[newVar.Name] = magicCallFunc(newVar.Value, params)[0].Interface()
 		}
 		if DEBUG_PARSING_MESSAGE {
 			fmt.Println("Paring global var: ", newVar.Name, " ==> ", data.ValueMap[newVar.Name])
@@ -945,7 +951,7 @@ func plugValue(message string, data *Data) (string, error) {
 
 // pre-process a message and put unbound variable to value map
 func preProcess(rawData string, data *Data) {
-	regVar = regexp.MustCompile("{{.([a-zA-Z0-9]*)}}")
+	regVar = regexp.MustCompile("{{.([a-zA-Z0-9_]*)}}")
 	var processedData = rawData
 	listVar := regVar.FindAllStringSubmatch(rawData, -1)
 	for _, matchedValue := range listVar {
@@ -988,9 +994,27 @@ func fillSliceValueToMessage(rawMessage *interface{}, data *Data) {
 				// if the expected field is a variable field that's not bound, bind the value of the key now
 				key, present := data.KeyMap[strVar]
 
-				if present {
+				/*if present {
 					if sliceValue, valuePresent := data.SliceMap[key]; valuePresent {
 						message.Field(i).Set(reflect.ValueOf(sliceValue))
+					}
+				}*/
+				if present {
+					// this is to fill a byte value receive from server to the same var
+					if sliceValue, valuePresent := data.SliceMap[key]; valuePresent {
+						message.Field(i).Set(reflect.ValueOf(sliceValue))
+					}
+				} else {
+					// this is to fill a byte value from a function value to the same var
+					matchValue := regVar.FindStringSubmatch(strVar)
+					if (DEBUG_PARSING_MESSAGE) {
+						fmt.Println("Match value:", matchValue)
+					}
+					if (matchValue != nil) {
+						key = matchValue[1]	
+						if sliceValue, valuePresent := data.ValueMap[key]; valuePresent {
+							message.Field(i).Set(reflect.ValueOf(sliceValue))
+						}						
 					}
 				}
 			}

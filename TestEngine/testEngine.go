@@ -893,7 +893,7 @@ func parseVarMap(varMap []Var) {
 			for _, value:= range newVar.Params {
 				params = append(params, reflect.ValueOf(value))
 			}
-			valueMap[newVar.Name] = magicCallFunc(newVar.Value, params)[0]
+			valueMap[newVar.Name] = magicCallFunc(newVar.Value, params)[0].Interface()
 		}
 		if DEBUG_PARSING_MESSAGE {
 			fmt.Println("Paring global var: ", newVar.Name, " ==> ", valueMap[newVar.Name])
@@ -965,7 +965,7 @@ func plugValue(message string) (string, error) {
 
 // pre-process a message and put unbound variable to value map
 func preProcess(rawData string) {
-	regVar = regexp.MustCompile("{{.([a-zA-Z0-9]*)}}")
+	regVar = regexp.MustCompile("{{.([a-zA-Z0-9]_*)}}")
 	var processedData = rawData
 	listVar := regVar.FindAllStringSubmatch(rawData, -1)
 	for _, matchedValue := range listVar {
@@ -1009,8 +1009,21 @@ func fillSliceValueToMessage(rawMessage *interface{}) {
 				key, present := keyMap[strVar]
 
 				if present {
+					// this is to fill a byte value receive from server to the same var
 					if sliceValue, valuePresent := sliceMap[key]; valuePresent {
 						message.Field(i).Set(reflect.ValueOf(sliceValue))
+					}
+				} else {
+					// this is to fill a byte value from a function value to the same var
+					matchValue := regVar.FindStringSubmatch(strVar)
+					if (DEBUG_PARSING_MESSAGE) {
+						fmt.Println("Match value:", matchValue)
+					}
+					if (matchValue != nil) {
+						key = matchValue[1]	
+						if sliceValue, valuePresent := valueMap[key]; valuePresent {
+							message.Field(i).Set(reflect.ValueOf(sliceValue))
+						}						
 					}
 				}
 			}

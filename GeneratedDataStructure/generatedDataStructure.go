@@ -25,6 +25,8 @@ import (
 	
 	"xmltest/btalkTest/Discussion_S2C"
 	
+	"xmltest/btalkTest/FSSystem"
+	
 	"xmltest/btalkTest/Notif"
 	
 	"xmltest/btalkTest/TOKEN_S"
@@ -758,6 +760,66 @@ func init() {
 	
 	var aDiscussion_S2C_UserDiscussionList_DiscussionSimpleInfo Discussion_S2C.UserDiscussionList_DiscussionSimpleInfo
 	Map["Discussion_S2C_UserDiscussionList_DiscussionSimpleInfo"] = reflect.TypeOf(aDiscussion_S2C_UserDiscussionList_DiscussionSimpleInfo)
+	
+	var aFSSystem_BatchUploadRequestHeader FSSystem.BatchUploadRequestHeader
+	Map["FSSystem_BatchUploadRequestHeader"] = reflect.TypeOf(aFSSystem_BatchUploadRequestHeader)
+	
+	var aFSSystem_BatchUploadRequestHeaderAck FSSystem.BatchUploadRequestHeaderAck
+	Map["FSSystem_BatchUploadRequestHeaderAck"] = reflect.TypeOf(aFSSystem_BatchUploadRequestHeaderAck)
+	
+	var aFSSystem_BatchUploadRequestPart FSSystem.BatchUploadRequestPart
+	Map["FSSystem_BatchUploadRequestPart"] = reflect.TypeOf(aFSSystem_BatchUploadRequestPart)
+	
+	var aFSSystem_BatchUploadRequestPartAck FSSystem.BatchUploadRequestPartAck
+	Map["FSSystem_BatchUploadRequestPartAck"] = reflect.TypeOf(aFSSystem_BatchUploadRequestPartAck)
+	
+	var aFSSystem_FSGeneralError FSSystem.FSGeneralError
+	Map["FSSystem_FSGeneralError"] = reflect.TypeOf(aFSSystem_FSGeneralError)
+	
+	var aFSSystem_FileExistenceResult FSSystem.FileExistenceResult
+	Map["FSSystem_FileExistenceResult"] = reflect.TypeOf(aFSSystem_FileExistenceResult)
+	
+	var aFSSystem_FileRequest FSSystem.FileRequest
+	Map["FSSystem_FileRequest"] = reflect.TypeOf(aFSSystem_FileRequest)
+	
+	var aFSSystem_FileResponse FSSystem.FileResponse
+	Map["FSSystem_FileResponse"] = reflect.TypeOf(aFSSystem_FileResponse)
+	
+	var aFSSystem_ImageDownloadRequest FSSystem.ImageDownloadRequest
+	Map["FSSystem_ImageDownloadRequest"] = reflect.TypeOf(aFSSystem_ImageDownloadRequest)
+	
+	var aFSSystem_ImageDownloadResult FSSystem.ImageDownloadResult
+	Map["FSSystem_ImageDownloadResult"] = reflect.TypeOf(aFSSystem_ImageDownloadResult)
+	
+	var aFSSystem_ImageUploadRequest FSSystem.ImageUploadRequest
+	Map["FSSystem_ImageUploadRequest"] = reflect.TypeOf(aFSSystem_ImageUploadRequest)
+	
+	var aFSSystem_ImageUploadRequestHeader FSSystem.ImageUploadRequestHeader
+	Map["FSSystem_ImageUploadRequestHeader"] = reflect.TypeOf(aFSSystem_ImageUploadRequestHeader)
+	
+	var aFSSystem_ImageUploadRequestHeaderAck FSSystem.ImageUploadRequestHeaderAck
+	Map["FSSystem_ImageUploadRequestHeaderAck"] = reflect.TypeOf(aFSSystem_ImageUploadRequestHeaderAck)
+	
+	var aFSSystem_ImageUploadRequestPart FSSystem.ImageUploadRequestPart
+	Map["FSSystem_ImageUploadRequestPart"] = reflect.TypeOf(aFSSystem_ImageUploadRequestPart)
+	
+	var aFSSystem_ImageUploadRequestPartAck FSSystem.ImageUploadRequestPartAck
+	Map["FSSystem_ImageUploadRequestPartAck"] = reflect.TypeOf(aFSSystem_ImageUploadRequestPartAck)
+	
+	var aFSSystem_ImageUploadResult FSSystem.ImageUploadResult
+	Map["FSSystem_ImageUploadResult"] = reflect.TypeOf(aFSSystem_ImageUploadResult)
+	
+	var aFSSystem_MultiFileDataFormat FSSystem.MultiFileDataFormat
+	Map["FSSystem_MultiFileDataFormat"] = reflect.TypeOf(aFSSystem_MultiFileDataFormat)
+	
+	var aFSSystem_MultiFileDataItemFormat FSSystem.MultiFileDataItemFormat
+	Map["FSSystem_MultiFileDataItemFormat"] = reflect.TypeOf(aFSSystem_MultiFileDataItemFormat)
+	
+	var aFSSystem_Parameter FSSystem.Parameter
+	Map["FSSystem_Parameter"] = reflect.TypeOf(aFSSystem_Parameter)
+	
+	var aFSSystem_QueryFileExistence FSSystem.QueryFileExistence
+	Map["FSSystem_QueryFileExistence"] = reflect.TypeOf(aFSSystem_QueryFileExistence)
 	
 	var aNotif_MessageInfo Notif.MessageInfo
 	Map["Notif_MessageInfo"] = reflect.TypeOf(aNotif_MessageInfo)
