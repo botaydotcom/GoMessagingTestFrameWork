@@ -14,6 +14,8 @@ import (
 	"sync"
 	"log"
 	"regexp"
+    "net/http"
+    "encoding/json"
 )
 
 const (
@@ -39,6 +41,8 @@ var DEBUG_STEP bool = false
 
 var DEBUG_FAILURE bool = true
 
+var DEBUG_SERVER bool = false
+
 var timeOut int
 
 var flagMap map[string]bool
@@ -49,10 +53,13 @@ var arrivalRateInMillis float64
 var totalConcurrentConnection = 0
 
 type ClientResult struct {
+	TestName string
 	IsSuccessful bool  // success or not
 	ExecuteTime time.Duration
 	ResponseTime time.Duration
 	Reason error
+	NumRequest int
+	NumRealTimeRequest int
 }
 
 /*
@@ -71,11 +78,13 @@ type ClientResult struct {
 var resultChannel chan ClientResult
 var controlChannel chan int
 var finishChannel chan int
+var serverFin chan int
 var mutex *sync.Mutex
 var rate int
 var testDuration time.Duration
 
 var errorAggregation map[string] int
+var startServer bool
 
 func main() {
 	var inputDir string
@@ -85,6 +94,7 @@ func main() {
 	flag.IntVar(&rate, "rate", 5000, "The rate (number) of requests per minute")
 	flag.StringVar(&inputDir, "inputDir", "StressTestCase", "The input directory to be parsed")
 	flag.IntVar(&duration, "duration", 300, "The duration (s) of the test")
+	flag.BoolVar(&startServer, "server", false, "Start webserver to monitor or not?")
 	flag.Parse()
 	
 	arrivalRateInMillis = float64(rate) / (60.0 * 1000.0) // convert rate to rate in millisecond
@@ -103,13 +113,26 @@ func main() {
 	controlChannel = make(chan int, 1)
 	resultChannel = make(chan ClientResult, 1000)
 	finishChannel = make(chan int, 0)
+	serverChan = make(chan OutputData, 100)
+	serverFin = make(chan int, 0)
+	errorAggregation = make(map[string]int)
+	
+	StressTestEngine.SpecialChannel = make(chan int, 1000)
+
 	// spawn processing routing
 	go processingRoutine()
-	// wait duration
-
 	
-	errorAggregation = make(map[string]int)
+	if (startServer) {
+		go server()	
+	}
+
 	statisicRoutine()
+
+	if (startServer) {
+		// spawn server
+	
+		<- serverFin 
+	}
 }
 
 func readInputDir(inputDir string) {
@@ -162,12 +185,19 @@ func getRandomTestSuite() (StressTestEngine.TestSuite) {
 
 func processingRoutine() {
 	totalTest := 0
+	
 	startTime := time.Now()
+	previousTime := startTime
 	for {
 		elapsedTime := time.Since(startTime)
 		if (elapsedTime <= testDuration) {
 			nextTime := getNextArriveTimeInMillisecond(arrivalRateInMillis)
-			time.Sleep(nextTime)
+			nextSpawnTime := previousTime.Add(nextTime)
+			timeNow := time.Now()
+			if (nextSpawnTime.After(timeNow)) {
+				time.Sleep(nextSpawnTime.Sub(timeNow))
+			}
+			previousTime = nextSpawnTime
 			testSuite := getRandomTestSuite()
 			totalTest++
 			go startAClient(&testSuite, resultChannel)//put channel here)
@@ -202,12 +232,29 @@ func startAClient(testSuite *StressTestEngine.TestSuite, resultChannel chan Clie
 	duration := time.Since(startTestTime)
 	defaultDuration, _ := time.ParseDuration("0s")
 	result := ClientResult {
+		TestName: testSuite.TestSuiteName,
 		IsSuccessful: testSuiteResult.IsCorrect,
 		ExecuteTime: duration,
 		ResponseTime: defaultDuration,
 		Reason: testSuiteResult.Reason,
+		NumRequest: testSuiteResult.NumRequest,
 	}
-	result.ResponseTime, _ = time.ParseDuration(fmt.Sprintf("%dns", testSuiteResult.TimeTaken))
+
+	// average response time for one request for this client
+	averageResponse := testSuiteResult.TimeTaken / int64(testSuiteResult.NumRequest)
+	timeStr := fmt.Sprintf("%dns", averageResponse)
+	if averageResponse > 1e12 {
+		timeStr = fmt.Sprintf("%dms", averageResponse / 1e6)
+	} else if averageResponse > 1e9 {
+		timeStr = fmt.Sprintf("%dus", averageResponse / 1e3)
+	}
+	//fmt.Println(timeStr)
+	
+	var err error
+	result.ResponseTime, err = time.ParseDuration(timeStr)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 	if DEBUG_STEP  {
 		fmt.Println("FINISH A CLIENT RUNNING:", testSuite.TestSuiteName)
 	}
@@ -215,6 +262,8 @@ func startAClient(testSuite *StressTestEngine.TestSuite, resultChannel chan Clie
 }
 
 type AggregateResult struct {
+	NumRealTimeRequest int
+	NumRequest int
 	NumCorrect int
 	TotalFinished int
 	TotalExecuteTime time.Duration
@@ -228,7 +277,10 @@ type AggregateResult struct {
 	AverageSuccessResponseTime time.Duration
 }
 
+var mapUserName map[string] bool
+
 func statisicRoutine() {
+	mapUserName = make(map[string] bool)
 	if DEBUG_STEP  {
 		fmt.Println("START COLLECTING STATISTICS:")
 	}
@@ -240,6 +292,8 @@ func statisicRoutine() {
 	var totalNum int
 	defaultDuration, _ := time.ParseDuration("0s")
 	aggregateResult := AggregateResult {
+		NumRealTimeRequest: 0,
+		NumRequest: 0,
 		NumCorrect: 0, 
 		TotalFinished: 0,
 		TotalExecuteTime: defaultDuration,
@@ -259,8 +313,19 @@ func statisicRoutine() {
 				case totalNum = <- controlChannel:
 					fmt.Println("CLIENT WILL NOT BE SPAWNED ANY MORE!!! XXXXXXXXXXXXX")
 					finishSpawningClient = true
+				
+				case <- StressTestEngine.SpecialChannel:
+					// special channel is used for sending real-time update
+					/*if _, exist := mapUserName[info]; exist {
+						log.Fatal("Used user name!!!!!")
+						mapUserName[info] = true
+					}*/
+					aggregateResult.NumRealTimeRequest++					
+				
+
 				case clientResult := <- resultChannel:
 					//fmt.Println("RECEIVING RESULT SIGNAL")
+					//fmt.Println("RESPONSE TIME:", clientResult.ResponseTime)
 					numClientFinished++
 					mergeResult(clientResult, &aggregateResult)
 					if (finishSpawningClient) {
@@ -285,6 +350,8 @@ func statisicRoutine() {
 func mergeResult(clientResult ClientResult, 
 	aggregateResult *AggregateResult){
 	aggregateResult.TotalFinished++
+
+	aggregateResult.NumRequest += clientResult.NumRequest
 
 	aggregateResult.TotalExecuteTime = aggregateResult.TotalExecuteTime + clientResult.ExecuteTime
 	totalNanosecond := aggregateResult.TotalExecuteTime.Nanoseconds()
@@ -334,6 +401,8 @@ func mergeResult(clientResult ClientResult,
 			clientResult.Reason = errors.New(fullMessage)
 		}
 
+		clientResult.Reason = errors.New(fmt.Sprintf("%s-%s", clientResult.TestName, clientResult.Reason.Error()))
+
 		addErrorToTrack(clientResult.Reason)
 		if DEBUG_FAILURE {
 			fmt.Println("ERROR:", clientResult.Reason.Error())
@@ -354,54 +423,76 @@ func reportStatistic(totalConnection int, result AggregateResult) {
 	StressTestEngine.TimeEncodedPrintln("")
 	fmt.Println("NUMBER OF CONCURRENT CONNECTION:", totalConnection)
 	fmt.Printf("NUMBER OF FINISHED CLIENTS: %d\n", result.TotalFinished)
+	fmt.Printf("NUMBER OF REAL-TIME FINISHED REQUESTS: %d\n", result.NumRealTimeRequest)
+	fmt.Printf("NUMBER OF FINISHED REQUESTS: %d\n", result.NumRequest)
+	var totalTimeInMillis int
+	var averageTimeInMillis float64
+	var percentCorrect float64
 	if (result.TotalFinished != 0) {
-		percentCorrect := float64(result.NumCorrect) / float64(result.TotalFinished) * 100
+		percentCorrect = float64(result.NumCorrect) / float64(result.TotalFinished) * 100
 		fmt.Printf("NUMBER OF SUCCESSFUL CLIENTS: %d, ACCOUNT FOR: %3.2f %% \n", result.NumCorrect, percentCorrect)
-		totalTimeInMillis := int(result.TotalExecuteTime.Nanoseconds() / 1000000)
-		averageTimeInMillis := float64(result.TotalExecuteTime.Nanoseconds()) / 1000000 / float64(result.TotalFinished)
+		totalTimeInMillis = int(result.TotalExecuteTime.Nanoseconds() / 1000000)
+		averageTimeInMillis = float64(result.TotalExecuteTime.Nanoseconds()) / 1000000 / float64(result.TotalFinished)
+		fmt.Println("---------------------------------------")
 		fmt.Printf("TOTAL RUNNING TIME FOR ALL CLIENTS  : %d MILLISECONDS \n", totalTimeInMillis)
 		fmt.Printf("AVERAGE RUNNING TIME FOR ALL CLIENTS: %3.2f MILLISECONDS \n", averageTimeInMillis)
 		fmt.Println("---------------------------------------")
-		totalTimeInMillis = int(result.TotalSuccessExecuteTime.Nanoseconds() / 1000000)
-		averageTimeInMillis = float64(result.TotalSuccessExecuteTime.Nanoseconds()) / 1000000 / float64(result.NumCorrect)
+		
+		if (result.NumCorrect != 0) {
+			totalTimeInMillis = int(result.TotalSuccessExecuteTime.Nanoseconds() / 1000000)
+			averageTimeInMillis = float64(result.TotalSuccessExecuteTime.Nanoseconds()) / 1000000 / float64(result.NumCorrect)
+		} else {
+			totalTimeInMillis = 0
+			averageTimeInMillis = 0
+		}
 		fmt.Printf("TOTAL RUNNING TIME FOR ALL SUCCESSFUL CLIENTS  : %d MILLISECONDS \n", totalTimeInMillis)
 		fmt.Printf("AVERAGE RUNNING TIME FOR ALL SUCCESSFUL CLIENTS: %3.2f MILLISECONDS \n", averageTimeInMillis)
-
+		fmt.Println("---------------------------------------")
 		totalTimeInMillis = int(result.TotalResponseTime.Nanoseconds() / 1000000)
 		averageTimeInMillis = float64(result.TotalResponseTime.Nanoseconds()) / 1000000 / float64(result.TotalFinished)
 		fmt.Printf("TOTAL RESPONSE TIME FOR ALL CLIENTS  : %d MILLISECONDS \n", totalTimeInMillis)
 		fmt.Printf("AVERAGE RESPONSE TIME FOR ALL CLIENTS: %3.2f MILLISECONDS \n", averageTimeInMillis)
 		fmt.Println("---------------------------------------")
-		totalTimeInMillis = int(result.TotalSuccessResponseTime.Nanoseconds() / 1000000)
-		averageTimeInMillis = float64(result.TotalSuccessResponseTime.Nanoseconds()) / 1000000 / float64(result.NumCorrect)
+		
+		if (result.NumCorrect != 0) {
+			totalTimeInMillis = int(result.TotalSuccessResponseTime.Nanoseconds() / 1000000)
+			averageTimeInMillis = float64(result.TotalSuccessResponseTime.Nanoseconds()) / 1000000 / float64(result.NumCorrect)
+		} else {
+			totalTimeInMillis = 0
+			averageTimeInMillis = 0
+		}
 		fmt.Printf("TOTAL RESPONSE TIME FOR ALL SUCCESSFUL CLIENTS  : %d MILLISECONDS \n", totalTimeInMillis)
 		fmt.Printf("AVERAGE RESPONSE TIME FOR ALL SUCCESSFUL CLIENTS: %3.2f MILLISECONDS \n", averageTimeInMillis)
 	}
+	output := OutputData{
+		TotalAliveConnection: totalConcurrentConnection,
+		NumRealTimeRequest: result.NumRealTimeRequest,
+		TotalFinished: result.TotalFinished,
+		TotalSuccessful: result.NumCorrect,
+		PercentCorrect: percentCorrect,
+		AverageResponse: averageTimeInMillis,
+		ErrorList: errorAggregation,
+	}
 
+	if (startServer) {
+		if DEBUG_SERVER {
+			fmt.Println("Writing output to server")
+		}
+		serverChan <- output
+	}
+	
 
 	fmt.Println("-------------------------------------------------------------")
 }
 
 
+var serverChan chan OutputData
+
 func reportFinalStatisic(totalConnection int, result AggregateResult, errorAggregation map[string]int) {
 	
 	fmt.Println("-------------------------------------------------------------")
 	fmt.Println("SUMMARY:")
-	fmt.Println("NUMBER OF CONCURRENT CONNECTION:", totalConnection)
-	fmt.Printf("NUMBER OF FINISHED CLIENTS: %d\n", result.TotalFinished)
-	if (result.TotalFinished != 0) {
-	percentCorrect := float64(result.NumCorrect) / float64(result.TotalFinished) * 100
-	fmt.Printf("NUMBER OF SUCCESSFUL CLIENTS: %d, ACCOUNT FOR: %3.2f %% \n", result.NumCorrect, percentCorrect)
-		totalTimeInMillis := int(result.TotalExecuteTime.Nanoseconds() / 1000000)
-		averageTimeInMillis := float64(result.TotalExecuteTime.Nanoseconds()) / 1000000 / float64(result.TotalFinished)
-		fmt.Printf("TOTAL RUNNING TIME FOR ALL CLIENTS  : %d MILLISECONDS \n", totalTimeInMillis)
-		fmt.Printf("AVERAGE RUNNING TIME FOR ALL CLIENTS: %3.2f MILLISECONDS \n", averageTimeInMillis)
-		fmt.Println("---------------------------------------")
-		totalTimeInMillis = int(result.TotalSuccessExecuteTime.Nanoseconds() / 1000000)
-		averageTimeInMillis = float64(result.TotalSuccessExecuteTime.Nanoseconds()) / 1000000 / float64(result.NumCorrect)
-		fmt.Printf("TOTAL RUNNING TIME FOR ALL SUCCESSFUL CLIENTS  : %d MILLISECONDS \n", totalTimeInMillis)
-		fmt.Printf("AVERAGE RUNNING TIME FOR ALL SUCCESSFUL CLIENTS: %3.2f MILLISECONDS \n", averageTimeInMillis)
-	}
+	reportStatistic(totalConnection, result)
 
 	// report errors:
 	if result.NumCorrect < result.TotalFinished {
@@ -412,4 +503,53 @@ func reportFinalStatisic(totalConnection int, result AggregateResult, errorAggre
 		}
 	}
 	fmt.Println("-------------------------------------------------------------")
+}
+
+type OutputError struct {
+	Name string
+	Time int
+}
+
+type OutputData struct{
+	TotalAliveConnection int
+	TotalFinished int
+	TotalSuccessful int
+	PercentCorrect float64
+	AverageResponse float64
+	NumRealTimeRequest int
+	ErrorList map[string] int
+}
+
+func handler(w http.ResponseWriter, r *http.Request) {
+	if (DEBUG_SERVER) {
+		fmt.Println("GET A REQUEST")
+	}
+	result:= <- serverChan
+	//fmt.Println("GET A RESULT TO RESPONSE", result)
+	b, err := json.Marshal(result)
+	//fmt.Println(b)
+	if err != nil {
+	    log.Fatal("error:", err)
+	}
+    fmt.Fprint(w, string(b))
+}
+
+func viewHandler(w http.ResponseWriter, r *http.Request) {
+	if (DEBUG_SERVER) {
+		fmt.Println("SERVER RESULT PAGE - ", r.URL.Path[1:])
+	}
+	http.ServeFile(w,r, r.URL.Path[1:]) 
+}
+
+func server() {
+	if DEBUG_SERVER {
+		fmt.Println("PREPARE SERVER")
+	}
+    http.HandleFunc("/data/", handler)
+    http.HandleFunc("/", viewHandler)
+    if DEBUG_SERVER { 
+    	fmt.Println("SERVER STARTS RUNNING:")
+    }
+    http.ListenAndServe(":3000", nil)
+    serverFin <- 0
 }

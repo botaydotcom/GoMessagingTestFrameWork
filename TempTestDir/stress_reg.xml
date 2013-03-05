@@ -75,24 +75,7 @@
 					</Data>
 				</Message>
 
-				<Message type="Auth_C2S_HelloInfo" fromClient="true">
-					<Command>0x01</Command>
-					<Data>
-						<Auth_C2S_HelloInfo>
-							<ClientType>1</ClientType>
-							<Version>2</Version>
-						</Auth_C2S_HelloInfo>
-					</Data>
-				</Message>
-
-				<Message type="Auth_S2C_HelloInfoResult" fromClient="false" wait="2m">
-					<Command>0x01</Command>
-					<Data>
-						<Auth_S2C_HelloInfoResult>
-							<Token>hello</Token>
-						</Auth_S2C_HelloInfoResult>
-					</Data>
-				</Message>
+				
 			</MessageSequence>
 		</Test>
 	</Tests>

@@ -1,9 +1,9 @@
 <TestSuite>
-	<TestSuiteName>Registration</TestSuiteName>
+	<TestSuiteName>Login</TestSuiteName>
 	<TargetHost>203.117.155.188</TargetHost>
 	<TargetPort>9100</TargetPort>
 	<VarMap>
-		<Var name="email" isFunc="true">
+		<Var name="email" isFunc="true" sendBack="true">
 			<Value>Helper_GetNextUserEmail</Value>
 		</Var>
 		<Var name="name" isFunc="true">
@@ -49,7 +49,6 @@
 							<MyInfo>
 								<UserId>{{.var1}}</UserId>
 								<Name>{{.email}}</Name>
-								<NickName>{{.name}}</NickName>
 								<Gender>{{.gender}}</Gender>
 								<AvatarId>{{.avatar}}</AvatarId>
 							</MyInfo>

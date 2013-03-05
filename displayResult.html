@@ -1,0 +1,149 @@
+<html>
+<head>
+  <link href="css/examples.css" rel="stylesheet" type="text/css">
+  <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+  <script type="text/javascript" src="js/jquery.flot.js"></script>
+<script>
+  $(function (){
+  chart = {};
+  var totalPoints = 180;
+
+  function getData(data) {
+
+    if (data.length > totalPoints) {
+      data = data.slice(data.length - totalPoints);
+    }
+    var res = [];
+    for (var i = 0; i < data.length; ++i) {
+      res.push([i, data[i]])
+    }
+    //console.log(res);
+    return res;
+  }
+
+  function calculateAverageData(data, duration) {
+    var length = data.length;
+    if (length > duration) {
+      return data[length - 1] - data[length - 1-duration];
+    } else {
+      return data[length - 1];
+    }
+  }
+
+  var plot = $.plot("#placeholder", [ {label: "Total Concurrent", data:[]},
+                                      {label: "Total Finished", data:[]},
+                                      {label: "Total Successful", data:[]},
+                                      {label: "Total Request", data: [], yaxis: 4},
+                                      {label: "Requests per minute", 
+                                        data: [], yaxis: 4},
+                                      {label: "Percent Correct", data:[], yaxis: 3},
+                                      {label: "Average response time", data:[], yaxis:2} ], {
+    legend: {
+      show: true,
+      position: "ne"
+    },
+    lines: {
+        show: true
+      },
+    series: {
+      shadowSize: 0 // Drawing is faster without shadows
+    },
+    yaxes: [ 
+    {
+      min: 0,
+      max: 15000,
+      show: true
+    }, 
+    { 
+      position: "right", 
+      min: 0,
+      max:10000,
+      show: true } ,
+    {
+      min: 0,
+      max: 105,
+      show: true
+    },
+    {
+      min: 0,
+      max: 10000,
+      show: true
+    } 
+    ], 
+
+    xaxis: {
+      min: 0,
+      max: totalPoints,
+      show: true
+    }
+  });
+
+    
+  var concurrent=[], finished=[], successful = [], percent =[],averageResponse=[], numRequest=[], requestRate=[];
+
+  function updateChart(newData) {
+      var obj = JSON.parse(newData);
+      //data.addRow([newdata.TotalConnection, newdata.TotalAliveConnection, newdata.TotalFinished]);
+      //console.log(newData, newData.TotalConnection)
+      concurrent.push(obj["TotalAliveConnection"]);
+      finished.push(obj["TotalFinished"]);
+      successful.push(obj["TotalSuccessful"]);
+      percent.push(obj["PercentCorrect"]);
+      numRequest.push(obj["NumRealTimeRequest"]);
+
+      requestRate.push(calculateAverageData(numRequest, 60) / 60);
+      console.log(calculateAverageData(numRequest, 60) / 60);
+      
+      averageResponse.push(obj["AverageResponse"])
+      var res1 = {label: "Total Concurrent", data: getData(concurrent)};
+      var res2 = {label: "Total Finished", data: getData(finished)};
+      var res3 =  {label: "Total Successful", data: getData(successful)};
+      var res4 = {label: "Total Request", data: getData(numRequest), yaxis: 4};
+      var res5 = {label: "Requests per minute", data: getData(requestRate), yaxis: 4};
+      var res6 = {label: "Percent Correct", data: getData(percent), yaxis: 3};
+      var res7 = {label: "Average response time", data: getData(averageResponse), yaxis:2};
+      plot.setData([res1, res2, res3, res4, res5, res6, res7]);
+
+        // Since the axes don't change, we don't need to call plot.setupGrid()
+
+      plot.draw();
+      var keys = Object.keys(obj.ErrorList);
+      message = "";
+      for (var i = 0; i < keys.length; i++) {
+        var key = keys[i];
+        message = "<p>" + message + "OCCUR " + obj.ErrorList[key] + " - " + key + "</p>";
+      }
+      document.getElementById("errors").innerHTML=message;
+  }
+  
+  w=new Worker("js/drawchart.js");
+  w.onmessage = function(event) {
+    console.log("GETTING DATA NOW");
+    document.getElementById("result").innerHTML=event.data;
+    updateChart(event.data);
+  };
+});
+</script>
+</head>
+<body>
+  <div id="header">
+    <h2>Real-time updates</h2>
+  </div>
+
+  <div id="content">
+
+    <div class="demo-container">
+      <div id="placeholder" class="demo-placeholder"></div>
+    </div>
+
+    <p>You can update a chart periodically to get a real-time effect by using a timer to insert the new data in the plot and redraw it.</p>
+  </div>  
+  <div id="errors"></div>
+  <div id="result"></div>
+  <div id="content-1">
+    <div class="demo-container">
+      <div id="placeholder1" class="demo-placeholder"></div>
+    </div>
+  </div>
+</body>
+</html>

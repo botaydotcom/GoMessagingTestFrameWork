@@ -133,6 +133,7 @@ type Message struct {
 type Var struct {
 	Name   string `xml:"name,attr"`
 	IsFunc bool   `xml:"isFunc,attr"`
+	SendBack bool  `xml:"sendBack,attr"`
 	Value  string
 	Params []string
 }
@@ -169,8 +170,8 @@ type TestSuite struct {
 type TestResult struct {
 	IsCorrect bool
 	Reason    error
-
 	TimeTaken int64
+	NumRequest int
 }
 
 type TestCaseResult struct {
@@ -182,12 +183,6 @@ type TestCaseResult struct {
 type TestSuiteResult struct {
 	Skip            []bool
 	TestCaseResults []TestCaseResult
-}
-
-type CaseResult struct {
-	IsCorrect bool
-	Reason    error
-	TimeTaken int64
 }
 
 var hasPartial bool
@@ -216,10 +211,11 @@ type Data struct {
 	CurrentIgnoreMessages map[int]string
 	ForceCheckMap map[string]bool
 }
+var SpecialChannel chan int
 
 
 /******************* steps in test ****************************************/
-func ExecuteTestSuite(addr *net.TCPAddr, testSuite *TestSuite) (CaseResult){
+func ExecuteTestSuite(addr *net.TCPAddr, testSuite *TestSuite) (TestResult){
 	var data Data
 	data.KeyMap = make(map[string]string)
 	data.ValueMap = make(map[string]interface{})
@@ -236,16 +232,17 @@ func ExecuteTestSuite(addr *net.TCPAddr, testSuite *TestSuite) (CaseResult){
 	// parse test-suite varmap first
 	parseVarMap(testSuite.GlobalVarMap, &data)
 	readTimeOut = READ_PENDING_TIMEOUT
-	var result CaseResult 
+	var result TestResult 
 	result.IsCorrect = true
 	skipped := false
 	for i := range testSuite.ListTestInfos {
 		if !skipped && !testSuite.ListTestInfos[i].Skip {
 			testCaseResult := executeTestCase(addr, &(testSuite.ListTestInfos[i]), &(testSuite.ListTestCases[i]), &data)
+			result.TimeTaken = result.TimeTaken + testCaseResult.TimeTaken
+			result.NumRequest = result.NumRequest + testCaseResult.NumRequest
 			if !testCaseResult.IsCorrect {
 				result.IsCorrect = false
-				result.Reason = testCaseResult.Reason
-				result.TimeTaken = result.TimeTaken + testCaseResult.TimeTaken
+				result.Reason = errors.New(fmt.Sprintf("Case: %d-%s", i, testCaseResult.Reason.Error()))				
 				break
 			} 
 			
@@ -272,7 +269,10 @@ func executeTestCase(addr *net.TCPAddr, testInfo *TestInfo, testCase *TestCase, 
 func PerformTestCaseOnce(addr *net.TCPAddr, testCase *TestCase, data *Data) (TestResult){
 	var result = TestResult{
 		IsCorrect: true,
-		Reason:    nil}
+		Reason:    nil,
+		TimeTaken: 0,
+		NumRequest: 0,
+	}
 
 	var listConnection = make(map[int]*net.TCPConn)
 	var connectionState = make(map[int]bool)
@@ -280,6 +280,12 @@ func PerformTestCaseOnce(addr *net.TCPAddr, testCase *TestCase, data *Data) (Tes
 		connectionState[i] = false // all closed
 	}
 
+	var numRequest = 0
+	var totalSendTime, totalReceiveTime int64
+	totalSendTime = 0
+	totalReceiveTime = 0
+
+	beginTest := time.Now()
 	var totalTime int64 = 0
 	for i, message := range testCase.MessageSequence {
 		if (DEBUG_PARSING_MESSAGE) {
@@ -300,6 +306,7 @@ func PerformTestCaseOnce(addr *net.TCPAddr, testCase *TestCase, data *Data) (Tes
 		if isOpened, exist := connectionState[connectionId]; !exist || !isOpened {
 			//Connection does not exist or closed, create new connection for connection 
 			conn, err := net.DialTCP("tcp", nil, addr)
+			conn.SetLinger(0)
 			if err != nil {
 				result.IsCorrect = false
 				result.Reason = err
@@ -335,6 +342,7 @@ func PerformTestCaseOnce(addr *net.TCPAddr, testCase *TestCase, data *Data) (Tes
 			sendMsg(useBase, byte(baseCmd), byte(comm), protoParsedMessage, conn)
 			end := time.Now()
 			totalTime += end.Sub(begin).Nanoseconds()
+			totalSendTime += begin.Sub(beginTest).Nanoseconds()
 		} else { // message from server, so read from buffer now
 			// try to see if we can ignore this message
 			if !useBase {
@@ -354,7 +362,10 @@ func PerformTestCaseOnce(addr *net.TCPAddr, testCase *TestCase, data *Data) (Tes
 				begin := time.Now()
 				replyMessage, err = readReply(useBase, byte(baseCmd), byte(comm), protoParsedMessage, conn, data)
 				end := time.Now()
+				totalReceiveTime += end.Sub(beginTest).Nanoseconds()
 				totalTime += end.Sub(begin).Nanoseconds()
+				numRequest ++
+				SpecialChannel <- 1 // 1 more request
 				if DEBUG_READING_MESSAGE {
 					TimeEncodedPrintln("reply message, err: ", replyMessage, err)
 				}
@@ -401,7 +412,9 @@ func PerformTestCaseOnce(addr *net.TCPAddr, testCase *TestCase, data *Data) (Tes
 		}
 	}
 
+	totalTime = totalReceiveTime - totalSendTime
 	result.TimeTaken = totalTime
+	result.NumRequest = numRequest
 
 	cleanUpAfterTest(addr, testCase, data)
 
@@ -647,6 +660,13 @@ func compareGetValueForPointer(expPtr reflect.Value, repPtr reflect.Value,
 		}
 		if _, present = data.ForceCheckMap[domainName]; !present {
 			return true, nil
+		} else {
+			if repPtr.Elem().IsValid() {
+				repValue := reflect.Indirect(reflect.ValueOf(repPtr.Interface()))
+				return false, errors.New(fmt.Sprint("Reply has value while expect no value for forced check field", domainName, " ", repValue.Interface()))
+			} else {
+				return true, nil
+			}
 		}
 	}
 	expValue := reflect.Indirect(reflect.ValueOf(expPtr.Interface()))
@@ -884,6 +904,10 @@ func parseVarMap(varMap []Var, data *Data) {
 		if DEBUG_PARSING_MESSAGE {
 			fmt.Println("Paring global var: ", newVar.Name, " ==> ", data.ValueMap[newVar.Name])
 		}
+		/*if (newVar.SendBack) {
+			result := fmt.Sprint(data.ValueMap[newVar.Name])
+			SpecialChannel <- result
+		}*/
 	}
 	if DEBUG_PARSING_MESSAGE {
 		fmt.Println("Global var map:", data.ValueMap)
@@ -1362,6 +1386,7 @@ func cleanUpAfterTest(addr *net.TCPAddr, testCase *TestCase, data *Data) {
 		if _, exist := listConnection[connectionId]; !exist {
 			// Connection does not exist or closed, create new connection for connection
 			conn, err := net.DialTCP("tcp", nil, addr)
+			conn.SetLinger(0)
 			if err != nil {
 				TimeEncodedPrintln("Cannot establish connection for clean up:", connectionId)
 				continue
