@@ -140,7 +140,7 @@ func main() {
 	serverFin = make(chan int, 0)
 	errorAggregation = make(map[string]int)
 
-	StressTestEngine.SpecialChannel = make(chan int, 1000000)
+	StressTestEngine.SpecialChannel = make(chan int, 50000)
 
 	// spawn processing routing
 	go processingRoutine()
@@ -351,38 +351,38 @@ func statisicRoutine() {
 	go timerChannel(timer, "1s")
 
 	var tick int
-	for (!finishSpawningClient) || (!finishExecuteClient) {
-		stop := false
-		for !stop {
-			select {
-			case <-timer:
-				durationFromBegining := time.Now().Sub(startTestTime)
-				tick = int(durationFromBegining.Seconds())
-				fmt.Printf("Tick: %ds\n", tick)
-				reportStatistic(totalConcurrentConnection, aggregateResult, tick)
-			case totalNum = <-controlChannel:
-				fmt.Println("CLIENT WILL NOT BE SPAWNED ANY MORE!!! XXXXXXXXXXXXX")
-				finishSpawningClient = true
+	for {
+		select {
+		case <-timer:
+			durationFromBegining := time.Now().Sub(startTestTime)
+			tick = int(durationFromBegining.Seconds())
+			fmt.Printf("Tick: %ds\n", tick)
+			reportStatistic(totalConcurrentConnection, aggregateResult, tick)
+		case totalNum = <-controlChannel:
+			fmt.Println("CLIENT WILL NOT BE SPAWNED ANY MORE!!! XXXXXXXXXXXXX")
+			finishSpawningClient = true
 
-			case <-StressTestEngine.SpecialChannel:
-				// special channel is used for sending real-time update
-				/*if _, exist := mapUserName[info]; exist {
-					log.Fatal("Used user name!!!!!")
-					mapUserName[info] = true
-				}*/
-				aggregateResult.NumRealTimeRequest++
+		case <-StressTestEngine.SpecialChannel:
+			// special channel is used for sending real-time update
+			/*if _, exist := mapUserName[info]; exist {
+				log.Fatal("Used user name!!!!!")
+				mapUserName[info] = true
+			}*/
+			aggregateResult.NumRealTimeRequest++
 
-			case clientResult := <-resultChannel:
-				//fmt.Println("RECEIVING RESULT SIGNAL")
-				//fmt.Println("RESPONSE TIME:", clientResult.ResponseTime)
-				numClientFinished++
-				mergeResult(clientResult, &aggregateResult)
-				if finishSpawningClient {
-					if numClientFinished == totalNum {
-						finishExecuteClient = true
-					}
+		case clientResult := <-resultChannel:
+			//fmt.Println("RECEIVING RESULT SIGNAL")
+			//fmt.Println("RESPONSE TIME:", clientResult.ResponseTime)
+			numClientFinished++
+			mergeResult(clientResult, &aggregateResult)
+			if finishSpawningClient {
+				if numClientFinished == totalNum {
+					finishExecuteClient = true
 				}
 			}
+		}
+		if finishSpawningClient && finishExecuteClient {
+			break
 		}
 	}
 
