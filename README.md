@@ -40,13 +40,15 @@ The test suite consists of the following sections:
 
 1. Global var map:
 ---------------------
--Purpose:
-In the test suite, sometimes some values can be repeated a lot of times. We want to introduce variables to help here:
--How to add:
-To specify the list of varible to be used in the whole test suite, and specify their values:
-Adding section <VarMap></VarMap>
+#- Purpose:
 
-For example:
+In the test suite, sometimes some values can be repeated a lot of times. We want to introduce variables to help here:
+
+#- How to add:
+
+To specify the list of varible to be used in the whole test suite, and specify their values, add section <VarMap></VarMap>
+
+#For example:
 
 	<VarMap>
 		<!-- to define a var name: email1, with value: indotest15@test.com-->
@@ -57,18 +59,26 @@ For example:
 	</VarMap>
 
 Inside the test suite, to use a variable, use the notion: {{.varname}} 
+
 If varname is a variable that's not defined in varmap, it value will be undertood as: "waiting to be filled". 
+
 The first time this variable getting assigned (by value returned from server), it will carry that value from then on.
+
 This can be used in case such as: Getting user id from server (assign to an unbound variable), then later on use that variable to use that userid value.
 
 2. Ignore list:
 ---------------------
--Purpose:
+#- Purpose:
+
 For some test cases, some type of messages can be missing / arrive out of order (especially for buddy online messages).
+
 Sometimes, this is "expected", and some unimportant messages, such as buddy_online can be ignored when that problem happens. We can add them to "ignore list"
--How to add:
+
+#- How to add:
+
 Adding the section (<IgnoreMessage></IgnoreMessage>):
-For example:
+
+#For example:
 
 	<IgnoreMessages>
 		<!-- to ignore buddy online message (base command = 0x00, command = 115 = 0x73)-->
@@ -81,8 +91,10 @@ For example:
 	</IgnoreMessages>
 
 This is the global ignore messages list (to be ignored for any test in the whole test suite).
+
 This section can also be added to each of the <TestInfo> tag to specify additional ignore message types for the specific test:
-For example:
+
+#For example:
 
 	<ListTest>
 		<TestInfo skip="false" repeat="1">
@@ -101,9 +113,12 @@ For example:
 
 3. Test info section:
 ---------------------
--Purpose:
+#- Purpose:
+
 To specify information specify to each test case (name/ how many times to run / skipped or not...)
--How to add:
+
+#- How to add:
+
 Add the tag: 
 
 	<ListTest>
@@ -116,9 +131,10 @@ For each <TestInfo> tag:
 		<Name>A and B log in, A sends a message to B (both online), B receives</Name>
 		(optional <IgnoreMessages></IgnoreMessages> as specified in the previous section)
 	</TestInfo>
-skip : whether to skip the test case.
-repeat : how many times to repeat the test case. Currently, all of the iterations will be run CONCURRENTLY.
-<Name></Name>: name of the test case
+
+###skip : whether to skip the test case.
+###repeat : how many times to repeat the test case. Currently, all of the iterations will be run CONCURRENTLY.
+###<Name></Name>: name of the test case
 
 For example:
 
@@ -131,9 +147,12 @@ For example:
 	
 4. Test messages section:
 ---------------------
--Purpose:
+#- Purpose:
+
 To specify the lists of messages to be sent / received for each test case.
--How to add:
+
+#- How to add:
+
 Add the tag: 
 
 	<Tests>
@@ -141,6 +160,7 @@ Add the tag:
 	</Tests>
 
 Each <Test> tag specifies the message sequence and clean up message sequence for a test case. Repeat for each test case in the suite.
+
 Inside <Test> tag:
 
 	<Test>
@@ -170,10 +190,10 @@ Each <Message> is specified as:
 		</Data>
 	</Message>
 
-type: type of the messages, in format: (packagename_typename)
-fromClient: true/false
-connection: multiple connections can be opened during a test (for example: A and B both logs in). This field specify the connections that the message belongs to.
-close: true/false. true to force close this connection (logout) after finish processing this message.
+###type: type of the messages, in format: (packagename_typename)
+###fromClient: true/false
+###connection: multiple connections can be opened during a test (for example: A and B both logs in). This field specify the connections that the message belongs to.
+###close: true/false. true to force close this connection (logout) after finish processing this message.
 
 	<BaseCommand>(base command of message)</BaseCommand> (optional)
 	<Command>(command of the message)</Command>
@@ -181,9 +201,9 @@ close: true/false. true to force close this connection (logout) after finish pro
 		(raw data of the message in xml format)
 	</Data>
 
-Note: inside the raw data section, we can use {{.varname}} notion to use variable (as specified in the var map section)
+#Note: inside the raw data section, we can use {{.varname}} notion to use variable (as specified in the var map section)
 
-For example:
+#For example:
 
 	<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
 		<Command>0x02</Command>
@@ -199,12 +219,14 @@ For example:
 	</Message>
 
 The <CleanUpSequence> tag specifies the clean up message sequence for a test case. This is a sequence of messages to open up (logins) some connections for some users, and let the program perform message clean up (ack all pending offline message) for that connection.
+
 This part is retained for historical reason, but its function is better replace by using cleanUpEngine.
 
 Clean up:
 ========================
 Clean up failed test:
 The autotest program will run non-stop, repeating all test cases in the testing directory. If it encounters any error in any test case, it will stop at the test case.
+
 In that case, some connections will be left open, and some states on server can be changed. To clean up this so that we can re-run the test freshly, run: 
 
 "cleanUpEngine.exe (-in cleanUpFileName)"
