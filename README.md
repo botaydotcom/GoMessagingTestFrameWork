@@ -15,7 +15,6 @@ Test suite description:
 Structure of a test suite:
 ---------------------
 
----------------------
 	<TestSuite>
 		<TestSuiteName>Chat</TestSuiteName>
 		<TargetHost>203.117.155.188</TargetHost>
@@ -49,7 +48,6 @@ Adding section <VarMap></VarMap>
 
 For example:
 
----------------------
 	<VarMap>
 		<!-- to define a var name: email1, with value: indotest15@test.com-->
 		<Var name="email1">
@@ -72,7 +70,6 @@ Sometimes, this is "expected", and some unimportant messages, such as buddy_onli
 Adding the section (<IgnoreMessage></IgnoreMessage>):
 For example:
 
----------------------
 	<IgnoreMessages>
 		<!-- to ignore buddy online message (base command = 0x00, command = 115 = 0x73)-->
 		<Message>
@@ -87,7 +84,6 @@ This is the global ignore messages list (to be ignored for any test in the whole
 This section can also be added to each of the <TestInfo> tag to specify additional ignore message types for the specific test:
 For example:
 
----------------------
 	<ListTest>
 		<TestInfo skip="false" repeat="1">
 			<Name>A and B log in, A sends a message to B (both online), B receives</Name>
@@ -110,14 +106,12 @@ To specify information specify to each test case (name/ how many times to run / 
 -How to add:
 Add the tag: 
 
----------------------
 	<ListTest>
 		(repeated <TestInfo></TestInfo> for each of the test case)
 	</ListTest>
 
 For each <TestInfo> tag:
 
----------------------
 	<TestInfo skip="false" repeat="1">
 		<Name>A and B log in, A sends a message to B (both online), B receives</Name>
 		(optional <IgnoreMessages></IgnoreMessages> as specified in the previous section)
@@ -128,7 +122,6 @@ repeat : how many times to repeat the test case. Currently, all of the iteration
 
 For example:
 
----------------------
 	<ListTest>
 		<!--specify a test case that will not be skipped, is run only once, with a specific name-->
 		<TestInfo skip="false" repeat="1">
@@ -143,15 +136,13 @@ To specify the lists of messages to be sent / received for each test case.
 -How to add:
 Add the tag: 
 
----------------------
-<Tests>
-	(repeated <Test></Tests> for each of the test case)
-</Tests>
+	<Tests>
+		(repeated <Test></Tests> for each of the test case)
+	</Tests>
 
 Each <Test> tag specifies the message sequence and clean up message sequence for a test case. Repeat for each test case in the suite.
 Inside <Test> tag:
 
----------------------
 	<Test>
 		<MessageSequence>
 			(repeated <Message></Message>)
@@ -164,7 +155,6 @@ Inside <Test> tag:
 The <MessageSequence> tag specifies the message sequence for a test case. 
 Inside <MessageSequence> tag:
 
----------------------
 	<MessageSequence>
 		(repeated <Message></Message> for each message of the sequence)
 	</MessageSequence>
@@ -172,7 +162,6 @@ Inside <MessageSequence> tag:
 Inside the <MessageSequence>, the messages are specified in order. All the messages will be sent to / received from server one after another in order.
 Each <Message> is specified as:
 
----------------------
 	<Message type="Auth_C2S_LoginInfo" fromClient="true" connection="1" close="true">		
 		<BaseCommand>(basecommand)</BaseCommand> (optional)
 		<Command>(command)</Command>
@@ -186,7 +175,6 @@ fromClient: true/false
 connection: multiple connections can be opened during a test (for example: A and B both logs in). This field specify the connections that the message belongs to.
 close: true/false. true to force close this connection (logout) after finish processing this message.
 
----------------------
 	<BaseCommand>(base command of message)</BaseCommand> (optional)
 	<Command>(command of the message)</Command>
 	<Data>
@@ -197,7 +185,6 @@ Note: inside the raw data section, we can use {{.varname}} notion to use variabl
 
 For example:
 
----------------------
 	<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
 		<Command>0x02</Command>
 		<Data>
