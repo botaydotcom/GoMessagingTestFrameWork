@@ -1,0 +1,1203 @@
+<TestSuite>
+	<TestSuiteName>Login</TestSuiteName>
+	<TargetHost>203.117.155.188</TargetHost>
+	<TargetPort>9100</TargetPort>
+	<VarMap>
+		<Var name="email" isFunc="true" sendBack="true">
+			<Value>Helper_GetNextUserEmail</Value>
+		</Var>
+		<Var name="name" isFunc="true">
+			<Value>Helper_GetCurrentUserName</Value>
+		</Var>
+		<Var name="password">
+			<Value>e10adc3949ba59abbe56e057f20f883e</Value>
+		</Var>	
+		<Var name="avatar">
+			<Value>429933266161898</Value>
+		</Var>
+		<Var name="gender">
+			<Value>0</Value>
+		</Var>
+	</VarMap>
+
+	<ListTest>
+		<TestInfo skip="false" repeat="1">
+			<Name>Login test</Name>
+		</TestInfo>
+	</ListTest>
+
+	<Tests>
+		<Test>
+			<MessageSequence>
+				<Message type="Auth_C2S_LoginInfo" fromClient="true">		
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email}}</Name>
+							<Password>{{.password}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>10200</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.var1}}</UserId>
+								<Name>{{.email}}</Name>
+								<Gender>{{.gender}}</Gender>
+								<AvatarId>{{.avatar}}</AvatarId>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+
+				
+			</MessageSequence>
+		</Test>
+	</Tests>
+</TestSuite>

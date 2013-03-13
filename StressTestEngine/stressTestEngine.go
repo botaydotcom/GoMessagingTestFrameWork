@@ -79,11 +79,12 @@ const (
 )
 
 const (
-	READ_PENDING_TIMEOUT = "10s"
 	CONN_NUM             = 3
 )
 
 // DEBUG FLAGS
+var READ_PENDING_TIMEOUT string = "10s"
+
 var DEBUG_COMPARE_POINTER bool = false
 var DEBUG_COMPARE_SLICE bool = false
 var DEBUG_COMPARE_STRUCT bool = false
@@ -92,7 +93,7 @@ var DEBUG_CLEANING_UP bool = false
 var DEBUG_PARSING_MESSAGE bool = false
 
 var DEBUG_SENDING_MESSAGE bool = false
-var DEBUG_READING_MESSAGE bool = false
+var DEBUG_READING_MESSAGE bool = true
 var DEBUG_IGNORING_MESSAGE bool = false
 
 var DEBUG_WAITING bool = false
@@ -213,7 +214,6 @@ type Data struct {
 }
 var SpecialChannel chan int
 
-
 /******************* steps in test ****************************************/
 func ExecuteTestSuite(addr *net.TCPAddr, testSuite *TestSuite) (TestResult){
 	var data Data
@@ -253,11 +253,6 @@ func ExecuteTestSuite(addr *net.TCPAddr, testSuite *TestSuite) (TestResult){
 }
 
 func executeTestCase(addr *net.TCPAddr, testInfo *TestInfo, testCase *TestCase, data *Data) TestResult {
-	//fmt.Println("-----------")
-	//fmt.Println(testInfo.Name)
-	//fmt.Println("-----------")
-	//TimeEncodedPrintln("Running test case:", testInfo.Repeat, "times")
-
 	prepareCurrentIgnoreMap(testInfo.IgnoreMessages, data)
 
 	result := PerformTestCaseOnce(addr, testCase, data)	
@@ -305,8 +300,9 @@ func PerformTestCaseOnce(addr *net.TCPAddr, testCase *TestCase, data *Data) (Tes
 		connectionId := message.Connection
 		if isOpened, exist := connectionState[connectionId]; !exist || !isOpened {
 			//Connection does not exist or closed, create new connection for connection 
+			
 			conn, err := net.DialTCP("tcp", nil, addr)
-			conn.SetLinger(0)
+			//conn.SetLinger(0)
 			if err != nil {
 				result.IsCorrect = false
 				result.Reason = err
@@ -326,7 +322,9 @@ func PerformTestCaseOnce(addr *net.TCPAddr, testCase *TestCase, data *Data) (Tes
 				if DEBUG_WAITING {
 					TimeEncodedPrintln("WAITING FOR: ", duration)
 				}
+				//var beforeConnection time.Time = time.Now()
 				time.Sleep(duration)
+				//fmt.Println("SLEEP TIME:", time.Since(beforeConnection).Seconds())
 			}
 		} else {
 			if DEBUG_WAITING {

@@ -1,6 +1,6 @@
   function updateChartData() {
     setInterval(function() {
-      var url = "http://localhost:3000/data/";
+      var url = "/data/";
         xmlhttp=new XMLHttpRequest();
        
         xmlhttp.onreadystatechange=function()
