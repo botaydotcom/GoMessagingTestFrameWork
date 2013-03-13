@@ -16,19 +16,19 @@ Structure of a test suite:
 ---------------------
 
 ---------------------
-<TestSuite>
-	<TestSuiteName>Chat</TestSuiteName>
-	<TargetHost>203.117.155.188</TargetHost>
-	<TargetPort>9100</TargetPort>
-	<VarMap>(repeated <Var></Var>)</VarMap> (optional)
-	<IgnoreMessages>(repeated <Message></Message>)</IgnoreMessages> (optional, global ignore message list)
-	<ListTest>
-		(repeated <TestInfo></TestInfo>)
-	</ListTest>
-	<Tests>
-		(repeated <Test></Test>)
-	</Tests>
-</TestSuite>
+	<TestSuite>
+		<TestSuiteName>Chat</TestSuiteName>
+		<TargetHost>203.117.155.188</TargetHost>
+		<TargetPort>9100</TargetPort>
+		<VarMap>(repeated <Var></Var>)</VarMap> (optional)
+		<IgnoreMessages>(repeated <Message></Message>)</IgnoreMessages> (optional, global ignore message list)
+		<ListTest>
+			(repeated <TestInfo></TestInfo>)
+		</ListTest>
+		<Tests>
+			(repeated <Test></Test>)
+		</Tests>
+	</TestSuite>
 
 The test suite consists of the following sections:
 
