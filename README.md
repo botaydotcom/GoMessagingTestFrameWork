@@ -31,12 +31,14 @@ Test suite description:
 The test suite consists of the following sections:
 
 0. Test suite info:
+---------------------
 	<TestSuiteName>Chat</TestSuiteName>
 	<TargetHost>203.117.155.188</TargetHost>
 	<TargetPort>9100</TargetPort>
 
 
-1. Global var map: 
+1. Global var map:
+---------------------
 -Purpose:
 In the test suite, sometimes some values can be repeated a lot of times. We want to introduce variables to help here:
 -How to add:
@@ -58,6 +60,7 @@ The first time this variable getting assigned (by value returned from server), i
 This can be used in case such as: Getting user id from server (assign to an unbound variable), then later on use that variable to use that userid value.
 
 2. Ignore list:
+---------------------
 -Purpose:
 For some test cases, some type of messages can be missing / arrive out of order (especially for buddy online messages).
 Sometimes, this is "expected", and some unimportant messages, such as buddy_online can be ignored when that problem happens. We can add them to "ignore list"
@@ -93,6 +96,7 @@ For example:
 </ListTest>
 
 3. Test info section:
+---------------------
 -Purpose:
 To specify information specify to each test case (name/ how many times to run / skipped or not...)
 -How to add:
@@ -119,6 +123,7 @@ For example:
 </ListTest>
 	
 4. Test messages section:
+---------------------
 -Purpose:
 To specify the lists of messages to be sent / received for each test case.
 -How to add:
