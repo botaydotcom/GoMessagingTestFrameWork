@@ -193,33 +193,41 @@
       document.getElementById("result").innerHTML=event.data;
       updateChart(event.data);
     };
+
+    $("#resetButton").click(function(event) {
+      for (var i = 0; i < dataSeries.length; i++) {
+        dataSeries[i].data = [];
+      }
+      replot();
+    });
   });
 </script>
 </head>
 <body>
   <div id="header">
-    <h2>Real-time updates</h2>
-    <p> Parameters: </p>
+    <h3>Real-time updates</h2>
+    <p> Parameters: 
     <div id="info"></div>
+    <input type="button" value="Reset" id="resetButton"/>
+    </p>
     <form id="form1">
-    <input type="checkbox" id="cb0" checked="true">Total Connection
-    <input type="checkbox" id="cb1" checked="true">Total Concurrent
-    <input type="checkbox" id="cb2" checked="true">Total Finished
-    <input type="checkbox" id="cb3" checked="true">Total Successful
-    <input type="checkbox" id="cb4" checked="true">Percent Correct
-    <input type="checkbox" id="cb5" checked="true">Total Request
-    <p></p>
-    <input type="checkbox" id="cb6" checked="true">Connection per minute
-    <input type="checkbox" id="cb7" checked="true">Finished per minute
-    <input type="checkbox" id="cb8" checked="true">Successful per minute
-    <input type="checkbox" id="cb9" checked="true">Requests per second
-    <input type="checkbox" id="cb10" checked="true">Average Response Time
-  </form>
+      <input type="checkbox" id="cb0" checked="true">Total Connection
+      <input type="checkbox" id="cb1" checked="true">Total Concurrent
+      <input type="checkbox" id="cb2" checked="true">Total Finished
+      <input type="checkbox" id="cb3" checked="true">Total Successful    
+      <input type="checkbox" id="cb5" checked="true">Total Request
+      <p></p>
+      <input type="checkbox" id="cb6" checked="true">Connection per minute
+      <input type="checkbox" id="cb7" checked="true">Finished per minute
+      <input type="checkbox" id="cb8" checked="true">Successful per minute
+      <input type="checkbox" id="cb9" checked="true">Requests per second
+      <p></p>
+      <input type="checkbox" id="cb4" checked="true">Percent Correct
+      <input type="checkbox" id="cb10" checked="true">Average Response Time
+    </form>
   </div>
 
   <div id="content">
-
-    <p>Average values:</p>
     <div class="demo-container">
       <div id="placeholder" class="demo-placeholder"></div>
     </div>
