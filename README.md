@@ -14,6 +14,8 @@ Test suite description:
 
 Structure of a test suite:
 ---------------------
+
+---------------------
 <TestSuite>
 	<TestSuiteName>Chat</TestSuiteName>
 	<TargetHost>203.117.155.188</TargetHost>
