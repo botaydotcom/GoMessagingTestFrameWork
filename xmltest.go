@@ -109,8 +109,8 @@ type UnboundVarDesc struct {
 
 type ByteEncodedVarDesc struct {
 	MessageType string `xml:"type,attr"`
-	Field   	string
-	Data 		InnerXml
+	Field       string
+	Data        InnerXml
 }
 
 /*
@@ -118,6 +118,7 @@ type ByteEncodedVarDesc struct {
 	PartialField int    `xml:"partialField,attr"`
 */
 type Message struct {
+	Repeat      int    `xml:"repeat,attr"`
 	MessageType string `xml:"type,attr"`
 	FromClient  bool   `xml:"fromClient,attr"`
 	Connection  int    `xml:"connection,attr"`
@@ -125,8 +126,8 @@ type Message struct {
 	Wait        string `xml:"wait,attr"`
 	BaseCommand string
 	Command     string
-	Unbound     []UnboundVarDesc `xml:"Unbound>Var"`
-	ForceCheck  []string 	 `xml:"ForceCheck>FieldName"`
+	Unbound     []UnboundVarDesc     `xml:"Unbound>Var"`
+	ForceCheck  []string             `xml:"ForceCheck>FieldName"`
 	ByteEncoded []ByteEncodedVarDesc `xml:"ByteEncoded>Var"`
 	Data        InnerXml
 }
@@ -136,6 +137,11 @@ type Var struct {
 	IsFunc bool   `xml:"isFunc,attr"`
 	Value  string
 	Params []string
+}
+
+type SpecialMessage struct {
+	Name            string    `xml:"name,attr"`
+	MessageSequence []Message `xml:"MessageSequence>Message"`
 }
 
 type IgnoreMessageSignature struct {
@@ -158,13 +164,14 @@ type TestCase struct {
 }
 
 type TestSuite struct {
-	TestSuiteName        string
-	TargetHost           string
-	TargetPort           string
-	GlobalIgnoreMessages []IgnoreMessageSignature `xml:"IgnoreMessages>Message"`
-	GlobalVarMap         []Var                    `xml:"VarMap>Var"`
-	ListTestInfos        []TestInfo               `xml:"ListTest>TestInfo"`
-	ListTestCases        []TestCase               `xml:"Tests>Test"`
+	TestSuiteName          string
+	TargetHost             string
+	TargetPort             string
+	GlobalSpecicalMessages []SpecialMessage         `xml:"MessageMap>Var"`
+	GlobalIgnoreMessages   []IgnoreMessageSignature `xml:"IgnoreMessages>Message"`
+	GlobalVarMap           []Var                    `xml:"VarMap>Var"`
+	ListTestInfos          []TestInfo               `xml:"ListTest>TestInfo"`
+	ListTestCases          []TestCase               `xml:"Tests>Test"`
 }
 
 type TestResult struct {
@@ -184,7 +191,7 @@ type TestSuiteResult struct {
 	TestCaseResults []TestCaseResult
 }
 
-
+var specialMessageMap map[string]SpecialMessage
 var forceCheckMap map[string]bool
 
 var keyMap map[string]string
@@ -243,6 +250,7 @@ func main() {
 	sliceKeyMap = make(map[string]string)
 	sliceMap = make(map[string]interface{})
 	globalIgnoreMessages = make(map[int]string)
+	specialMessageMap = make(map[string]SpecialMessage)
 	readTimeOut = READ_PENDING_TIMEOUT
 
 	ts, err := readXmlInput(inputFile)
@@ -263,6 +271,12 @@ func executeTestSuite(testSuite *TestSuite) {
 	if err != nil {
 		timeEncodedPrintln("Cannot resolve address")
 		log.Fatal("Cannot resolve address")
+	}
+
+	// parse global special messages
+	parseGlobalSpecialMessages(testSuite.GlobalSpecicalMessages)
+	for i, _ := range testSuite.ListTestCases {
+		augmentTestCaseWithSpecialMessages(&testSuite.ListTestCases[i])
 	}
 
 	// parse global ignore messages
@@ -410,7 +424,7 @@ func performTestCaseOnce(addr *net.TCPAddr, testCase *TestCase, resultChan chan 
 
 				// mark force check map for this message
 				prepareForceCheckMap(message.ForceCheck)
-				
+
 				if comparedResult, err := compareGetValueForProtoMessage(protoParsedMessage, *replyMessage); comparedResult {
 					// CORRECT Reply message.
 				} else {
@@ -677,7 +691,7 @@ func compareGetValueForPointer(expPtr reflect.Value, repPtr reflect.Value,
 	}
 
 	// if pointer of expected value is null, just dont compare, except when it's force check
-	if !expPtr.Elem().IsValid(){
+	if !expPtr.Elem().IsValid() {
 		if DEBUG_COMPARE_POINTER {
 			fmt.Println("No expected value, check force check for:", domainName, "forceCheckMap:", forceCheckMap)
 		}
@@ -905,14 +919,53 @@ func compareGetValueForProtoMessage(protoExp proto.Message, protoRep proto.Messa
 }
 
 /************************* Parse message ****************************/
+func augmentTestCaseWithSpecialMessages(testCase *TestCase) {
+	if DEBUG_PARSING_MESSAGE {
+		fmt.Println("AUGMENT TEST CASE MESSAGE SEQUENCE WITH SPECIAL MESSAGES")
+	}
+	messageSequences := testCase.MessageSequence
+	augmentedMessageSequence := make([]Message, 0)
+	for _, message := range messageSequences {
+		messageType := message.MessageType
+		if specialMessage, exist := specialMessageMap[messageType]; exist {
+			repeat := message.Repeat
+			if repeat == 0 {
+				repeat = 1
+			}
+			for i := 0; i < repeat; i++ {
+				augmentedMessageSequence = append(augmentedMessageSequence, specialMessage.MessageSequence...)
+			}
+		} else {
+			augmentedMessageSequence = append(augmentedMessageSequence, message)
+		}
+	}
+	testCase.MessageSequence = augmentedMessageSequence
+	for _, message := range testCase.MessageSequence {
+		if DEBUG_PARSING_MESSAGE {
+			fmt.Println(message.MessageType)
+		}
+	}
+}
+
+func parseGlobalSpecialMessages(specialMessages []SpecialMessage) {
+	for _, specialMessage := range specialMessages {
+		messageName := specialMessage.Name
+		specialMessageMap[messageName] = specialMessage
+	}
+	if DEBUG_PARSING_MESSAGE {
+		fmt.Println("SPECIAL MESSAGE MAP:")
+		fmt.Println(specialMessageMap)
+	}
+}
+
 // parse varMap from input and put value to the value map
 func parseVarMap(varMap []Var) {
 	for _, newVar := range varMap {
 		if !newVar.IsFunc {
 			valueMap[newVar.Name] = newVar.Value
 		} else {
-			params:= make([]reflect.Value, 0)
-			for _, value:= range newVar.Params {
+			params := make([]reflect.Value, 0)
+			for _, value := range newVar.Params {
 				params = append(params, reflect.ValueOf(value))
 			}
 			valueMap[newVar.Name] = magicCallFunc(newVar.Value, params)[0].Interface()
@@ -970,10 +1023,10 @@ func plugValueForVar(message string, varName string, value interface{}) string {
 	if kind == reflect.Slice {
 		// dont plug value here	
 	} else {
-		if (DEBUG_PARSING_MESSAGE) {
+		if DEBUG_PARSING_MESSAGE {
 			fmt.Println("plug value to var:", varName, "-", value)
 		}
-	
+
 		reg, _ := regexp.Compile("{{." + varName + "}}")
 		valueToReplace = fmt.Sprintf("%v", reflect.Indirect(reflect.ValueOf(value)).Interface())
 		message = reg.ReplaceAllString(message, valueToReplace)
@@ -1019,10 +1072,10 @@ func preProcess(rawData string) {
 }
 
 func fillSliceValueToMessage(rawMessage *interface{}) {
-	if (DEBUG_PARSING_MESSAGE) {
+	if DEBUG_PARSING_MESSAGE {
 		fmt.Println("fill slice to message:", rawMessage)
 	}
-	
+
 	protoMsg := (*rawMessage).(proto.Message)
 	message := reflect.ValueOf(protoMsg).Elem()
 
@@ -1031,14 +1084,14 @@ func fillSliceValueToMessage(rawMessage *interface{}) {
 		if expStructField.Kind() == reflect.Slice {
 			strVar := ""
 			byteArray, canConvert := expStructField.Interface().([]byte)
-	
+
 			if canConvert {
 				strVar = string(byteArray)
-				if (DEBUG_PARSING_MESSAGE) {
+				if DEBUG_PARSING_MESSAGE {
 					fmt.Println("Field", i, "is a slice. String Value current = \n", strVar)
 				}
 				// if the expected field is a variable field that's not bound, bind the value of the key now
-				key, present := keyMap[strVar]			
+				key, present := keyMap[strVar]
 				if present {
 					// this is to fill a byte value receive from server to the same var
 					if sliceValue, valuePresent := sliceMap[key]; valuePresent {
@@ -1047,28 +1100,26 @@ func fillSliceValueToMessage(rawMessage *interface{}) {
 				} else {
 					// this is to fill a byte value from a function value to the same var
 					matchValue := regVar.FindStringSubmatch(strVar)
-					if (DEBUG_PARSING_MESSAGE) {
+					if DEBUG_PARSING_MESSAGE {
 						fmt.Println("Match value:", matchValue)
 					}
-					if (matchValue != nil) {
-						key = matchValue[1]	
+					if matchValue != nil {
+						key = matchValue[1]
 						if sliceValue, valuePresent := valueMap[key]; valuePresent {
 							message.Field(i).Set(reflect.ValueOf(sliceValue))
-						}						
+						}
 					}
 				}
-			} 
-		} 
+			}
+		}
 	}
 
 }
 
-
-
 /**************Try to fill in byte-encoded value*****/
 
 func visitPointerPluginByteEncoded(refPtrMessage *reflect.Value, value reflect.Value,
-	domainName string, expectedDomainName string) (bool, error){
+	domainName string, expectedDomainName string) (bool, error) {
 	if DEBUG_PARSING_MESSAGE {
 		fmt.Println("Try to fill byte-encoded value to pointer:")
 		fmt.Println("Domain name:", domainName)
@@ -1077,24 +1128,23 @@ func visitPointerPluginByteEncoded(refPtrMessage *reflect.Value, value reflect.V
 	ptrMessage := *refPtrMessage
 
 	message := reflect.Indirect(ptrMessage)
-	if (domainName == expectedDomainName) {
+	if domainName == expectedDomainName {
 		message.Set(value)
 		return true, nil
 	} else {
 		if message.Kind() == reflect.Struct {
 			return visitStructPluginByteEncoded(&message, value, domainName, expectedDomainName)
-		} 
+		}
 	}
 	return false, nil
 }
 
 func visitSlicePluginByteEncoded(refSliceMessage *reflect.Value, value reflect.Value,
-	domainName string, expectedDomainName string) (bool, error){
+	domainName string, expectedDomainName string) (bool, error) {
 	if DEBUG_PARSING_MESSAGE {
 		fmt.Println("Try to fill in byte encoded value to slice")
 		fmt.Println("Domain name:", domainName)
 	}
-
 
 	stop := false
 	var err error
@@ -1102,7 +1152,7 @@ func visitSlicePluginByteEncoded(refSliceMessage *reflect.Value, value reflect.V
 	sliceMessage := *refSliceMessage
 	for index := 0; index < sliceMessage.Len(); index++ {
 		currentDomainName := fmt.Sprintf("%s[%d]", domainName, index)
-		field := sliceMessage.Index(index)		
+		field := sliceMessage.Index(index)
 
 		if field.Kind() == reflect.Ptr {
 			stop, err = visitPointerPluginByteEncoded(&field,
@@ -1111,19 +1161,19 @@ func visitSlicePluginByteEncoded(refSliceMessage *reflect.Value, value reflect.V
 			stop, err = visitStructPluginByteEncoded(&field,
 				value, currentDomainName, expectedDomainName)
 		} else {
-			if (currentDomainName == expectedDomainName) {
+			if currentDomainName == expectedDomainName {
 				sliceMessage.Field(index).Set(value)
 				return true, nil
 			} else if field.Kind() == reflect.Slice {
 				stop, err = visitSlicePluginByteEncoded(&field,
-				value, currentDomainName, expectedDomainName)
-			} 
+					value, currentDomainName, expectedDomainName)
+			}
 		}
-		if (stop) {
+		if stop {
 			break
 		}
 	}
-		
+
 	return stop, err
 }
 
@@ -1150,21 +1200,20 @@ func visitStructPluginByteEncoded(refStructMessage *reflect.Value, value reflect
 			stop, err = visitStructPluginByteEncoded(&field,
 				value, currentDomainName, expectedDomainName)
 		} else {
-			if (currentDomainName == expectedDomainName) {
+			if currentDomainName == expectedDomainName {
 				structMessage.Field(i).Set(value)
 				return true, nil
 			} else if field.Kind() == reflect.Slice {
 				stop, err = visitSlicePluginByteEncoded(&field,
-				value, currentDomainName, expectedDomainName)
-			} 
+					value, currentDomainName, expectedDomainName)
+			}
 		}
-		if (stop) {
+		if stop {
 			return stop, err
 		}
 	}
 	return stop, err
 }
-
 
 // parse a message from message sequence
 // return: message / command / use base command? / base command / error
@@ -1184,11 +1233,11 @@ func parseAMessage(v Message) (interface{}, int, bool, int, error) {
 	message := magicVarFunc(v.MessageType)
 	err = xml.Unmarshal([]byte(addedXmlMessage), message)
 
-	if (len(v.ByteEncoded) != 0) {
+	if len(v.ByteEncoded) != 0 {
 		for _, byteEncoded := range v.ByteEncoded {
 			preProcess(byteEncoded.Data.Xml)
 			addedXmlMessage, err := plugValue(byteEncoded.Data.Xml)
-			if DEBUG_PARSING_MESSAGE {				
+			if DEBUG_PARSING_MESSAGE {
 				fmt.Println("Byte encoded message: ", addedXmlMessage)
 			}
 			if err != nil {
@@ -1245,9 +1294,9 @@ func parseAMessage(v Message) (interface{}, int, bool, int, error) {
 /************************* Pointer value helper functions *************************/
 // call a function with a specific name 
 func magicCallFunc(typeName string, in []reflect.Value) []reflect.Value {
-	if (DEBUG_CALLING_FUNC) {
+	if DEBUG_CALLING_FUNC {
 		fmt.Println("Calling func:", typeName)
-		for i, x:= range in {
+		for i, x := range in {
 			fmt.Println("Argument:", i, "is:", x)
 		}
 	}

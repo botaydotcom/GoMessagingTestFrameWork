@@ -100,7 +100,7 @@ func parseProtobufFile(inputFilePath string, importPath string) FileDataType {
 	data.Types = make(map[string]DataType)
 
 	for typeName, objType := range parsedFile.Scope.Objects {
-		if objType.Kind == ast.Fun && (strings.ToUpper(typeName[:1]) == typeName[:1]){
+		if objType.Kind == ast.Fun && (strings.ToUpper(typeName[:1]) == typeName[:1]) {
 			key := data.PackageName + "_" + typeName
 			fmt.Println(key)
 			newType := DataType{TypeName: typeName, PackageName: data.PackageName}

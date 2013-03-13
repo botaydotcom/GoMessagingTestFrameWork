@@ -92,7 +92,7 @@ func main() {
 
 	iteration := 0
 	for {
-		if (iteration == numIteration) {
+		if iteration == numIteration {
 			break
 		}
 

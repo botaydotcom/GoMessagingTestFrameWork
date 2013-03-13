@@ -118,6 +118,7 @@ type ByteEncodedVarDesc struct {
 	PartialField int    `xml:"partialField,attr"`
 */
 type Message struct {
+	Repeat      int    `xml:"repeat,attr"`
 	MessageType string `xml:"type,attr"`
 	FromClient  bool   `xml:"fromClient,attr"`
 	Connection  int    `xml:"connection,attr"`
@@ -137,6 +138,11 @@ type Var struct {
 	SendBack bool  `xml:"sendBack,attr"`
 	Value  string
 	Params []string
+}
+
+type SpecialMessage struct {
+	Name            string    `xml:"name,attr"`
+	MessageSequence []Message `xml:"MessageSequence>Message"`
 }
 
 type IgnoreMessageSignature struct {
@@ -162,6 +168,7 @@ type TestSuite struct {
 	TestSuiteName        string
 	TargetHost           string
 	TargetPort           string
+	GlobalSpecicalMessages []SpecialMessage         `xml:"MessageMap>Var"`
 	GlobalIgnoreMessages []IgnoreMessageSignature `xml:"IgnoreMessages>Message"`
 	GlobalVarMap         []Var                    `xml:"VarMap>Var"`
 	ListTestInfos        []TestInfo               `xml:"ListTest>TestInfo"`
@@ -211,6 +218,7 @@ type Data struct {
 	GlobalIgnoreMessages map[int]string
 	CurrentIgnoreMessages map[int]string
 	ForceCheckMap map[string]bool
+	SpecialMessageMap map[string]SpecialMessage
 }
 var SpecialChannel chan int
 
@@ -224,7 +232,13 @@ func ExecuteTestSuite(addr *net.TCPAddr, testSuite *TestSuite) (TestResult){
 	data.SliceMap = make(map[string]interface{})
 
 	data.GlobalIgnoreMessages = make(map[int] string)
+	data.SpecialMessageMap = make(map[string]SpecialMessage)
 
+	// parse global special messages
+	parseGlobalSpecialMessages(testSuite.GlobalSpecicalMessages, &data)
+	for i, _ := range testSuite.ListTestCases {
+		augmentTestCaseWithSpecialMessages(&testSuite.ListTestCases[i], &data)
+	}
 
 	// parse global ignore messages
 	parseGlobalIgnoreMessages(testSuite.GlobalIgnoreMessages, &data)
@@ -887,6 +901,46 @@ func compareGetValueForProtoMessage(protoExp proto.Message, protoRep proto.Messa
 }
 
 /************************* Parse message ****************************/
+func augmentTestCaseWithSpecialMessages(testCase *TestCase, data *Data) {
+	if DEBUG_PARSING_MESSAGE {
+		fmt.Println("AUGMENT TEST CASE MESSAGE SEQUENCE WITH SPECIAL MESSAGES")
+	}
+	messageSequences := testCase.MessageSequence
+	augmentedMessageSequence := make([]Message, 0)
+	for _, message := range messageSequences {
+		messageType := message.MessageType
+		if specialMessage, exist := data.SpecialMessageMap[messageType]; exist {
+			repeat := message.Repeat
+			if repeat == 0 {
+				repeat = 1
+			}
+			for i := 0; i < repeat; i++ {
+				augmentedMessageSequence = append(augmentedMessageSequence, specialMessage.MessageSequence...)
+			}
+		} else {
+			augmentedMessageSequence = append(augmentedMessageSequence, message)
+		}
+	}
+	testCase.MessageSequence = augmentedMessageSequence
+	for _, message := range testCase.MessageSequence {
+		if DEBUG_PARSING_MESSAGE {
+			fmt.Println(message.MessageType)
+		}
+	}
+}
+
+func parseGlobalSpecialMessages(specialMessages []SpecialMessage, data *Data) {
+	for _, specialMessage := range specialMessages {
+		messageName := specialMessage.Name
+		data.SpecialMessageMap[messageName] = specialMessage
+	}
+	if DEBUG_PARSING_MESSAGE {
+		fmt.Println("SPECIAL MESSAGE MAP:")
+		fmt.Println(data.SpecialMessageMap)
+	}
+}
+
+
 // parse varMap from input and put value to the value map
 func parseVarMap(varMap []Var, data *Data) {
 	for _, newVar := range varMap {

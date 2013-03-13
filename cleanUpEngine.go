@@ -56,7 +56,7 @@ const (
 	C2S_RequestCircles_CMD = 0x16
 	C2S_RemoveCircle_CMD   = 0x15
 
-	C2S_RequestBoundAccount_CMD = 0x42
+	C2S_RequestBoundAccount_CMD  = 0x42
 	C2S_RequestUnBindAccount_CMD = 0x43
 )
 
@@ -82,7 +82,7 @@ const (
 	S2C_CirclesResponse_CMD = 0x0A
 
 	S2C_BoundedAccountsResponse_CMD = 0x42
-	S2C_AccoundUnBindResponse_CMD = 0x43
+	S2C_AccoundUnBindResponse_CMD   = 0x43
 
 	DISCUSSION_PACKET_BASE_COMMAND = 0xA0
 	DailyLifeRequest_MAINCMD       = 0xA1
@@ -313,7 +313,7 @@ func removeAllBoundAccountsForAllUsers(listConnection map[int]*net.TCPConn) {
 			structValue := reflect.Indirect(reflect.ValueOf(queryBoundAccountMessage))
 			requestId := (magicCallFunc("Helper_RequestId", nil)[0])
 			structValue.FieldByName("RequestId").Set(reflect.ValueOf([]byte(requestId.String())))
-			
+
 			protoMessage := queryBoundAccountMessage.(proto.Message)
 			sendMsg(false, 0,
 				C2S_RequestBoundAccount_CMD, protoMessage, conn)
