@@ -7,7 +7,8 @@ A Test framework for Btalk test server
 Running Test:
 ========================
 To run test:
-"autoTest.exe (-inputDir inputDir) (-timeOut timeOutForReadOperation)"
+
+	"autoTest.exe (-inputDir inputDir) (-timeOut timeOutForReadOperation)"
 
 Test suite description:
 ========================
@@ -104,7 +105,7 @@ This is the global ignore messages list (to be ignored for any test in the whole
 ---------------------
 #####- Purpose:
 To specify information specify to each test case (name/ how many times to run / skipped or not...)
-#- How to add:
+#####- How to add:
 Add the tag: 
 
 	<ListTest>
@@ -122,7 +123,7 @@ For each <TestInfo> tag:
 ######repeat : how many times to repeat the test case. Currently, all of the iterations will be run CONCURRENTLY.
 
 	<Name></Name>
-name of the test case
+######name of the test case
 
 #####For example:
 
