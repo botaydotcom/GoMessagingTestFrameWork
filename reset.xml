@@ -1,0 +1,5 @@
+<TestSuite>
+	<TargetHost>203.117.155.188</TargetHost>
+	<TargetPort>9100</TargetPort>
+	<UserId>123123123</UserId>
+</TestSuite>

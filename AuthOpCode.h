@@ -94,6 +94,7 @@ namespace AUTHC2SNS
             ChangePassword_CMD = 0x09,
 			RequestUserPluginNotificationInfo_CMD = 0x0a,
             ChangePluginNotification_CMD = 0x0b,
+			DeleteAccount_CMD = 0x0c,
 
             DeviceTokenSubmit_CMD = 0x90,
 			DeviceTokenRemove_CMD = 0x91,

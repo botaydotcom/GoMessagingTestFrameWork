@@ -140,3 +140,8 @@ message MonitorPoll
     required int32 type = 2;
     optional bytes parameter = 3;
 }
+message DeleteAccount
+{
+    required int32 userid = 1;
+}
+

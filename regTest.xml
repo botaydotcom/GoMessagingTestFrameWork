@@ -4,11 +4,11 @@
 	<TargetPort>9100</TargetPort>
 	<VarMap>
 		<Var name="email">
-			<Value>indotest18@test.com</Value>
+			<Value>test_indotest18@test.com</Value>
 		</Var>		
 		<Var name="name">
-			<Value>indotest18</Value>
-		</Var>			
+			<Value>test_indotest18</Value>
+		</Var>
 		<Var name="avatar">
 			<Value>429933266161898</Value>
 		</Var>
@@ -18,40 +18,30 @@
 		<Var name="password">
 			<Value>e10adc3949ba59abbe56e057f20f883e</Value>
 		</Var>
+		<Var name="email1">
+			<Value>indotest18@test.com</Value>
+		</Var>		
+		<Var name="name1">
+			<Value>indotest18</Value>
+		</Var>
 	</VarMap>
 
 	<ListTest>
 		<TestInfo skip="false" repeat="1">
-			<Name>Hello test</Name>
+			<Name>Registration test</Name>
 		</TestInfo>
 		<TestInfo skip="false" repeat="1">
-			<Name>Registration test</Name>
+			<Name>A adds B as buddy</Name>
+		</TestInfo>
+		<TestInfo skip="false" repeat="1">
+			<Name>A deletes his account</Name>
+		</TestInfo>
+		<TestInfo skip="false" repeat="1">
+			<Name>B checks and does not see A as buddy</Name>
 		</TestInfo>
 	</ListTest>
 
 	<Tests>
-		<Test>
-			<MessageSequence>
-				<Message type="Auth_C2S_HelloInfo" fromClient="true">
-					<Command>0x01</Command>
-					<Data>
-						<Auth_C2S_HelloInfo>
-							<ClientType>1</ClientType>
-							<Version>2</Version>
-						</Auth_C2S_HelloInfo>
-					</Data>
-				</Message>
-				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
-					<Command>0x01</Command>
-					<Data>
-						<Auth_S2C_HelloInfoResult>
-							<Token>hello</Token>
-						</Auth_S2C_HelloInfoResult>
-					</Data>
-				</Message>
-			</MessageSequence>
-		</Test>
-
 		<Test>
 			<MessageSequence>
 				<Message type="Auth_C2S_RegAccount" fromClient="true">

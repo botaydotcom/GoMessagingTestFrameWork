@@ -23,7 +23,7 @@
 	<MessageMap>
 		<Var name="SpecialMessage0">
 			<MessageSequence>
-				<Message type="Auth_C2S_LoginInfo" fromClient="true">
+				<Message type="Auth_C2S_LoginInfo" fromClient="true" wait="1s">
 				<Command>0x02</Command>
 					<Data>
 						<Auth_C2S_LoginInfo>

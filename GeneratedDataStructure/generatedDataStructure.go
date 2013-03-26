@@ -353,6 +353,9 @@ func init() {
 	var aAuth_C2S_CreateChannelRequest Auth_C2S.CreateChannelRequest
 	Map["Auth_C2S_CreateChannelRequest"] = reflect.TypeOf(aAuth_C2S_CreateChannelRequest)
 	
+	var aAuth_C2S_DeleteAccount Auth_C2S.DeleteAccount
+	Map["Auth_C2S_DeleteAccount"] = reflect.TypeOf(aAuth_C2S_DeleteAccount)
+	
 	var aAuth_C2S_FillFinishReg Auth_C2S.FillFinishReg
 	Map["Auth_C2S_FillFinishReg"] = reflect.TypeOf(aAuth_C2S_FillFinishReg)
 	

@@ -713,6 +713,22 @@ func (this *MonitorPoll) GetParameter() []byte {
 	return nil
 }
 
+type DeleteAccount struct {
+	Userid           *int32 `protobuf:"varint,1,req,name=userid" json:"userid,omitempty"`
+	XXX_unrecognized []byte `json:"-"`
+}
+
+func (this *DeleteAccount) Reset()         { *this = DeleteAccount{} }
+func (this *DeleteAccount) String() string { return proto.CompactTextString(this) }
+func (*DeleteAccount) ProtoMessage()       {}
+
+func (this *DeleteAccount) GetUserid() int32 {
+	if this != nil && this.Userid != nil {
+		return *this.Userid
+	}
+	return 0
+}
+
 func init() {
 	proto.RegisterEnum("Auth.C2S.RequestChannelList_RequestChannelType", RequestChannelList_RequestChannelType_name, RequestChannelList_RequestChannelType_value)
 }
