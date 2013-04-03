@@ -20,9 +20,10 @@ const (
 var counter int64
 var counterTs int64
 
-func RequestId() (string) {
+func RequestId() (string) {	
 	counter += 1
 	result := time.Now().Unix() << 16 + counter
+	fmt.Println("GETTING NEW REQUEST ID - COUNTER: ", counter, " RESULT: ", result)
 	return fmt.Sprintf("%v", result)	
 }
 

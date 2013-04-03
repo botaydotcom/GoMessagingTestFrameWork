@@ -1,0 +1,48 @@
+<TestSuite>
+	<TestSuiteName>First test suite</TestSuiteName>
+	<TestName>First test</TestName>
+	<TargetHost>203.117.155.188</TargetHost>
+	<TargetPort>9100</TargetPort>
+	<TimesToTest>1</TimesToTest>
+	<InputData>
+		<Message type="HelloInfo">
+			<Command>0x01</Command>
+			<Data>
+				<HelloInfo>
+					<ClientType>1</ClientType>
+					<Version>1</Version>
+				</HelloInfo>
+			</Data>
+		</Message>
+		
+		<Message type="LoginInfo">		
+			<Command>0x02</Command>
+			<Data>
+				<LoginInfo>
+					<Name>	</Name>
+					<Passworld>e10adc3949ba59abbe56e057f20f883e</Passworld>
+					<ClientType>1</ClientType>
+					<MachineId>ddd</MachineId>
+					<SoftwareVersion>1</SoftwareVersion>
+				</LoginInfo>
+			</Data>
+		</Message>
+	</InputData>
+	<OutputData>
+		<Message type="HelloInfoResult">
+			<Command>0x01</Command>
+			<Data>
+				<HelloInfoResult>
+					<Token>hello</Token>
+				</HelloInfoResult>
+			</Data>
+		</Message>
+		<Message type="LoginUserInfo">
+			<Command>0x02</Command>
+			<Data>
+				<LoginInfoResult>
+				</LoginInfoResult>
+			</Data>
+		</Message>
+	</OutputData>
+</TestSuite>

@@ -173,6 +173,9 @@ Each <Message> is specified as:
 	<Message type="Auth_C2S_LoginInfo" fromClient="true" connection="1" close="true">		
 		<BaseCommand>(basecommand)</BaseCommand> (optional)
 		<Command>(command)</Command>
+		<ForceCheck>
+			<FieldName>(field name specified in domain format)</FieldName>
+		</ForceCheck>(optional)
 		<Data>
 			(raw data in xml format of the message)
 		</Data>
@@ -188,6 +191,45 @@ Each <Message> is specified as:
 	<Data>
 		(raw data of the message in xml format)
 	</Data>
+
+######ForceCheck: normally, for a message from server, the test framework only checks for value of the field that exists in the specification of the expected message, i.e: if the field is not specified in the expected message, the field is ignored. For instance: if a message can optionally have a field named: gender, but in the expected message specification, we leave out this field, this field is not checked in the message returned from server. This is used to ignore trivia fields that are not important.
+However, sometime, this behaviour is not desired, especially when there's an array that we need to make sure it's empty. To force the test framework to check for a field even though it's not specified (= need to be empty), we can include the flag: ForceCheck in format:
+	
+	<ForceCheck>
+		<FieldName>(field name specified in domain format)</FieldName> (repeated)
+	</ForceCheck>
+
+Repeated <FieldName> specifies the name of the fields that need to be checked. 
+
+Domain format: is a special format to specify a field inside a message. The field name always starts with a ".". After that, the name of the fields (include nested field) that lead to the specified field is concatenated, separated by "."
+
+For example: In a message with structure:
+
+	<A>
+		<B>
+			<C>
+			</C>
+		</B>
+	</A>
+
+to specify field C, the domain name for C is:
+".B.C" (A is the message name, which can be ignored). The domain name for B is ".B".
+
+######ByteEncoded:
+In some message, a field could be the value of a wholly byte-encoded message. For example: In the binding account message, the field OAuthRawInfo is encoded in this manner. 
+In this case, we cannot use a helper function to byte-encode the message and inject the value to the field. The reason is because after being byte-encoded, the resulted data may contain special character that are not understood by the XML parser. In this case, we need to use ByteEncoded field:
+
+	<ByteEncoded>
+		<Var type="Auth_C2S_OAuthRawInfo" >
+			<Field>.OAuthInfo</Field>
+			<Data>
+				(a message description here)
+			</Data>
+		</Var> (repeated Var for multiple byte-encoded message)
+	</ByteEncoded>
+
+Each byte-encoded message specification starts with tags Var. The Type field refers to the raw message type that will be byte-encoded. The Field tag contains a value written in domain-name format (mentioned above) that specifies the field in the following message that this byte-encoded message will be injected into. The Data tag contains the specification for the message itself. Format of the message is just like any other message.
+
 
 #####Note: 
 Inside the raw data section, we can use {{.varname}} notion to use variable (as specified in the var map section)
@@ -221,3 +263,36 @@ In that case, some connections will be left open, and some states on server can 
 	"cleanUpEngine.exe (-in cleanUpFileName)"
 
 The cleanUpFile has the CleanUpSequence, with the same meaning as the CleanUpSequence mentioned bove.
+
+List of files in this directory:
+========================
+#####Folders: 
+All folders with single .pb.go files are the protobuf messages (in Go)
+Opcode folder: file that specifies operation code for the messages
+proto files: original proto specification files.
+
+js: folder that contains javascript and css file for the displayResult.html page (display a monitoring page for stresstest)
+IndividualCases: individual test specification, can be used for feature test.
+Mics go files: some miscellaneous source files.
+Documentation: documentation.
+
+#####Feature test: 
+xmltest.go : standard feature test (that runs single test case). Default test file is test.xml. For more option refer to documentation.
+cleanUp.go : standard clean up program. Refer to documentation for more information.
+generateMapCode.go : generate a map of protobuf messages that can be used to create protobuf message dynamically.
+generateMapFuncCode.go : generate a map of helper functions that can used in the test specification. The helper function are defined in the file helper.func.go in folder Helper.
+
+#####Auto test:
+autoTest.go : autotest program (runs multiple test cases, continuously). By default, autotest program will run all cases that are stored in folder TestCase.
+Refer to documentation for more information.
+TestCase: folder that contains xml file (test specifications) that can be used for autoTest engine.
+TestEngine: autoTest engine.
+
+#####Stress test:
+stressTest.go : standard stresstest program. (spawning multiple go routines to stress test server using a set of specifications).
+
+StressTestCase: folder that contains a set of test specifications that are used in the stressTest engine.
+StressTestEngine* : different stress test engine. Refer to stressTest.go for more information
+
+
+

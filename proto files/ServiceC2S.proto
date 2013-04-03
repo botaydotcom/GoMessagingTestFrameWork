@@ -1,0 +1,67 @@
+package Service.C2S;
+
+// from service client to API server
+message Login
+{
+    required string name = 1;
+    required string token = 2;
+	required int32  version = 3;
+}
+
+message Chat
+{
+	required int32 UserId = 1;
+	required int64 MsgId = 2;
+	optional string MetaTag = 3;
+	required string Message = 4;
+}
+
+message MultiChat
+{
+	repeated int32 UserIds = 1;
+	required int64 MsgId = 2;
+	optional string MetaTag = 3;
+	required string Message = 4;
+}
+
+message AddResult
+{
+	required int32 FromId = 1;
+	required int64 RequestId = 2;
+	optional int32 Action = 3;  // not set or 0: Agree; 1: reject
+}
+
+message RemoveResult
+{
+	required int32 FromId = 1;
+	optional int32 ErrorCode = 2;
+	optional int64 RequestId = 3;
+}
+
+// to be compatible with Auth.Buddy.C2S.RequestUserInfo
+message RequestUserInfo
+{
+	optional int32 UserId = 2;
+	optional int64 RequestId = 3;
+}
+
+// from mobile client
+message AddRequest
+{
+    required string ServiceName = 1;
+	required int64  RequestId   = 2;
+	optional string Message     = 3;
+	optional int32  Language    = 4;
+}
+
+message RemoveRequest
+{
+	required int32 ServiceId = 1;
+	optional int64 RequestId = 2;
+}
+
+message MyServicesQuery
+{
+    optional int64 RequestId = 1;
+	optional int32 Version   = 2;
+}

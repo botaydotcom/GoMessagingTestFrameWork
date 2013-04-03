@@ -29,6 +29,10 @@ import (
 	
 	"xmltest/btalkTest/Notif"
 	
+	"xmltest/btalkTest/Service_C2S"
+	
+	"xmltest/btalkTest/Service_S2C"
+	
 	"xmltest/btalkTest/TOKEN_S"
 	
 )
@@ -841,6 +845,66 @@ func init() {
 	
 	var aNotif_OperationState Notif.OperationState
 	Map["Notif_OperationState"] = reflect.TypeOf(aNotif_OperationState)
+	
+	var aService_C2S_AddRequest Service_C2S.AddRequest
+	Map["Service_C2S_AddRequest"] = reflect.TypeOf(aService_C2S_AddRequest)
+	
+	var aService_C2S_AddResult Service_C2S.AddResult
+	Map["Service_C2S_AddResult"] = reflect.TypeOf(aService_C2S_AddResult)
+	
+	var aService_C2S_Chat Service_C2S.Chat
+	Map["Service_C2S_Chat"] = reflect.TypeOf(aService_C2S_Chat)
+	
+	var aService_C2S_Login Service_C2S.Login
+	Map["Service_C2S_Login"] = reflect.TypeOf(aService_C2S_Login)
+	
+	var aService_C2S_MultiChat Service_C2S.MultiChat
+	Map["Service_C2S_MultiChat"] = reflect.TypeOf(aService_C2S_MultiChat)
+	
+	var aService_C2S_MyServicesQuery Service_C2S.MyServicesQuery
+	Map["Service_C2S_MyServicesQuery"] = reflect.TypeOf(aService_C2S_MyServicesQuery)
+	
+	var aService_C2S_RemoveRequest Service_C2S.RemoveRequest
+	Map["Service_C2S_RemoveRequest"] = reflect.TypeOf(aService_C2S_RemoveRequest)
+	
+	var aService_C2S_RemoveResult Service_C2S.RemoveResult
+	Map["Service_C2S_RemoveResult"] = reflect.TypeOf(aService_C2S_RemoveResult)
+	
+	var aService_C2S_RequestUserInfo Service_C2S.RequestUserInfo
+	Map["Service_C2S_RequestUserInfo"] = reflect.TypeOf(aService_C2S_RequestUserInfo)
+	
+	var aService_S2C_Chat Service_S2C.Chat
+	Map["Service_S2C_Chat"] = reflect.TypeOf(aService_S2C_Chat)
+	
+	var aService_S2C_LoginInfo Service_S2C.LoginInfo
+	Map["Service_S2C_LoginInfo"] = reflect.TypeOf(aService_S2C_LoginInfo)
+	
+	var aService_S2C_LoginInfo_LastLoginInfo Service_S2C.LoginInfo_LastLoginInfo
+	Map["Service_S2C_LoginInfo_LastLoginInfo"] = reflect.TypeOf(aService_S2C_LoginInfo_LastLoginInfo)
+	
+	var aService_S2C_MyServicesResult Service_S2C.MyServicesResult
+	Map["Service_S2C_MyServicesResult"] = reflect.TypeOf(aService_S2C_MyServicesResult)
+	
+	var aService_S2C_RemoteAddRequest Service_S2C.RemoteAddRequest
+	Map["Service_S2C_RemoteAddRequest"] = reflect.TypeOf(aService_S2C_RemoteAddRequest)
+	
+	var aService_S2C_RemoteAddResult Service_S2C.RemoteAddResult
+	Map["Service_S2C_RemoteAddResult"] = reflect.TypeOf(aService_S2C_RemoteAddResult)
+	
+	var aService_S2C_RemoteRemoveRequest Service_S2C.RemoteRemoveRequest
+	Map["Service_S2C_RemoteRemoveRequest"] = reflect.TypeOf(aService_S2C_RemoteRemoveRequest)
+	
+	var aService_S2C_RemoteRemoveResult Service_S2C.RemoteRemoveResult
+	Map["Service_S2C_RemoteRemoveResult"] = reflect.TypeOf(aService_S2C_RemoteRemoveResult)
+	
+	var aService_S2C_ServiceInfo Service_S2C.ServiceInfo
+	Map["Service_S2C_ServiceInfo"] = reflect.TypeOf(aService_S2C_ServiceInfo)
+	
+	var aService_S2C_UserInfo Service_S2C.UserInfo
+	Map["Service_S2C_UserInfo"] = reflect.TypeOf(aService_S2C_UserInfo)
+	
+	var aService_S2C_UserInfoResult Service_S2C.UserInfoResult
+	Map["Service_S2C_UserInfoResult"] = reflect.TypeOf(aService_S2C_UserInfoResult)
 	
 	var aTOKEN_S_UserInfo TOKEN_S.UserInfo
 	Map["TOKEN_S_UserInfo"] = reflect.TypeOf(aTOKEN_S_UserInfo)

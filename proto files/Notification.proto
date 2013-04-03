@@ -1,0 +1,62 @@
+package Notif;
+
+message MessageInfo
+{
+	enum Action
+	{
+		SAY = 0x00;
+		POST = 0x01;
+		SEND = 0x02;
+		COMMENT = 0x03;
+		INVITE_DISCUSSION = 0x04;
+		ADD_BUDDY = 0x05;
+		INVITE_CALL = 0x06;
+		INVITE_VIDEO_CALL = 0x07;
+		MISS_CALL = 0x08;
+    }
+	enum ContentType
+	{
+		MESSAGE = 0x00;
+		ITEM    = 0x01;
+		IMAGE   = 0x02;
+		DRAWING = 0x03;
+		LOCATION = 0x04;
+		VOICE_NOTE = 0x05;
+		CONTACT    = 0x06;
+    }
+	optional int32  user_id = 1;
+	optional string subject = 2;
+	optional Action   action = 3;
+	optional ContentType type = 4;
+	optional string content = 5;
+}
+
+// S2S
+message MulticastNotification
+{
+    repeated int32 user_ids   = 1;
+    // for push
+	optional string    message = 3;
+    optional MessageInfo messageInfo = 4;
+	// for message queue
+	optional int64       messageId = 5;
+	optional string      content = 6;
+	optional bool        noAck   = 7;
+}
+
+// S2C
+message Notification
+{
+    required string action = 1;
+    required bytes  parameter = 2;
+    optional int64  from = 3;
+    optional string serv = 4;
+}
+
+message OperationState
+{
+    required bytes request_id = 1;
+    optional int32 error_code = 2;
+}
+
+    

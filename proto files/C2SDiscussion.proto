@@ -1,0 +1,71 @@
+package Discussion.C2S;
+message CreateDiscussion
+{
+	optional int64 DiscussionId = 1;
+	required string Title = 2;
+	optional int64 Icon = 3;
+	repeated int32 InviteList = 4;
+}
+message InviteMember
+{
+	required int64 DiscussionId = 1;
+	repeated int32 Members = 2;
+}
+message InviteMemberResult
+{
+	required bytes InviteId = 1;
+	required int32 Agree = 2;
+}
+message LeaveDiscussion
+{
+	required int64 DiscussionId = 1;
+}
+message ChatInfo
+{
+	required int64 DiscussionId = 1;
+	required bytes Content = 2;
+	optional int64 MsgId = 3;
+}
+message ChatInfoRecvedAck
+{
+	required int64 DiscussionId = 1;
+	required int64 MsgId = 2;
+}
+message ChangeMyOption
+{
+	required int64 DiscussionId = 1;
+	optional int32 Option = 2;
+	optional bytes RequestId = 3;
+}
+message ChangeDiscussionInfo
+{
+	required int64 DiscussionId = 1;
+	optional int32 Option = 2;
+	optional string Title = 3;
+	optional int64 Icon = 4;
+	optional bytes RequestId = 5;
+}
+message RequestDiscussionInfo
+{
+	required int64 DiscussionId = 1;
+	optional int32 Version = 2;
+	optional int32 MemberVersion = 3;
+}
+message RequestMyDiscussion
+{
+}
+message SubscribeDiscussionChanged
+{
+	required int64 DiscussionId = 1;
+	required int32 EventCode = 2;
+	optional int32 Version = 3;
+}
+message UnsubscribeDiscussionChanged
+{
+	required int64 DiscussionId = 1;
+	required int32 EventCode = 2;
+}
+message RequestMyOption
+{
+	required int64 DiscussionId = 1;
+}

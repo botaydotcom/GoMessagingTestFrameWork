@@ -1,0 +1,920 @@
+<TestSuite>
+	<TestSuiteName>Chat</TestSuiteName>
+	<TargetHost>203.117.155.188</TargetHost>
+	<TargetPort>9100</TargetPort>
+	<VarMap>
+		<Var name="email1">
+			<Value>indotest15@test.com</Value>
+		</Var>		
+		<Var name="password1">
+			<Value>e10adc3949ba59abbe56e057f20f883e</Value>
+		</Var>
+		<Var name="name1">
+			<Value>indotest15</Value>
+		</Var>			
+		<Var name="email2">
+			<Value>indotest16@test.com</Value>
+		</Var>		
+		<Var name="password2">
+			<Value>e10adc3949ba59abbe56e057f20f883e</Value>
+		</Var>
+		<Var name="name2">
+			<Value>indotest16</Value>
+		</Var>			
+		<Var name="mid1">
+			<Value>13456793</Value>
+		</Var>
+		<Var name="msg1">
+			<Value>Test message</Value>
+		</Var>
+		<Var name="mid2">
+			<Value>13456794</Value>
+		</Var>
+		<Var name="msg2">
+			<Value>Test message 1</Value>
+		</Var>
+		<Var name="mid3">
+			<Value>13456795</Value>
+		</Var>
+		<Var name="msg3">
+			<Value>This is Test message 3</Value>
+		</Var>
+		<Var name="mid4">
+			<Value>13456796</Value>
+		</Var>
+		<Var name="msg4">
+			<Value>This is Test message 4</Value>
+		</Var>
+		<Var name="mid51">
+			<Value>13456797</Value>
+		</Var>
+		<Var name="msg51">
+			<Value>This is Test message 51</Value>
+		</Var>
+		<Var name="mid52">
+			<Value>13456798</Value>
+		</Var>
+		<Var name="msg52">
+			<Value>This is Test message 52</Value>
+		</Var>
+	</VarMap>
+	<IgnoreMessages>
+		<Message>
+			<BaseCommand>0x00</BaseCommand>
+			<Command>0x73</Command>
+			<MessageType>Auth_Buddy_S2C_BuddyOnline</MessageType>
+		</Message>
+	</IgnoreMessages>
+
+	<ListTest>
+		<TestInfo skip="false" repeat="1">
+			<Name>A and B log in, A sends a message to B (both online), B receives</Name>
+		</TestInfo>
+		<TestInfo skip="false" repeat="1">
+			<Name>A and B log in, A sends a message to B (B offline). B logs in and receives</Name>
+		</TestInfo>
+		<TestInfo skip="false" repeat="1">
+			<Name>A and B log in, A sends a message to B (B offline). A logs out. B logs in and receives</Name>
+		</TestInfo>
+		<TestInfo skip="false" repeat="1">
+			<Name>A and B log in, A sends a message to B (B offline). B logs in and does not ack-receive. B relogins and receives message again</Name>
+		</TestInfo>
+		<TestInfo skip="false" repeat="1">
+			<Name>A and B log in, A sends 2 messages to B (B offline). B logs in and ack- one message. B relogins and receives only the remaining message</Name>
+		</TestInfo>		
+	</ListTest>
+
+	<Tests>
+		<!--A and B log in, A sends a chat message to B (both of them are online)-->
+		<Test>
+			<MessageSequence>
+				<!--A log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true">		
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email1}}</Name>						
+							<Password>{{.password1}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to A-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId1}}</UserId>
+								<Name>{{.email1}}</Name>						
+								<NickName>{{.name1}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--B log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true" connection="1">		
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email2}}</Name>						
+							<Password>{{.password2}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to B-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false" connection="1">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId2}}</UserId>
+								<Name>{{.email2}}</Name>						
+								<NickName>{{.name2}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--Server sends A info that B's online-->
+				<Message type="Auth_Buddy_S2C_BuddyOnline" fromClient="false">
+					<Command>0x73</Command>
+					<Data>
+						<Auth_Buddy_S2C_BuddyOnline>
+							<UserId>{{.userId2}}</UserId>							
+						</Auth_Buddy_S2C_BuddyOnline>
+					</Data>
+				</Message>
+
+				<!--A send message to Server -->
+				<Message type="Auth_Buddy_C2S_ChatInfo2" fromClient="true">
+					<Command>0x81</Command>
+					<Data>
+						<Auth_Buddy_C2S_ChatInfo2>
+							<UserId>{{.userId2}}</UserId>
+							<MsgId>{{.mid1}}</MsgId>
+							<Message>{{.msg1}}</Message>
+						</Auth_Buddy_C2S_ChatInfo2>
+					</Data>
+				</Message>
+
+				<!--Server send ack message to A -->
+				<Message type="Auth_Buddy_S2C_Chat2Ack" fromClient="false">
+					<Command>0x83</Command>
+					<Data>
+						<Auth_Buddy_S2C_Chat2Ack>
+							<MsgId>{{.mid1}}</MsgId>
+						</Auth_Buddy_S2C_Chat2Ack>
+					</Data>
+				</Message>
+
+				<!--Server send message to B -->
+				<Message type="Auth_Buddy_S2C_ChatInfo2" fromClient="false" connection="1">
+					<Command>0x82</Command>
+					<Data>
+						<Auth_Buddy_S2C_ChatInfo2>
+							<FromId>{{.userId1}}</FromId>
+							<MsgId>{{.mid1}}</MsgId>
+							<Message>{{.msg1}}</Message>
+						</Auth_Buddy_S2C_ChatInfo2>
+					</Data>
+				</Message>
+
+				<!--B send remote ack message to Server -->
+				<Message type="Auth_Buddy_C2S_Chat2AckRemote" fromClient="true" connection="1">
+					<Command>0x82</Command>
+					<Data>
+						<Auth_Buddy_C2S_Chat2AckRemote>
+							<UserId>{{.userId1}}</UserId>
+							<MsgId>{{.mid1}}</MsgId>
+						</Auth_Buddy_C2S_Chat2AckRemote>
+					</Data>
+				</Message>
+
+				<!--Server send remote ack message to A -->
+				<Message type="Auth_Buddy_S2C_RemoteChat2Ack" fromClient="false">
+					<Command>0x84</Command>
+					<Data>
+						<Auth_Buddy_S2C_RemoteChat2Ack>
+							<UserId>{{.userId2}}</UserId>
+							<MsgId>{{.mid1}}</MsgId>
+						</Auth_Buddy_S2C_RemoteChat2Ack>
+					</Data>
+				</Message>
+
+			</MessageSequence>
+		</Test>
+
+		<!--A and B log in, A sends a chat message to B (B offline). B logs in and receives-->
+		<Test>
+			<MessageSequence>
+				<!--A log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true">		
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email1}}</Name>						
+							<Password>{{.password1}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to A-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId1}}</UserId>
+								<Name>{{.email1}}</Name>						
+								<NickName>{{.name1}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--A send message to Server -->
+				<Message type="Auth_Buddy_C2S_ChatInfo2" fromClient="true">
+					<Command>0x81</Command>
+					<Data>
+						<Auth_Buddy_C2S_ChatInfo2>
+							<UserId>{{.userId2}}</UserId>
+							<MsgId>{{.mid2}}</MsgId>
+							<Message>{{.msg2}}</Message>
+						</Auth_Buddy_C2S_ChatInfo2>
+					</Data>
+				</Message>
+
+				<!--Server send ack message to A -->
+				<Message type="Auth_Buddy_S2C_Chat2Ack" fromClient="false">
+					<Command>0x83</Command>
+					<Data>
+						<Auth_Buddy_S2C_Chat2Ack>
+							<MsgId>{{.mid2}}</MsgId>
+						</Auth_Buddy_S2C_Chat2Ack>
+					</Data>
+				</Message>
+
+
+				<!--B log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true" connection="1">		
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email2}}</Name>						
+							<Password>{{.password2}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to B-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false" connection="1">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId2}}</UserId>
+								<Name>{{.email2}}</Name>						
+								<NickName>{{.name2}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--Server send message to B -->
+				<Message type="Auth_Buddy_S2C_ChatInfo2" fromClient="false" connection="1">
+					<Command>0x82</Command>
+					<Data>
+						<Auth_Buddy_S2C_ChatInfo2>
+							<FromId>{{.userId1}}</FromId>
+							<MsgId>{{.mid2}}</MsgId>
+							<Message>{{.msg2}}</Message>
+						</Auth_Buddy_S2C_ChatInfo2>
+					</Data>
+				</Message>
+
+				<!--B send remote ack message to Server -->
+				<Message type="Auth_Buddy_C2S_Chat2AckRemote" fromClient="true" connection="1">
+					<Command>0x82</Command>
+					<Data>
+						<Auth_Buddy_C2S_Chat2AckRemote>
+							<UserId>{{.userId1}}</UserId>
+							<MsgId>{{.mid2}}</MsgId>
+						</Auth_Buddy_C2S_Chat2AckRemote>
+					</Data>
+				</Message>
+				
+				<!--Server sends A info that B's online-->
+				<Message type="Auth_Buddy_S2C_BuddyOnline" fromClient="false">
+					<Command>0x73</Command>
+					<Data>
+						<Auth_Buddy_S2C_BuddyOnline>
+							<UserId>{{.userId2}}</UserId>							
+						</Auth_Buddy_S2C_BuddyOnline>
+					</Data>
+				</Message>				
+
+				<!--Server send remote ack message to A -->
+				<Message type="Auth_Buddy_S2C_RemoteChat2Ack" fromClient="false">
+					<Command>0x84</Command>
+					<Data>
+						<Auth_Buddy_S2C_RemoteChat2Ack>
+							<UserId>{{.userId2}}</UserId>
+							<MsgId>{{.mid2}}</MsgId>
+						</Auth_Buddy_S2C_RemoteChat2Ack>
+					</Data>
+				</Message>
+
+			</MessageSequence>
+		</Test>
+
+		<!--A and B log in, A sends a message to B (B offline). A logs out. B logs in and receives-->
+		<Test>
+			<MessageSequence>
+				<!--A log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true">		
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email1}}</Name>						
+							<Password>{{.password1}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to A-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId1}}</UserId>
+								<Name>{{.email1}}</Name>						
+								<NickName>{{.name1}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--A send message to Server -->
+				<Message type="Auth_Buddy_C2S_ChatInfo2" fromClient="true">
+					<Command>0x81</Command>
+					<Data>
+						<Auth_Buddy_C2S_ChatInfo2>
+							<UserId>{{.userId2}}</UserId>
+							<MsgId>{{.mid3}}</MsgId>
+							<Message>{{.msg3}}</Message>
+						</Auth_Buddy_C2S_ChatInfo2>
+					</Data>
+				</Message>
+
+				<!--Server send ack message to A, A logs out -->
+				<Message type="Auth_Buddy_S2C_Chat2Ack" fromClient="false" close="true">
+					<Command>0x83</Command>
+					<Data>
+						<Auth_Buddy_S2C_Chat2Ack>
+							<MsgId>{{.mid3}}</MsgId>
+						</Auth_Buddy_S2C_Chat2Ack>
+					</Data>
+				</Message>
+
+
+				<!--B log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true" connection="1">		
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email2}}</Name>						
+							<Password>{{.password2}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to B-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false" connection="1">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId2}}</UserId>
+								<Name>{{.email2}}</Name>						
+								<NickName>{{.name2}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--Server send message to B -->
+				<Message type="Auth_Buddy_S2C_ChatInfo2" fromClient="false" connection="1">
+					<Command>0x82</Command>
+					<Data>
+						<Auth_Buddy_S2C_ChatInfo2>
+							<FromId>{{.userId1}}</FromId>
+							<MsgId>{{.mid3}}</MsgId>
+							<Message>{{.msg3}}</Message>
+						</Auth_Buddy_S2C_ChatInfo2>
+					</Data>
+				</Message>
+
+				<!--B send remote ack message to Server and log out-->
+				<Message type="Auth_Buddy_C2S_Chat2AckRemote" fromClient="true" connection="1" close="true">
+					<Command>0x82</Command>
+					<Data>
+						<Auth_Buddy_C2S_Chat2AckRemote>
+							<UserId>{{.userId1}}</UserId>
+							<MsgId>{{.mid3}}</MsgId>
+						</Auth_Buddy_C2S_Chat2AckRemote>
+					</Data>
+				</Message>
+
+				<!--A log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true" connection="2">		
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email1}}</Name>						
+							<Password>{{.password1}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to A-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false" connection="2">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId1}}</UserId>
+								<Name>{{.email1}}</Name>						
+								<NickName>{{.name1}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--Server send remote ack message to A -->
+				<Message type="Auth_Buddy_S2C_RemoteChat2Ack" fromClient="false" connection="2">
+					<Command>0x84</Command>
+					<Data>
+						<Auth_Buddy_S2C_RemoteChat2Ack>
+							<UserId>{{.userId2}}</UserId>
+							<MsgId>{{.mid3}}</MsgId>
+						</Auth_Buddy_S2C_RemoteChat2Ack>
+					</Data>
+				</Message>
+
+			</MessageSequence>
+		</Test>
+
+		<!--A and B log in, A sends a message to B (B offline). B logs in and does not ack-receive. B relogins and receives message again-->
+		<Test>
+			<MessageSequence>
+				<!--A log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true">		
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email1}}</Name>						
+							<Password>{{.password1}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to A-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId1}}</UserId>
+								<Name>{{.email1}}</Name>						
+								<NickName>{{.name1}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--A send message to Server -->
+				<Message type="Auth_Buddy_C2S_ChatInfo2" fromClient="true">
+					<Command>0x81</Command>
+					<Data>
+						<Auth_Buddy_C2S_ChatInfo2>
+							<UserId>{{.userId2}}</UserId>
+							<MsgId>{{.mid4}}</MsgId>
+							<Message>{{.msg4}}</Message>
+						</Auth_Buddy_C2S_ChatInfo2>
+					</Data>
+				</Message>
+
+				<!--Server send ack message to A, A logs out -->
+				<Message type="Auth_Buddy_S2C_Chat2Ack" fromClient="false" close="true">
+					<Command>0x83</Command>
+					<Data>
+						<Auth_Buddy_S2C_Chat2Ack>
+							<MsgId>{{.mid4}}</MsgId>
+						</Auth_Buddy_S2C_Chat2Ack>
+					</Data>
+				</Message>
+
+
+				<!--B log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true" connection="1">		
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email2}}</Name>						
+							<Password>{{.password2}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to B-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false" connection="1">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId2}}</UserId>
+								<Name>{{.email2}}</Name>						
+								<NickName>{{.name2}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--Server send message to B, B logs out without ack -->
+				<Message type="Auth_Buddy_S2C_ChatInfo2" fromClient="false" connection="1" close="true">
+					<Command>0x82</Command>
+					<Data>
+						<Auth_Buddy_S2C_ChatInfo2>
+							<FromId>{{.userId1}}</FromId>
+							<MsgId>{{.mid4}}</MsgId>
+							<Message>{{.msg4}}</Message>
+						</Auth_Buddy_S2C_ChatInfo2>
+					</Data>
+				</Message>
+
+				<!--B log in again-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true" connection="2">		
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email2}}</Name>						
+							<Password>{{.password2}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to B-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false" connection="2">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId2}}</UserId>
+								<Name>{{.email2}}</Name>						
+								<NickName>{{.name2}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--Server re-send message to B -->
+				<Message type="Auth_Buddy_S2C_ChatInfo2" fromClient="false" connection="2">
+					<Command>0x82</Command>
+					<Data>
+						<Auth_Buddy_S2C_ChatInfo2>
+							<FromId>{{.userId1}}</FromId>
+							<MsgId>{{.mid4}}</MsgId>
+							<Message>{{.msg4}}</Message>
+						</Auth_Buddy_S2C_ChatInfo2>
+					</Data>
+				</Message>
+
+				<!--B send remote ack message to Server and log out-->
+				<Message type="Auth_Buddy_C2S_Chat2AckRemote" fromClient="true" connection="2" close="true">
+					<Command>0x82</Command>
+					<Data>
+						<Auth_Buddy_C2S_Chat2AckRemote>
+							<UserId>{{.userId1}}</UserId>
+							<MsgId>{{.mid4}}</MsgId>
+						</Auth_Buddy_C2S_Chat2AckRemote>
+					</Data>
+				</Message>
+
+				<!--A re-login-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true" connection="3">		
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email1}}</Name>						
+							<Password>{{.password1}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to A-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false" connection="3">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId1}}</UserId>
+								<Name>{{.email1}}</Name>						
+								<NickName>{{.name1}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--Server send remote ack message to A -->
+				<Message type="Auth_Buddy_S2C_RemoteChat2Ack" fromClient="false" connection="3">
+					<Command>0x84</Command>
+					<Data>
+						<Auth_Buddy_S2C_RemoteChat2Ack>
+							<UserId>{{.userId2}}</UserId>
+							<MsgId>{{.mid4}}</MsgId>
+						</Auth_Buddy_S2C_RemoteChat2Ack>
+					</Data>
+				</Message>
+
+			</MessageSequence>
+		</Test>
+
+		<!--A and B log in, A sends 2 messages to B (B offline). B logs in and ack- one message. B relogins and receives only the remaining message-->
+		<Test>
+			<MessageSequence>
+				<!--A log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true">		
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email1}}</Name>						
+							<Password>{{.password1}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to A-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId1}}</UserId>
+								<Name>{{.email1}}</Name>						
+								<NickName>{{.name1}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--A send 1st message to Server -->
+				<Message type="Auth_Buddy_C2S_ChatInfo2" fromClient="true">
+					<Command>0x81</Command>
+					<Data>
+						<Auth_Buddy_C2S_ChatInfo2>
+							<UserId>{{.userId2}}</UserId>
+							<MsgId>{{.mid51}}</MsgId>
+							<Message>{{.msg51}}</Message>
+						</Auth_Buddy_C2S_ChatInfo2>
+					</Data>
+				</Message>
+
+				<!--A send 2nd message to Server -->
+				<Message type="Auth_Buddy_C2S_ChatInfo2" fromClient="true">
+					<Command>0x81</Command>
+					<Data>
+						<Auth_Buddy_C2S_ChatInfo2>
+							<UserId>{{.userId2}}</UserId>
+							<MsgId>{{.mid52}}</MsgId>
+							<Message>{{.msg52}}</Message>
+						</Auth_Buddy_C2S_ChatInfo2>
+					</Data>
+				</Message>
+
+				<!--Server send ack of 1st message to A -->
+				<Message type="Auth_Buddy_S2C_Chat2Ack" fromClient="false">
+					<Command>0x83</Command>
+					<Data>
+						<Auth_Buddy_S2C_Chat2Ack>
+							<MsgId>{{.mid51}}</MsgId>
+						</Auth_Buddy_S2C_Chat2Ack>
+					</Data>
+				</Message>
+
+				<!--Server send ack of 2nd message to A, A logout -->
+				<Message type="Auth_Buddy_S2C_Chat2Ack" fromClient="false" close="true">
+					<Command>0x83</Command>
+					<Data>
+						<Auth_Buddy_S2C_Chat2Ack>
+							<MsgId>{{.mid52}}</MsgId>
+						</Auth_Buddy_S2C_Chat2Ack>
+					</Data>
+				</Message>
+
+				<!--B log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true" connection="1">		
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email2}}</Name>						
+							<Password>{{.password2}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to B-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false" connection="1">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId2}}</UserId>
+								<Name>{{.email2}}</Name>						
+								<NickName>{{.name2}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--Server send 1st message to B-->
+				<Message type="Auth_Buddy_S2C_ChatInfo2" fromClient="false" connection="1">
+					<Command>0x82</Command>
+					<Data>
+						<Auth_Buddy_S2C_ChatInfo2>
+							<FromId>{{.userId1}}</FromId>
+							<MsgId>{{.mid51}}</MsgId>
+							<Message>{{.msg51}}</Message>
+						</Auth_Buddy_S2C_ChatInfo2>
+					</Data>
+				</Message>
+
+				<!--Server send 2nd message to B -->
+				<Message type="Auth_Buddy_S2C_ChatInfo2" fromClient="false" connection="1">
+					<Command>0x82</Command>
+					<Data>
+						<Auth_Buddy_S2C_ChatInfo2>
+							<FromId>{{.userId1}}</FromId>
+							<MsgId>{{.mid52}}</MsgId>
+							<Message>{{.msg52}}</Message>
+						</Auth_Buddy_S2C_ChatInfo2>
+					</Data>
+				</Message>
+
+				<!--B send remote ack message to Server(1st msg) and log out-->
+				<Message type="Auth_Buddy_C2S_Chat2AckRemote" fromClient="true" connection="1" close="true">
+					<Command>0x82</Command>
+					<Data>
+						<Auth_Buddy_C2S_Chat2AckRemote>
+							<UserId>{{.userId1}}</UserId>
+							<MsgId>{{.mid51}}</MsgId>
+						</Auth_Buddy_C2S_Chat2AckRemote>
+					</Data>
+				</Message>
+
+				<!--B log in again-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true" connection="2">		
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email2}}</Name>						
+							<Password>{{.password2}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to B-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false" connection="2">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId2}}</UserId>
+								<Name>{{.email2}}</Name>						
+								<NickName>{{.name2}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--Server send 2nd message to B -->
+				<Message type="Auth_Buddy_S2C_ChatInfo2" fromClient="false" connection="2">
+					<Command>0x82</Command>
+					<Data>
+						<Auth_Buddy_S2C_ChatInfo2>
+							<FromId>{{.userId1}}</FromId>
+							<MsgId>{{.mid52}}</MsgId>
+							<Message>{{.msg52}}</Message>
+						</Auth_Buddy_S2C_ChatInfo2>
+					</Data>
+				</Message>
+
+				<!--B send remote ack message to Server(2nd msg) and log out-->
+				<Message type="Auth_Buddy_C2S_Chat2AckRemote" fromClient="true" connection="2" close="true">
+					<Command>0x82</Command>
+					<Data>
+						<Auth_Buddy_C2S_Chat2AckRemote>
+							<UserId>{{.userId1}}</UserId>
+							<MsgId>{{.mid52}}</MsgId>
+						</Auth_Buddy_C2S_Chat2AckRemote>
+					</Data>
+				</Message>
+
+				<!--A re-login-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true" connection="3">		
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email1}}</Name>						
+							<Password>{{.password1}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to A-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false" connection="3">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId1}}</UserId>
+								<Name>{{.email1}}</Name>						
+								<NickName>{{.name1}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--Server send remote ack (1st) message to A -->
+				<Message type="Auth_Buddy_S2C_RemoteChat2Ack" fromClient="false" connection="3">
+					<Command>0x84</Command>
+					<Data>
+						<Auth_Buddy_S2C_RemoteChat2Ack>
+							<UserId>{{.userId2}}</UserId>
+							<MsgId>{{.mid51}}</MsgId>
+						</Auth_Buddy_S2C_RemoteChat2Ack>
+					</Data>
+				</Message>
+
+				<!--Server send remote ack (2nd) message to A -->
+				<Message type="Auth_Buddy_S2C_RemoteChat2Ack" fromClient="false" connection="3">
+					<Command>0x84</Command>
+					<Data>
+						<Auth_Buddy_S2C_RemoteChat2Ack>
+							<UserId>{{.userId2}}</UserId>
+							<MsgId>{{.mid52}}</MsgId>
+						</Auth_Buddy_S2C_RemoteChat2Ack>
+					</Data>
+				</Message>
+			</MessageSequence>
+		</Test>
+	</Tests>
+</TestSuite>

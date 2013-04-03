@@ -1,0 +1,1200 @@
+<!--For this test, we use 4 users: indotest15, indotest16, indotest17, indotest18
+The relationship graph is:
+indotest15 knows indotest16 and indotest17
+indotest16 knows indotest15 and indotest18
+indotest17 knows indotest15
+indotest18 knows indotest16
+-->
+
+<TestSuite>
+	<TestSuiteName>Registration</TestSuiteName>
+	<TargetHost>203.117.155.188</TargetHost>
+	<TargetPort>9100</TargetPort>
+<VarMap>
+		<Var name="email1">
+			<Value>indotest15@test.com</Value>
+		</Var>		
+		<Var name="name1">
+			<Value>indotest15</Value>
+		</Var>					
+		<Var name="password1">
+			<Value>e10adc3949ba59abbe56e057f20f883e</Value>
+		</Var>
+		<Var name="email2">
+			<Value>indotest16@test.com</Value>
+		</Var>		
+		<Var name="name2">
+			<Value>indotest16</Value>
+		</Var>			
+		<Var name="password2">
+			<Value>e10adc3949ba59abbe56e057f20f883e</Value>
+		</Var>
+		<Var name="email3">
+			<Value>indotest17@test.com</Value>
+		</Var>		
+		<Var name="name3">
+			<Value>indotest17</Value>
+		</Var>					
+		<Var name="password3">
+			<Value>e10adc3949ba59abbe56e057f20f883e</Value>
+		</Var>
+		<Var name="email4">
+			<Value>indotest18@test.com</Value>
+		</Var>		
+		<Var name="name4">
+			<Value>indotest18</Value>
+		</Var>					
+		<Var name="password4">
+			<Value>e10adc3949ba59abbe56e057f20f883e</Value>
+		</Var>
+		<Var name="title">
+			<Value>Discussion 0</Value>
+		</Var>
+		<Var name="changedTitle">
+			<Value>Discussion 0_1</Value>
+		</Var>
+	</VarMap>
+
+	<ListTest>
+		<TestInfo skip="false" repeat="1">
+			<Name>All log in to get user ids</Name>
+		</TestInfo>
+		<TestInfo skip="false" repeat="1">
+			<Name>A, B, C, D logs in. A create discussion with invitation B, C. B, C log in, receive invitation and accept. D logs in, receives invitation and accepts</Name>
+		</TestInfo>
+		<TestInfo skip="false" repeat="1">
+			<Name>A, B, C, D log in, B changes discussion info. All member receives notifications</Name>
+		</TestInfo>
+		<TestInfo skip="false" repeat="1">
+			<Name>B logs in and request option/ server reply with options.</Name>
+		</TestInfo>
+		<TestInfo skip="false" repeat="1">
+			<Name>A, B, C, D leaves discussion</Name>
+		</TestInfo>
+		<TestInfo skip="false" repeat="1">
+			<Name>Clean up</Name>
+		</TestInfo>
+	</ListTest>
+
+	<Tests>
+		<!--All log in to get user ids-->
+		<Test>
+			<MessageSequence>
+				<!--A log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true">		
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email1}}</Name>						
+							<Password>{{.password1}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to A-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId1}}</UserId>
+								<Name>{{.email1}}</Name>						
+								<NickName>{{.name1}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--B log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true" connection="1">		
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email2}}</Name>						
+							<Password>{{.password2}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to B-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false" connection="1">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId2}}</UserId>
+								<Name>{{.email2}}</Name>						
+								<NickName>{{.name2}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--C log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true" connection="2">		
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email3}}</Name>						
+							<Password>{{.password3}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to C-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false" connection="2">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId3}}</UserId>
+								<Name>{{.email3}}</Name>						
+								<NickName>{{.name3}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--D log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true" connection="3">		
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email4}}</Name>						
+							<Password>{{.password4}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to D-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false" connection="3">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId4}}</UserId>
+								<Name>{{.email4}}</Name>						
+								<NickName>{{.name4}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+			</MessageSequence>
+		</Test>
+
+		<!--A, B, C, D logs in. A create discussion with invitation B, C. B, C log in, receive invitation and accept. D logs in, receives invitation and accepts.-->
+		<Test>
+			<MessageSequence>
+				<!--A log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true">		
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email1}}</Name>						
+							<Password>{{.password1}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to A-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId1}}</UserId>
+								<Name>{{.email1}}</Name>						
+								<NickName>{{.name1}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--B log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true" connection="1">		
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email2}}</Name>						
+							<Password>{{.password2}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to B-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false" connection="1">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId2}}</UserId>
+								<Name>{{.email2}}</Name>						
+								<NickName>{{.name2}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--Server sends A info that B's online-->
+				<Message type="Auth_Buddy_S2C_BuddyOnline" fromClient="false">
+					<Command>0x73</Command>
+					<Data>
+						<Auth_Buddy_S2C_BuddyOnline>
+							<UserId>{{.userId2}}</UserId>							
+						</Auth_Buddy_S2C_BuddyOnline>
+					</Data>
+				</Message>
+
+				<!--C log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true" connection="2">		
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email3}}</Name>						
+							<Password>{{.password3}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to C-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false" connection="2">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId3}}</UserId>
+								<Name>{{.email3}}</Name>						
+								<NickName>{{.name3}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--Server sends A info that C's online-->
+				<Message type="Auth_Buddy_S2C_BuddyOnline" fromClient="false">
+					<Command>0x73</Command>
+					<Data>
+						<Auth_Buddy_S2C_BuddyOnline>
+							<UserId>{{.userId3}}</UserId>							
+						</Auth_Buddy_S2C_BuddyOnline>
+					</Data>
+				</Message>
+
+
+				<!--A sends discussion create message to server and invite B / C-->
+				<Message type="Discussion_C2S_CreateDiscussion" fromClient="true">
+					<BaseCommand>0xA0</BaseCommand>
+					<Command>0x01</Command>
+					<Data>
+						<Discussion_C2S_CreateDiscussion>
+							<Title>{{.title}}</Title>
+							<InviteList>{{.userId2}}</InviteList>
+							<InviteList>{{.userId3}}</InviteList>
+						</Discussion_C2S_CreateDiscussion>				
+					</Data>
+				</Message>
+
+				<!--Server sends discussion create notification message to A-->
+				<Message type="Discussion_S2C_NewDiscussionArrival" fromClient="false">
+					<BaseCommand>0xA0</BaseCommand>
+					<Command>0x05</Command>
+					<Data>
+						<Discussion_S2C_NewDiscussionArrival>
+							<DiscussionId>{{.did}}</DiscussionId>							
+						</Discussion_S2C_NewDiscussionArrival>				
+					</Data>
+				</Message>	
+
+				<!--Server sends invitation to B-->
+				<Message type="Discussion_S2C_InviteMember" fromClient="false" connection="1">
+					<BaseCommand>0xA0</BaseCommand>
+					<Command>0x09</Command>
+					<Data>
+						<Discussion_S2C_InviteMember>
+							<DiscussionId>{{.did}}</DiscussionId>
+							<FromId>{{.userId1}}</FromId>
+							<InviteId>{{.iid1}}</InviteId>
+						</Discussion_S2C_InviteMember>				
+					</Data>
+				</Message>
+
+				<!--B agrees to discussion-->
+				<Message type="Discussion_C2S_InviteMemberResult" fromClient="true" connection="1">
+					<BaseCommand>0xA0</BaseCommand>
+					<Command>0x08</Command>
+					<Data>
+						<Discussion_C2S_InviteMemberResult>
+							<InviteId>{{.iid1}}</InviteId>
+							<Agree>1</Agree>
+						</Discussion_C2S_InviteMemberResult>				
+					</Data>
+				</Message>
+
+				<!--Server sends discussion create notification message to B-->
+				<Message type="Discussion_S2C_NewDiscussionArrival" fromClient="false" connection="1">
+					<BaseCommand>0xA0</BaseCommand>
+					<Command>0x05</Command>
+					<Data>
+						<Discussion_S2C_NewDiscussionArrival>
+							<DiscussionId>{{.did}}</DiscussionId>
+						</Discussion_S2C_NewDiscussionArrival>				
+					</Data>
+				</Message>	
+
+				<!--Server sends member join notification to A-->
+				<Message type="Discussion_S2C_MemberJoin" fromClient="false">
+					<BaseCommand>0xA0</BaseCommand>
+					<Command>0x07</Command>
+					<Data>
+						<Discussion_S2C_MemberJoin>
+							<DiscussionId>{{.did}}</DiscussionId>
+							<UserId>{{.userId2}}</UserId>
+						</Discussion_S2C_MemberJoin>				
+					</Data>
+				</Message>	
+				
+				<!--Server sends invitation to C-->
+				<Message type="Discussion_S2C_InviteMember" fromClient="false" connection="2">
+					<BaseCommand>0xA0</BaseCommand>
+					<Command>0x09</Command>
+					<Data>
+						<Discussion_S2C_InviteMember>
+							<DiscussionId>{{.did}}</DiscussionId>
+							<FromId>{{.userId1}}</FromId>
+							<InviteId>{{.iid2}}</InviteId>
+						</Discussion_S2C_InviteMember>				
+					</Data>
+				</Message>	
+
+				<!--C agrees to discussion-->
+				<Message type="Discussion_C2S_InviteMemberResult" fromClient="true" connection="2">
+					<BaseCommand>0xA0</BaseCommand>
+					<Command>0x08</Command>
+					<Data>
+						<Discussion_C2S_InviteMemberResult>
+							<InviteId>{{.iid2}}</InviteId>
+							<Agree>1</Agree>
+						</Discussion_C2S_InviteMemberResult>				
+					</Data>
+				</Message>
+
+				<!--Server sends discussion create notification message to C-->
+				<Message type="Discussion_S2C_NewDiscussionArrival" fromClient="false" connection="2">
+					<BaseCommand>0xA0</BaseCommand>
+					<Command>0x05</Command>
+					<Data>
+						<Discussion_S2C_NewDiscussionArrival>
+							<DiscussionId>{{.did}}</DiscussionId>
+						</Discussion_S2C_NewDiscussionArrival>				
+					</Data>
+				</Message>	
+
+				<!--Server sends member join notification to A-->
+				<Message type="Discussion_S2C_MemberJoin" fromClient="false">
+					<BaseCommand>0xA0</BaseCommand>
+					<Command>0x07</Command>
+					<Data>
+						<Discussion_S2C_MemberJoin>
+							<DiscussionId>{{.did}}</DiscussionId>
+							<UserId>{{.userId3}}</UserId>
+						</Discussion_S2C_MemberJoin>				
+					</Data>
+				</Message>	
+
+				<!--Server sends member join notification to B-->
+				<Message type="Discussion_S2C_MemberJoin" fromClient="false" connection="1">
+					<BaseCommand>0xA0</BaseCommand>
+					<Command>0x07</Command>
+					<Data>
+						<Discussion_S2C_MemberJoin>
+							<DiscussionId>{{.did}}</DiscussionId>
+							<UserId>{{.userId3}}</UserId>
+						</Discussion_S2C_MemberJoin>				
+					</Data>
+				</Message>	
+			
+				<!--B invites D to join-->
+				<Message type="Discussion_C2S_InviteMember" fromClient="true" connection="1">
+					<BaseCommand>0xA0</BaseCommand>
+					<Command>0x02</Command>
+					<Data>
+						<Discussion_C2S_CreateDiscussion>
+							<DiscussionId>{{.did}}</DiscussionId>
+							<Members>{{.userId4}}</Members>
+						</Discussion_C2S_CreateDiscussion>				
+					</Data>
+				</Message>
+
+				<!--D logs in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true" connection="3">		
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email4}}</Name>						
+							<Password>{{.password4}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to D-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false" connection="3">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId4}}</UserId>
+								<Name>{{.email4}}</Name>						
+								<NickName>{{.name4}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--Server sends B info that D's online-->
+				<Message type="Auth_Buddy_S2C_BuddyOnline" fromClient="false" connection="1">
+					<Command>0x73</Command>
+					<Data>
+						<Auth_Buddy_S2C_BuddyOnline>
+							<UserId>{{.userId4}}</UserId>							
+						</Auth_Buddy_S2C_BuddyOnline>
+					</Data>
+				</Message>
+
+				<!--Server sends invitation to D-->
+				<Message type="Discussion_S2C_InviteMember" fromClient="false" connection="3">
+					<BaseCommand>0xA0</BaseCommand>
+					<Command>0x09</Command>
+					<Data>
+						<Discussion_S2C_InviteMember>
+							<DiscussionId>{{.did}}</DiscussionId>
+							<FromId>{{.userId2}}</FromId>
+							<InviteId>{{.iid3}}</InviteId>
+						</Discussion_S2C_InviteMember>				
+					</Data>
+				</Message>
+
+				<!--D agrees to discussion-->
+				<Message type="Discussion_C2S_InviteMemberResult" fromClient="true" connection="3">
+					<BaseCommand>0xA0</BaseCommand>
+					<Command>0x08</Command>
+					<Data>
+						<Discussion_C2S_InviteMemberResult>
+							<InviteId>{{.iid3}}</InviteId>
+							<Agree>1</Agree>
+						</Discussion_C2S_InviteMemberResult>				
+					</Data>
+				</Message>
+
+				<!--Server sends discussion create notification message to D-->
+				<Message type="Discussion_S2C_NewDiscussionArrival" fromClient="false" connection="3">
+					<BaseCommand>0xA0</BaseCommand>
+					<Command>0x05</Command>
+					<Data>
+						<Discussion_S2C_NewDiscussionArrival>
+							<DiscussionId>{{.did}}</DiscussionId>
+						</Discussion_S2C_NewDiscussionArrival>				
+					</Data>
+				</Message>	
+
+				<!--Server sends member join notification to A-->
+				<Message type="Discussion_S2C_MemberJoin" fromClient="false">
+					<BaseCommand>0xA0</BaseCommand>
+					<Command>0x07</Command>
+					<Data>
+						<Discussion_S2C_MemberJoin>
+							<DiscussionId>{{.did}}</DiscussionId>
+							<UserId>{{.userId4}}</UserId>
+						</Discussion_S2C_MemberJoin>				
+					</Data>
+				</Message>	
+
+				<!--Server sends member join notification to B-->
+				<Message type="Discussion_S2C_MemberJoin" fromClient="false" connection="1">
+					<BaseCommand>0xA0</BaseCommand>
+					<Command>0x07</Command>
+					<Data>
+						<Discussion_S2C_MemberJoin>
+							<DiscussionId>{{.did}}</DiscussionId>
+							<UserId>{{.userId4}}</UserId>
+						</Discussion_S2C_MemberJoin>				
+					</Data>
+				</Message>	
+
+				<!--Server sends member join notification to C-->
+				<Message type="Discussion_S2C_MemberJoin" fromClient="false" connection="2">
+					<BaseCommand>0xA0</BaseCommand>
+					<Command>0x07</Command>
+					<Data>
+						<Discussion_S2C_MemberJoin>
+							<DiscussionId>{{.did}}</DiscussionId>
+							<UserId>{{.userId4}}</UserId>
+						</Discussion_S2C_MemberJoin>				
+					</Data>
+				</Message>	
+			</MessageSequence>
+		</Test>
+
+		<!--A, B, C, D logs in and B changes discussion info. B receives ack, all member receives notifications-->
+		<Test>
+			<MessageSequence>
+				<!--A log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true">		
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email1}}</Name>						
+							<Password>{{.password1}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to A-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId1}}</UserId>
+								<Name>{{.email1}}</Name>						
+								<NickName>{{.name1}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--B log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true" connection="1">		
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email2}}</Name>						
+							<Password>{{.password2}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to B-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false" connection="1">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId2}}</UserId>
+								<Name>{{.email2}}</Name>						
+								<NickName>{{.name2}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--Server sends A info that B's online-->
+				<Message type="Auth_Buddy_S2C_BuddyOnline" fromClient="false">
+					<Command>0x73</Command>
+					<Data>
+						<Auth_Buddy_S2C_BuddyOnline>
+							<UserId>{{.userId2}}</UserId>							
+						</Auth_Buddy_S2C_BuddyOnline>
+					</Data>
+				</Message>
+
+				<!--C log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true" connection="2">		
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email3}}</Name>						
+							<Password>{{.password3}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to C-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false" connection="2">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId3}}</UserId>
+								<Name>{{.email3}}</Name>						
+								<NickName>{{.name3}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>				
+
+				<!--Server sends A info that C's online-->
+				<Message type="Auth_Buddy_S2C_BuddyOnline" fromClient="false">
+					<Command>0x73</Command>
+					<Data>
+						<Auth_Buddy_S2C_BuddyOnline>
+							<UserId>{{.userId3}}</UserId>							
+						</Auth_Buddy_S2C_BuddyOnline>
+					</Data>
+				</Message>
+
+				<!--D log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true" connection="3">		
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email4}}</Name>						
+							<Password>{{.password4}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to D-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false" connection="3">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId4}}</UserId>
+								<Name>{{.email4}}</Name>						
+								<NickName>{{.name4}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--Server sends B info that D's online-->
+				<Message type="Auth_Buddy_S2C_BuddyOnline" fromClient="false" connection="1">
+					<Command>0x73</Command>
+					<Data>
+						<Auth_Buddy_S2C_BuddyOnline>
+							<UserId>{{.userId4}}</UserId>							
+						</Auth_Buddy_S2C_BuddyOnline>
+					</Data>
+				</Message>		
+
+				<!--B changes discussion info-->
+				<Message type="Discussion_C2S_ChangeDiscussionInfo" fromClient="true" connection="1">
+					<BaseCommand>0xA0</BaseCommand>
+					<Command>0x06</Command>
+					<Data>
+						<Discussion_C2S_ChangeDiscussionInfo>
+							<DiscussionId>{{.did}}</DiscussionId>					
+							<Title>{{.changedTitle}}</Title>
+						</Discussion_C2S_ChangeDiscussionInfo>
+					</Data>
+				</Message>
+
+				<!--A receives notification-->
+				<Message type="C_A_DiscussionInfo" fromClient="false">
+					<BaseCommand>0xA0</BaseCommand>
+					<Command>0x01</Command>
+					<Data>
+						<C_A_DiscussionInfo>
+							<DiscussionId>{{.did}}</DiscussionId>
+							<Title>{{.changedTitle}}</Title>
+							<Version>{{.version}}</Version>
+						</C_A_DiscussionInfo>				
+					</Data>
+				</Message>
+
+				<!--B receives notification-->
+				<Message type="C_A_DiscussionInfo" fromClient="false" connection="1">
+					<BaseCommand>0xA0</BaseCommand>
+					<Command>0x01</Command>
+					<Data>
+						<C_A_DiscussionInfo>
+							<DiscussionId>{{.did}}</DiscussionId>
+							<Title>{{.changedTitle}}</Title>
+							<Version>{{.version}}</Version>
+						</C_A_DiscussionInfo>				
+					</Data>
+				</Message>
+
+				<!--C receives notification-->
+				<Message type="C_A_DiscussionInfo" fromClient="false" connection="2">
+					<BaseCommand>0xA0</BaseCommand>
+					<Command>0x01</Command>
+					<Data>
+						<C_A_DiscussionInfo>
+							<DiscussionId>{{.did}}</DiscussionId>
+							<Title>{{.changedTitle}}</Title>
+							<Version>{{.version}}</Version>
+						</C_A_DiscussionInfo>				
+					</Data>
+				</Message>
+
+				<!--D receives notification-->
+				<Message type="C_A_DiscussionInfo" fromClient="false" connection="3">
+					<BaseCommand>0xA0</BaseCommand>
+					<Command>0x01</Command>
+					<Data>
+						<C_A_DiscussionInfo>
+							<DiscussionId>{{.did}}</DiscussionId>
+							<Title>{{.changedTitle}}</Title>
+							<Version>{{.version}}</Version>
+						</C_A_DiscussionInfo>				
+					</Data>
+				</Message>
+			</MessageSequence>	
+		</Test>
+
+		<!--B logs in and request option/ server reply with options.-->
+		<Test>
+			<MessageSequence>
+				<!--B log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true">		
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email2}}</Name>						
+							<Password>{{.password2}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to B-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId2}}</UserId>
+								<Name>{{.email2}}</Name>						
+								<NickName>{{.name2}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--B requests discussion option from server-->
+				<Message type="Discussion_C2S_RequestMyOption" fromClient="true">		
+					<BaseCommand>0xA0</BaseCommand>
+					<Command>0x0A</Command>
+					<Data>
+						<Discussion_C2S_RequestMyOption>
+							<DiscussionId>{{.did}}</DiscussionId>
+						</Discussion_C2S_RequestMyOption>
+					</Data>
+				</Message>
+
+				<!--Server sends discussion option to B-->
+				<Message type="Discussion_S2C_MyDiscussionOption" fromClient="false">		
+					<BaseCommand>0xA0</BaseCommand>
+					<Command>0x0B</Command>
+					<Data>
+						<Discussion_S2C_MyDiscussionOption>
+							<DiscussionId>{{.did}}</DiscussionId>
+							<Option>{{.option}}</Option>
+						</Discussion_S2C_MyDiscussionOption>
+					</Data>
+				</Message>
+			</MessageSequence>	
+		</Test>
+				
+		<!--A, B, C, D log in and leave discussion-->
+		<Test>
+			<MessageSequence>
+				<!--A log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true">		
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email1}}</Name>						
+							<Password>{{.password1}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to A-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId1}}</UserId>
+								<Name>{{.email1}}</Name>						
+								<NickName>{{.name1}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--B log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true" connection="1">		
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email2}}</Name>						
+							<Password>{{.password2}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to B-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false" connection="1">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId2}}</UserId>
+								<Name>{{.email2}}</Name>						
+								<NickName>{{.name2}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--Server sends A info that B's online-->
+				<Message type="Auth_Buddy_S2C_BuddyOnline" fromClient="false">
+					<Command>0x73</Command>
+					<Data>
+						<Auth_Buddy_S2C_BuddyOnline>
+							<UserId>{{.userId2}}</UserId>							
+						</Auth_Buddy_S2C_BuddyOnline>
+					</Data>
+				</Message>
+
+				<!--C log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true" connection="2">		
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email3}}</Name>						
+							<Password>{{.password3}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to C-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false" connection="2">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId3}}</UserId>
+								<Name>{{.email3}}</Name>						
+								<NickName>{{.name3}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>				
+
+				<!--Server sends A info that C's online-->
+				<Message type="Auth_Buddy_S2C_BuddyOnline" fromClient="false">
+					<Command>0x73</Command>
+					<Data>
+						<Auth_Buddy_S2C_BuddyOnline>
+							<UserId>{{.userId3}}</UserId>							
+						</Auth_Buddy_S2C_BuddyOnline>
+					</Data>
+				</Message>
+
+				<!--D log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true" connection="3">		
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email4}}</Name>						
+							<Password>{{.password4}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--Server sends login info to D-->
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false" connection="3">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.userId4}}</UserId>
+								<Name>{{.email4}}</Name>						
+								<NickName>{{.name4}}</NickName>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+
+				<!--Server sends B info that D's online-->
+				<Message type="Auth_Buddy_S2C_BuddyOnline" fromClient="false" connection="1">
+					<Command>0x73</Command>
+					<Data>
+						<Auth_Buddy_S2C_BuddyOnline>
+							<UserId>{{.userId4}}</UserId>							
+						</Auth_Buddy_S2C_BuddyOnline>
+					</Data>
+				</Message>
+				
+				<!--A leaves discussion-->
+				<Message type="Discussion_C2S_LeaveDiscussion" fromClient="true">
+					<BaseCommand>0xA0</BaseCommand>
+					<Command>0x03</Command>
+					<Data>
+						<Discussion_C2S_LeaveDiscussion>
+							<DiscussionId>{{.did}}</DiscussionId>
+						</Discussion_C2S_LeaveDiscussion>				
+					</Data>
+				</Message>
+
+				<!--A receives notification-->				
+				<Message type="Discussion_S2C_MemberLeave" fromClient="false">
+					<BaseCommand>0xA0</BaseCommand>
+					<Command>0x06</Command>
+					<Data>
+						<Discussion_S2C_MemberLeave>
+							<DiscussionId>{{.did}}</DiscussionId>
+							<UserId>{{.userId1}}</UserId>
+						</Discussion_S2C_MemberLeave>				
+					</Data>
+				</Message>
+
+				<!--B receives notification-->				
+				<Message type="Discussion_S2C_MemberLeave" fromClient="false" connection="1">
+					<BaseCommand>0xA0</BaseCommand>
+					<Command>0x06</Command>
+					<Data>
+						<Discussion_S2C_MemberLeave>
+							<DiscussionId>{{.did}}</DiscussionId>
+							<UserId>{{.userId1}}</UserId>
+						</Discussion_S2C_MemberLeave>				
+					</Data>
+				</Message>
+
+				<!--C receives notification-->				
+				<Message type="Discussion_S2C_MemberLeave" fromClient="false" connection="2">
+					<BaseCommand>0xA0</BaseCommand>
+					<Command>0x06</Command>
+					<Data>
+						<Discussion_S2C_MemberLeave>
+							<DiscussionId>{{.did}}</DiscussionId>
+							<UserId>{{.userId1}}</UserId>
+						</Discussion_S2C_MemberLeave>				
+					</Data>
+				</Message>
+
+				<!--D receives notification-->				
+				<Message type="Discussion_S2C_MemberLeave" fromClient="false" connection="3">
+					<BaseCommand>0xA0</BaseCommand>
+					<Command>0x06</Command>
+					<Data>
+						<Discussion_S2C_MemberLeave>
+							<DiscussionId>{{.did}}</DiscussionId>
+							<UserId>{{.userId1}}</UserId>
+						</Discussion_S2C_MemberLeave>				
+					</Data>
+				</Message>
+
+				<!--B leaves discussion-->
+				<Message type="Discussion_C2S_LeaveDiscussion" fromClient="true" connection="1">
+					<BaseCommand>0xA0</BaseCommand>
+					<Command>0x03</Command>
+					<Data>
+						<Discussion_C2S_LeaveDiscussion>
+							<DiscussionId>{{.did}}</DiscussionId>
+						</Discussion_C2S_LeaveDiscussion>				
+					</Data>
+				</Message>
+
+				<!--B receives notification-->				
+				<Message type="Discussion_S2C_MemberLeave" fromClient="false" connection="1">
+					<BaseCommand>0xA0</BaseCommand>
+					<Command>0x06</Command>
+					<Data>
+						<Discussion_S2C_MemberLeave>
+							<DiscussionId>{{.did}}</DiscussionId>
+							<UserId>{{.userId2}}</UserId>
+						</Discussion_S2C_MemberLeave>				
+					</Data>
+				</Message>
+
+				<!--C receives notification-->				
+				<Message type="Discussion_S2C_MemberLeave" fromClient="false" connection="2">
+					<BaseCommand>0xA0</BaseCommand>
+					<Command>0x06</Command>
+					<Data>
+						<Discussion_S2C_MemberLeave>
+							<DiscussionId>{{.did}}</DiscussionId>
+							<UserId>{{.userId2}}</UserId>
+						</Discussion_S2C_MemberLeave>				
+					</Data>
+				</Message>
+
+				<!--D receives notification-->				
+				<Message type="Discussion_S2C_MemberLeave" fromClient="false" connection="3">
+					<BaseCommand>0xA0</BaseCommand>
+					<Command>0x06</Command>
+					<Data>
+						<Discussion_S2C_MemberLeave>
+							<DiscussionId>{{.did}}</DiscussionId>
+							<UserId>{{.userId2}}</UserId>
+						</Discussion_S2C_MemberLeave>				
+					</Data>
+				</Message>
+
+				<!--C leaves discussion-->
+				<Message type="Discussion_C2S_LeaveDiscussion" fromClient="true" connection="2">
+					<BaseCommand>0xA0</BaseCommand>
+					<Command>0x03</Command>
+					<Data>
+						<Discussion_C2S_LeaveDiscussion>
+							<DiscussionId>{{.did}}</DiscussionId>
+						</Discussion_C2S_LeaveDiscussion>				
+					</Data>
+				</Message>
+
+				<!--C receives notification-->				
+				<Message type="Discussion_S2C_MemberLeave" fromClient="false" connection="2">
+					<BaseCommand>0xA0</BaseCommand>
+					<Command>0x06</Command>
+					<Data>
+						<Discussion_S2C_MemberLeave>
+							<DiscussionId>{{.did}}</DiscussionId>
+							<UserId>{{.userId3}}</UserId>
+						</Discussion_S2C_MemberLeave>				
+					</Data>
+				</Message>
+
+				<!--D receives notification-->				
+				<Message type="Discussion_S2C_MemberLeave" fromClient="false" connection="3">
+					<BaseCommand>0xA0</BaseCommand>
+					<Command>0x06</Command>
+					<Data>
+						<Discussion_S2C_MemberLeave>
+							<DiscussionId>{{.did}}</DiscussionId>
+							<UserId>{{.userId3}}</UserId>
+						</Discussion_S2C_MemberLeave>				
+					</Data>
+				</Message>
+
+				<!--D leaves discussion-->
+				<Message type="Discussion_C2S_LeaveDiscussion" fromClient="true" connection="3">
+					<BaseCommand>0xA0</BaseCommand>
+					<Command>0x03</Command>
+					<Data>
+						<Discussion_C2S_LeaveDiscussion>
+							<DiscussionId>{{.did}}</DiscussionId>
+						</Discussion_C2S_LeaveDiscussion>				
+					</Data>
+				</Message>
+
+				<!--D receives notification-->				
+				<Message type="Discussion_S2C_MemberLeave" fromClient="false" connection="3">
+					<BaseCommand>0xA0</BaseCommand>
+					<Command>0x06</Command>
+					<Data>
+						<Discussion_S2C_MemberLeave>
+							<DiscussionId>{{.did}}</DiscussionId>
+							<UserId>{{.userId4}}</UserId>
+						</Discussion_S2C_MemberLeave>				
+					</Data>
+				</Message>
+			</MessageSequence>
+		</Test>
+
+		<Test>
+			<CleanUpSequence>
+				<!--define a series of connection (by logging in). Program will retrieve all message from server and ack all pending messages-->
+				<!--A log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true">		
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email1}}</Name>						
+							<Password>{{.password1}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--B log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true" connection="1">		
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email2}}</Name>						
+							<Password>{{.password2}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--C log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true" connection="2">		
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email3}}</Name>						
+							<Password>{{.password3}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<!--D log in-->
+				<Message type="Auth_C2S_LoginInfo" fromClient="true" connection="3">		
+					<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email4}}</Name>						
+							<Password>{{.password4}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>1</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+			</CleanUpSequence>
+		</Test>
+	</Tests>
+</TestSuite>

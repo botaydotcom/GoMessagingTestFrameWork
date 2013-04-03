@@ -17,7 +17,24 @@ import (
 	"runtime"
 	"strconv"
 	"sync"
+
+	// to replace the stress test engine:
+	// simply change this line to the desired engine package
+	// "xmltest/btalkTest/StressTestEngine" is the standard test engine 
+	// it has slow performance, but carries all functions from standard feature tests
+	
+	// "xmltest/btalkTest/StressTestEngine_hardcoded" is the hardcoded engine
+	// it can only perform hello test, but delivers fastest performace.
+	// serves as a reference for performance
+
+	// "xmltest/btalkTest/StressTestEngine_simplify" is the simplified engine
+	// it is derived from standard engine, with several features removed:
+	// ignore message
+	// and remove a few unnecessary calls.
+	// it is still under development, can be optimized for better performance.
+	
 	"xmltest/btalkTest/StressTestEngine"
+
 )
 
 const (

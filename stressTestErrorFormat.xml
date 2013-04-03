@@ -1,4 +1,0 @@
-<Type>
-WSARecv tcp 192.168.10.82:53688: resource temporarily unavailable
-
-WSARecv tcp \d{0,3}.\d{0,3}.\d{0,3}.\d{0,3}:\d{0,5}: resource temporarily unavailable

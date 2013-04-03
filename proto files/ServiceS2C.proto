@@ -1,0 +1,89 @@
+package Service.S2C;
+
+message ServiceInfo
+{
+    required int32 ServiceId = 1;
+    required string ServiceName = 2;
+}
+    
+// to service client
+message LoginInfo
+{
+	message LastLoginInfo
+	{
+		optional int32 IP = 1;
+		optional int32 Time = 2;
+		optional string Country = 3;
+	};
+	required ServiceInfo   MyInfo = 1;
+	optional LastLoginInfo LastLogin = 2;
+}
+
+message Chat
+{
+	required int32 UserId = 1;
+	optional string MetaTag = 2;
+	required string Message = 3;
+	optional int32 Timestamp = 4;
+	required int64 MsgId = 5;
+}
+
+message RemoteAddRequest
+{
+    required int32  UserId      = 1;
+	required int64  RequestId   = 2;
+	optional string Message     = 3;
+	optional int32  Language    = 4;
+}
+
+message RemoteRemoveRequest
+{
+	required int32 UserId    = 1;
+	optional int64 RequestId = 2;
+}
+
+// to mobile client
+message RemoteAddResult
+{
+	required int32 Sid = 1;
+	required int64 RequestId = 2;
+	optional int32 Action = 3;  // not set or 0: Agree; 1: reject
+	optional int32 Version = 4;
+	optional int32 OldVersion = 5;
+}
+
+message RemoteRemoveResult
+{
+	required int32 Sid = 1;
+	optional int32 ErrorCode = 2;
+	optional int64 RequestId = 3;
+	optional int32 Version = 4;
+	optional int32 OldVersion = 5;
+}
+
+message MyServicesResult
+{
+    repeated ServiceInfo services = 1;
+	required int32       Version  = 2;
+	optional int64       RequestId = 3;
+}
+
+// To be compatible with Auth.Buddy.S2C.UserInfo
+message UserInfo
+{
+	required string Nickname = 1;
+	required int64 Icon = 2;
+	required int32 Exp = 3;
+	required int32 Version = 4;
+	required int32 Gender = 5;
+	required int32 Birthday = 6;
+}
+// To be compatible with Auth.Buddy.S2C.RequestUserInfoResult
+message UserInfoResult
+{
+	required int32 UserId = 1;
+	optional bytes Signature = 2;
+	optional UserInfo UserInfo = 3;
+	optional int64 RequestId = 4;
+	
+}

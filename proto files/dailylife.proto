@@ -1,0 +1,265 @@
+package DL;
+option java_package = "com.yanghx.dailylife";
+//common
+message DailyBasicInfo
+{
+	optional string address=1;
+	required int32  timestamp=2;
+	optional string option=3;
+}
+
+message PhotoInfo
+{
+	required bytes  name=1;
+	optional string memo=2;
+    optional string meta_tag=3;//img,vc,vd,tn
+}
+
+message DailyItem
+{
+	required int64 item_id=1;
+	required DailyBasicInfo basic_info=2;
+	repeated PhotoInfo photo_info=3;
+	optional string memo=4;
+    optional int32  share_mode=5; // 0: oublic, 1: private, 2: circle
+}
+
+message UserDailyItem
+{
+	required int32 user_id=1;
+	repeated DailyItem daily_item=2;
+}
+
+message ItemCircles
+{
+    required int64 item_id = 1;
+    repeated int32 circle_ids = 2;
+}
+
+message CommentInfo
+{
+	optional string action=1;
+	optional bytes  content=2;
+    optional int32  timestamp=3;
+}
+
+message Cursor
+{
+    optional int32 seq_no      = 1;
+}
+
+message Circle
+{
+    required string name = 1;
+    required int32  id   = 2;
+    repeated int32  user_ids = 3;
+    required int32  version = 4;
+    optional int32  owner   = 5;
+    optional string description = 6;
+}
+    
+//C2S
+message RequestDailyItems
+{
+    required bytes request_id = 1;
+    repeated int64 item_ids   = 2;
+}
+
+message RequestIDList
+{
+	required bytes request_id=1;
+	optional Cursor cursor_info=2;
+    optional int32 item_count  = 3; // default 50
+    optional int64 max_id      = 4; 
+    optional int64 min_id      = 5;
+    optional int32 buddy_id    = 6;
+}
+
+message ResultAck
+{
+	required bytes request_id=1;
+    enum RequestType
+    {
+        RecentPost = 0;
+        DeletedItemIds = 1;
+    }
+    optional RequestType type = 2;
+}
+
+message PostDailyItem
+{
+	required DailyItem item=1;
+	required bytes request_id=2;
+    repeated int32 buddies=3;  // optional, if not set the server will retrieve
+                               // the buddylist itself.
+    // added to support silent post
+    optional bool  no_notification=4;
+
+    repeated int32 circle_ids = 6;
+}
+
+message DeleteDailyItem
+{
+    required int64 item_id = 1;
+    required bytes request_id = 2;
+}
+
+message PostComment
+{
+	required int64 item_id=1;
+	optional CommentInfo comment=2;
+	required bytes request_id=3;
+}
+
+message RequestCommentDetail
+{
+	required int64 item_id=1;
+	required bytes request_id=2;
+	optional int32 version=3;
+}
+
+message CommentRequest
+{
+    required int64 comment_id = 1;
+    optional int32 version = 2;
+}
+
+message RequestCommentContent
+{
+    repeated CommentRequest comment_requests=1;
+    required bytes request_id=2; 
+}
+
+message RequestRecentPosts
+{
+    required bytes request_id = 1;
+}
+
+message RequestRecentSummary
+{
+    required bytes request_id = 1;
+}
+
+message AddCircle
+{
+    required bytes request_id = 1;
+    required Circle circle    = 2;
+}
+
+message AddCircleMember
+{
+    required bytes request_id = 1;
+    required int32 circle_id  = 2;
+    repeated int32 user_ids   = 3;
+}
+
+message RemoveCircleMember
+{
+    required bytes request_id = 1;
+    required int32 circle_id  = 2;
+    repeated int32 user_ids   = 3;
+}
+
+message RemoveCircle
+{
+    required bytes request_id = 1;
+    repeated int32 circle_ids = 2;
+}
+
+message RequestCircles
+{
+    required bytes request_id = 1;
+    required int32 version = 2;
+}
+
+message RequestItemCircles
+{
+    required bytes request_id = 1;
+    repeated int64 item_ids = 2;
+}
+
+message RemoveBuddy
+{
+    required bytes request_id = 1;
+    repeated int32 buddy_ids = 2;
+}
+
+//s2c
+message OperationState
+{
+	required bytes request_id=1;
+	optional int32 error_code=2;
+    optional int64 item_id   =3;
+    optional int64 comment_id = 4;
+    optional int32 version    = 5;
+}
+
+message DailyItemsResponse
+{
+    required bytes request_id = 1;
+    repeated UserDailyItem items = 2;
+}
+
+message ItemCirclesResponse
+{
+    required bytes request_id = 1;
+    repeated ItemCircles item_circles = 2;
+}
+
+message IDListResponse
+{
+	required bytes request_id   = 1;
+	repeated int64 ids     = 2;
+	optional Cursor cursor_info = 3;
+    optional int32 item_count  = 4; // default 50
+    optional int64 max_id      = 5; 
+    optional int64 min_id      = 6;
+    optional int32 buddy_id    = 7;
+    repeated int64 deleted_ids = 8;
+}
+
+message UserCommentInfo
+{
+	optional int32 user_id	= 1;
+	optional CommentInfo comment = 2; // User Comment Info may only have id
+    optional int64 comment_id = 3;
+    optional int32 version = 4;
+    optional int64 item_id = 5;
+}
+
+message CommentDetailResponse
+{
+	required int64 item_id         = 1;
+	repeated UserCommentInfo comments = 2; // for create from scratch
+    optional int32 version        = 3;
+}
+
+message CommentContentResponse
+{
+    required bytes request_id = 1;
+    repeated UserCommentInfo comments = 2; 
+    // UserCommentInfo will have only commment_id or even be empty
+    // if the version is the same.
+    optional int32 total_count = 3;
+}
+
+message RecentPostsResponse
+{
+    required bytes request_id = 1;
+    repeated int64 item_ids = 2;
+    repeated int64 comment_ids = 3;
+}
+
+message RecentSummaryResponse
+{
+    required bytes request_id = 1;
+    required int32 item_count = 2;
+    required int32 comment_count = 3;
+}
+
+message CirclesResponse
+{
+    required bytes request_id = 1;
+    repeated Circle circles = 2;
+    required int32 version = 3;
+}

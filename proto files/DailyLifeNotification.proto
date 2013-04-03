@@ -1,0 +1,12 @@
+package DLNotif;
+
+message ItemParam
+{
+    required int64 item_id = 1;
+}
+
+message CommentParam
+{
+    required int64 item_id = 1;
+    optional int64 comment_id = 2;
+}

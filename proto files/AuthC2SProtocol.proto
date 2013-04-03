@@ -1,0 +1,147 @@
+package Auth.C2S;
+
+message LoginInfo
+{
+	required string Name = 1;
+	required string Password = 2;
+	required int32 ClientType = 3;
+	required string MachineId = 4;
+	required int32 SoftwareVersion = 5;
+	optional int32 Status = 6;
+	optional int64 timestamp = 7;
+	optional bytes deviceId = 8;
+}
+
+message HelloInfo
+{
+	required int32 ClientType = 1;
+	required uint32 Version = 2;
+}
+message RequestToken
+{
+	optional int32 Type = 1;
+}
+message RequestChannelList
+{
+	enum RequestChannelType
+	{
+		DefaultRequest = 0;
+		HotChannel = 1;
+		GarenaGame = 2;
+		MyChannel = 4;
+		AllChannel = 7;
+	}
+	required RequestChannelType Type = 1;
+}
+message RequestChannelInfo
+{
+	repeated int32 ChannelId = 1;
+	optional int32 Option = 2;
+}
+message CreateChannelRequest
+{
+	required int32 MainCateId = 1;
+	required int32 SubCateId = 2;
+	required string Title = 3;
+	optional string Memo = 4;
+	optional int64 Icon = 5;
+}
+message RequestUserNumList
+{
+	repeated int32 ChannelId = 1;
+}
+message VMModuleInfoList
+{
+	message VMModuleInfo
+	{
+		required string Url = 1;
+		required string Token = 2;
+	}
+	repeated VMModuleInfo Modules = 1;
+}
+message ChangeMyInfo
+{
+	optional string NickName = 1;
+}
+message OAuthRawInfo
+{
+	required string Provider = 1;
+	required string Account = 2;
+	optional bytes Content = 3;
+}
+message OAuthLogin
+{
+	required bytes OAuthInfo = 1;
+	required int32 ClientType = 4;
+	required string MachineId = 5;
+	required int32 SoftwareVersion = 6;
+	optional int32 Status = 7;
+	optional int64 Timestamp = 8;
+	optional bytes DeviceId = 9;
+}
+
+message FillFinishReg
+{
+	optional int32 UserId = 1;
+	required string NickName = 2;
+	required int32 Gender = 3;
+	required uint64 AvatarId = 4;
+	optional int32 Birthday = 5;
+    optional int32 softwareVersion = 6 [default = 10103];
+}
+message KeepAlive
+{
+	optional bytes RequestId = 1;
+}
+message RegAccount
+{
+	required string EMail = 1;
+	required string Password = 2;
+	optional string Device = 3;
+    optional int32  softwareVersion = 4 [default = 10103];
+}
+message RequestUserNotificationInfo
+{
+	optional bytes RequestId = 1;
+}
+
+message RequestPluginNotificationInfo
+{
+    required bytes RequestId = 1;
+}
+
+message ChangeNotification
+{
+	required bool Enabled = 1;
+	optional bool TimeSilence = 2;
+	optional int32 StartTime = 3;
+	optional int32 EndTime = 4;
+	optional int32 TimeZone = 5;
+	optional bytes RequestId = 6;
+    optional int32 Language  = 7; //0: En, 1: TW
+}
+
+message ChangePluginNotification
+{
+    required bool Enabled = 1;
+    required string Tag   = 2; //"dl": dailylife, "ds": discussion
+	required bytes RequestId = 3;
+}
+
+message ChangePassword
+{
+    required string OldPassword = 1;
+    required string NewPassword = 2;
+    required bytes  RequestId = 3;
+}
+message MonitorPoll
+{
+    required int64 id = 1;
+    required int32 type = 2;
+    optional bytes parameter = 3;
+}
+message DeleteAccount
+{
+    required int32 userid = 1;
+}
+

@@ -1,0 +1,90 @@
+package AccountBinding;
+// Common
+message BoundAccount
+{
+    required string provider =  1;
+    required string account  = 2;   // phone number for mobile
+	optional bytes  parameter = 3; // Facebook token or Garena password or verification code for mobile
+}
+
+message Contact
+{  
+    required string account       = 1;
+    optional string name          = 2;
+}
+
+message Buddy
+{
+	required int32  userId        = 1;
+	optional string account       = 2;
+	optional string name          = 3;
+	optional string provider      = 4 [default = "mobile"];
+}
+
+// C2S
+message BindRequest
+{
+    required BoundAccount account = 1;
+	required bytes        request_id = 2;
+}
+
+message UnBindRequest
+{
+	required BoundAccount account = 1;
+	required bytes        request_id = 2;
+}
+
+message ContactUpdateRequest
+{
+    required bytes request_id         = 1;
+    optional int32 old_version        = 2;
+    repeated Contact added_contacts   = 3;
+    repeated Contact removed_contacts = 4;
+	required string  provider         = 5 [default = "mobile"];
+}
+
+message RequestBoundAccounts
+{
+	required bytes request_id = 1;
+}
+
+message RequestContactList
+{
+	required int32 version = 1;
+	optional string provider = 2;
+}
+
+// S2C
+message BindResponse
+{
+	required bytes        request_id  = 1;
+	optional BoundAccount account     = 2;
+}
+
+message UnBindResponse
+{
+	required bytes request_id = 1;
+}
+
+message ContactUpdateResponse
+{
+    required bytes request_id   = 1;
+    required int32 version      = 2;
+	repeated Buddy added_buddies = 3;        // buddies have been added
+	repeated Buddy buddy_requests = 4;       // buddy requests have been sent, waiting for acceptance
+	repeated Buddy buddy_recommendation = 5; // buddy recommendations (who have you in their contacts).
+	repeated Buddy existing_buddies = 6;     // these are already buddies before this update.
+}
+
+message BoundedAccountsResponse
+{
+    repeated BoundAccount accounts = 1;
+	required bytes        request_id = 2;
+}
+
+message ContactListResponse
+{
+	required int32 version = 1;
+	repeated Buddy contacts = 2;
+	optional string provider = 3;
+}
