@@ -697,16 +697,19 @@ func compareGetValueForPointer(expPtr reflect.Value, repPtr reflect.Value,
 		}
 		if _, present = forceCheckMap[domainName]; !present {
 			return true, nil
+		} else {
+			if repPtr.Elem().IsValid() {
+				repValue := reflect.Indirect(reflect.ValueOf(repPtr.Interface()))
+				return false, errors.New(fmt.Sprint("Reply has value while expect no value for forced check field", domainName, " ", repValue.Interface()))
+			} else {
+				return true, nil
+			}
 		}
 	}
 	expValue := reflect.Indirect(reflect.ValueOf(expPtr.Interface()))
 
 	// exp pointer != null. If pointer of reply value is null, return false, except in forcecheck case
-	if !repPtr.Elem().IsValid() {
-		if !expPtr.Elem().IsValid() {
-			// force check return true
-			return true, nil
-		}
+	if !repPtr.Elem().IsValid() {		
 		errorMsg := fmt.Sprintf("Reply has no value while expected value is %v", expValue.Interface())
 		return false, errors.New(errorMsg)
 	}

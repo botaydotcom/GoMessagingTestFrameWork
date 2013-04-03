@@ -239,9 +239,9 @@ func sendingRoutine() {
 			case connection:=<-newConnectionChan:
 				listAvailableConnection.PushBack(connection)
 				//fmt.Println("SEND, Get new connection list size: ", listAvailableConnection.Len())
-				if (listAvailableConnection.Len() == 1) {
+				/*if (listAvailableConnection.Len() == 1) {
 					selfPushChannel <- 1
-				}
+				}*/
 			case connection:=<-finishedConnectionChan:
 				if (connection.NumMessage < NUM_MESSAGE_TO_SEND) {						
 					listAvailableConnection.PushBack(connection)

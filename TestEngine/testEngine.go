@@ -683,6 +683,13 @@ func compareGetValueForPointer(expPtr reflect.Value, repPtr reflect.Value,
 		}
 		if _, present = forceCheckMap[domainName]; !present {
 			return true, nil
+		} else {
+			if repPtr.Elem().IsValid() {
+				repValue := reflect.Indirect(reflect.ValueOf(repPtr.Interface()))
+				return false, errors.New(fmt.Sprint("Reply has value while expect no value for forced check field", domainName, " ", repValue.Interface()))
+			} else {
+				return true, nil
+			}
 		}
 	}
 	expValue := reflect.Indirect(reflect.ValueOf(expPtr.Interface()))

@@ -4,10 +4,10 @@
 	<TargetPort>9100</TargetPort>
 	<VarMap>
 		<Var name="email">
-			<Value>test_indotest0001@test.com</Value>
+			<Value>indotest15@test.com</Value>
 		</Var>		
 		<Var name="name">
-			<Value>test_indotest0001</Value>
+			<Value>indotest15</Value>
 		</Var>			
 		<Var name="avatar">
 			<Value>429933266161898</Value>
