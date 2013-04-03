@@ -7,8 +7,8 @@ package Auth_S2C
 import proto "code.google.com/p/goprotobuf/proto"
 import json "encoding/json"
 import math "math"
-import P_Common "CommonProtocol.pb"
-import TOKEN_S "SimpleTokenProtocol.pb"
+import P_Common "xmltest/btalkTest/P_Common"
+import TOKEN_S "xmltest/btalkTest/TOKEN_S"
 
 // Reference proto, json, and math imports to suppress error if they are not otherwise used.
 var _ = proto.Marshal

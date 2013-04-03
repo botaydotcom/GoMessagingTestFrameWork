@@ -101,5 +101,93 @@ func (this *UserInfo) GetBirthday() int32 {
 	return 0
 }
 
+type RawLoginTokenInfo struct {
+	User             *UserInfo `protobuf:"bytes,1,req" json:"User,omitempty"`
+	ExpiredDate      *uint32   `protobuf:"varint,2,req" json:"ExpiredDate,omitempty"`
+	IP               *uint32   `protobuf:"varint,3,req" json:"IP,omitempty"`
+	XXX_unrecognized []byte    `json:"-"`
+}
+
+func (this *RawLoginTokenInfo) Reset()         { *this = RawLoginTokenInfo{} }
+func (this *RawLoginTokenInfo) String() string { return proto.CompactTextString(this) }
+func (*RawLoginTokenInfo) ProtoMessage()       {}
+
+func (this *RawLoginTokenInfo) GetUser() *UserInfo {
+	if this != nil {
+		return this.User
+	}
+	return nil
+}
+
+func (this *RawLoginTokenInfo) GetExpiredDate() uint32 {
+	if this != nil && this.ExpiredDate != nil {
+		return *this.ExpiredDate
+	}
+	return 0
+}
+
+func (this *RawLoginTokenInfo) GetIP() uint32 {
+	if this != nil && this.IP != nil {
+		return *this.IP
+	}
+	return 0
+}
+
+type P2PServerTokenInfo struct {
+	UserId           *int32  `protobuf:"varint,1,req" json:"UserId,omitempty"`
+	ExpiredDate      *uint32 `protobuf:"varint,2,req" json:"ExpiredDate,omitempty"`
+	XXX_unrecognized []byte  `json:"-"`
+}
+
+func (this *P2PServerTokenInfo) Reset()         { *this = P2PServerTokenInfo{} }
+func (this *P2PServerTokenInfo) String() string { return proto.CompactTextString(this) }
+func (*P2PServerTokenInfo) ProtoMessage()       {}
+
+func (this *P2PServerTokenInfo) GetUserId() int32 {
+	if this != nil && this.UserId != nil {
+		return *this.UserId
+	}
+	return 0
+}
+
+func (this *P2PServerTokenInfo) GetExpiredDate() uint32 {
+	if this != nil && this.ExpiredDate != nil {
+		return *this.ExpiredDate
+	}
+	return 0
+}
+
+type RASATokenInfo struct {
+	UserId           *int32  `protobuf:"varint,1,req" json:"UserId,omitempty"`
+	Name             *string `protobuf:"bytes,2,req" json:"Name,omitempty"`
+	ExpiredDate      *uint32 `protobuf:"varint,3,req" json:"ExpiredDate,omitempty"`
+	XXX_unrecognized []byte  `json:"-"`
+}
+
+func (this *RASATokenInfo) Reset()         { *this = RASATokenInfo{} }
+func (this *RASATokenInfo) String() string { return proto.CompactTextString(this) }
+func (*RASATokenInfo) ProtoMessage()       {}
+
+func (this *RASATokenInfo) GetUserId() int32 {
+	if this != nil && this.UserId != nil {
+		return *this.UserId
+	}
+	return 0
+}
+
+func (this *RASATokenInfo) GetName() string {
+	if this != nil && this.Name != nil {
+		return *this.Name
+	}
+	return ""
+}
+
+func (this *RASATokenInfo) GetExpiredDate() uint32 {
+	if this != nil && this.ExpiredDate != nil {
+		return *this.ExpiredDate
+	}
+	return 0
+}
+
 func init() {
 }

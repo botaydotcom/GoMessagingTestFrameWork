@@ -7,8 +7,8 @@ package Auth_Buddy_C2S
 import proto "code.google.com/p/goprotobuf/proto"
 import json "encoding/json"
 import math "math"
-import Auth_Buddy_Common "CommonBuddyProtocol.pb"
-import P_Common "CommonProtocol.pb"
+import Auth_Buddy_Common "xmltest/btalkTest/Auth_Buddy_Common"
+import P_Common "xmltest/btalkTest/P_Common"
 
 // Reference proto, json, and math imports to suppress error if they are not otherwise used.
 var _ = proto.Marshal

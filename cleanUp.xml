@@ -4,10 +4,10 @@
 	<TargetPort>9100</TargetPort>
 	<VarMap>
 		<Var name="email1">
-			<Value>test_indotest0001@test.com</Value>
+			<Value>indotest15@test.com</Value>
 		</Var>		
 		<Var name="name1">
-			<Value>test_indotest0001</Value>
+			<Value>indotest15</Value>
 		</Var>					
 		<Var name="password1">
 			<Value>e10adc3949ba59abbe56e057f20f883e</Value>
@@ -68,7 +68,7 @@
 			<Command>0x02</Command>
 			<Data>
 				<Auth_C2S_LoginInfo>
-					<Name>{{.email1}}</Name>						
+					<Name>{{.email1}}</Name>
 					<Password>{{.password1}}</Password>
 					<ClientType>1</ClientType>
 					<MachineId>1</MachineId>
@@ -81,7 +81,7 @@
 			<Command>0x02</Command>
 			<Data>
 				<Auth_C2S_LoginInfo>
-					<Name>{{.email2}}</Name>						
+					<Name>{{.email2}}</Name>
 					<Password>{{.password2}}</Password>
 					<ClientType>1</ClientType>
 					<MachineId>1</MachineId>

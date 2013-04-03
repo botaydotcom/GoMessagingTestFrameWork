@@ -307,6 +307,7 @@ func removeAllBoundAccountsForAllUsers(listConnection map[int]*net.TCPConn) {
 	for {
 		stop := true
 		for i := range listConnection {
+			fmt.Println("CONNECTION NUMBER: ", i)
 			conn := listConnection[i]
 
 			queryBoundAccountMessage := magicVarFunc("AccountBinding_RequestBoundAccounts")
@@ -325,7 +326,7 @@ func removeAllBoundAccountsForAllUsers(listConnection map[int]*net.TCPConn) {
 				fmt.Println(err)
 				if err.Error()[0:8] != "Cant read" {
 					stop = false
-				}
+				} 
 				continue
 			}
 
@@ -349,6 +350,8 @@ func removeAllBoundAccountsForAllUsers(listConnection map[int]*net.TCPConn) {
 					expMsg1.(proto.Message), conn)
 			}
 		}
+
+		fmt.Println("STOP NOW IS: ", stop)
 		if stop {
 			// after delete items, query 1 time to get rid of the deleted message
 			if extra {
@@ -793,6 +796,8 @@ func readReply(useBase bool, expBaseCmd byte, expCmd byte, expMsg proto.Message,
 	if err != nil {
 		fmt.Println("Cant read: Cant read full message from sockets")
 		return nil, err
+	} else {
+		fmt.Println("Full buffer:", rbuf)
 	}
 
 	var res proto.Message

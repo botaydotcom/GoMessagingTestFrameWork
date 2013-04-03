@@ -1,0 +1,376 @@
+<TestSuite>
+	<TestSuiteName>Chat</TestSuiteName>
+	<TargetHost>203.117.155.188</TargetHost>
+	<TargetPort>9100</TargetPort>
+	<VarMap>
+		<Var name="email1">
+			<Value>indotest15@test.com</Value>
+		</Var>		
+		<Var name="password1">
+			<Value>e10adc3949ba59abbe56e057f20f883e</Value>
+		</Var>
+		<Var name="name1">
+			<Value>indotest15</Value>
+		</Var>			
+		<Var name="sname">
+			<Value>btalk.echo13</Value>
+		</Var>
+		<Var name="mid1">
+			<Value>13456793</Value>
+		</Var>
+		<Var name="msg1">
+			<Value>Test message 1234567</Value>
+		</Var>
+		<Var name="rid11" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid12" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid21" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid22" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid31" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid32" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid41" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid42" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid51" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid52" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid61" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+		<Var name="rid62" isFunc="true">
+			<Value>Helper_RequestId</Value>
+		</Var>
+	</VarMap>
+	<IgnoreMessages>
+		<Message>
+			<BaseCommand>0x00</BaseCommand>
+			<Command>0x73</Command>
+			<MessageType>Auth_Buddy_S2C_BuddyOnline</MessageType>
+		</Message>
+	</IgnoreMessages>
+
+	<MessageMap>
+		<Var name="LoginMessageSequenceForA">
+			<MessageSequence>
+				<Message type="Auth_C2S_LoginInfo" fromClient="true">
+				<Command>0x02</Command>
+					<Data>
+						<Auth_C2S_LoginInfo>
+							<Name>{{.email1}}</Name>
+							<Password>{{.password1}}</Password>
+							<ClientType>1</ClientType>
+							<MachineId>1</MachineId>
+							<SoftwareVersion>10200</SoftwareVersion>
+						</Auth_C2S_LoginInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_LoginUserInfo" fromClient="false">
+					<Command>0x02</Command>
+					<Data>
+						<Auth_S2C_LoginInfoResult>
+							<MyInfo>
+								<UserId>{{.uid1}}</UserId>
+								<Name>{{.email1}}</Name>
+								<Gender>{{.gender}}</Gender>
+								<AvatarId>{{.avatar}}</AvatarId>
+							</MyInfo>
+						</Auth_S2C_LoginInfoResult>
+					</Data>
+				</Message>
+			</MessageSequence>
+		</Var>
+	</MessageMap>
+
+	<ListTest>
+		<TestInfo skip="false" repeat="1">
+			<Name>A logs in and requests service list, see no service</Name>
+		</TestInfo>
+		<TestInfo skip="false" repeat="1">
+			<Name>A logs in and add 1 service (echo service)</Name>
+		</TestInfo>
+		<TestInfo skip="false" repeat="1">
+			<Name>A logs in and requests service list, see added service</Name>
+		</TestInfo>
+		<TestInfo skip="false" repeat="1">
+			<Name>A logs in and sends a chat message to the echo service, sees an echoed response</Name>
+		</TestInfo>
+		<TestInfo skip="false" repeat="1">
+			<Name>A logs in and removes added service</Name>
+		</TestInfo>
+		<TestInfo skip="false" repeat="1">
+			<Name>A logs in and requests service list, see no service</Name>
+		</TestInfo>		
+	</ListTest>
+
+	<Tests>
+		<!--A logs in and requests service list, see no service-->
+		<Test>
+			<MessageSequence>
+				<Message type="LoginMessageSequenceForA" repeat="1"></Message>
+
+				<!--A requests service-->
+				<Message type="Service_C2S_MyServicesQuery" fromClient="true">		
+					<Command>0x86</Command>
+					<Data>
+						<Service_C2S_MyServicesQuery>
+							<RequestId>{{.rid11}}</RequestId>
+							<Version>0</Version>
+						</Service_C2S_MyServicesQuery>
+					</Data>
+				</Message>
+
+				<!--Server returns result-->
+				<Message type="Service_S2C_MyServicesResult" fromClient="false">		
+					<Command>0x87</Command>
+					<ForceCheck>
+						<FieldName>.Services</FieldName>
+					</ForceCheck>
+					<Data>
+						<Service_S2C_MyServicesResult>
+							<Version>{{.svid0}}</Version>
+							<RequestId>{{.rid11}}</RequestId>
+						</Service_S2C_MyServicesResult>
+					</Data>
+				</Message>
+			</MessageSequence>
+		</Test>
+
+		<!--A logs in and add 1 service (echo service)-->
+		<Test>
+			<MessageSequence>
+				<Message type="LoginMessageSequenceForA" repeat="1"></Message>
+
+				<!--A requests to add service-->
+				<Message type="Service_C2S_AddRequest" fromClient="true">		
+					<Command>0x84</Command>
+					<Data>
+						<Service_C2S_AddRequest>
+							<ServiceName>{{.sname}}</ServiceName>
+							<RequestId>{{.rid21}}</RequestId>
+						</Service_C2S_AddRequest>
+					</Data>
+				</Message>
+
+				<!--Server returns result-->
+				<Message type="Service_S2C_RemoteAddResult" fromClient="false">		
+					<Command>0x85</Command>
+					<Data>
+						<Service_S2C_RemoteAddResult>
+							<Sid>{{.sid}}</Sid>
+							<RequestId>{{.rid21}}</RequestId>
+
+							<Action>0</Action>
+						</Service_S2C_RemoteAddResult>
+					</Data>
+				</Message>
+			</MessageSequence>
+		</Test>
+
+		<!--A logs in and requests service list, see added service-->
+		<Test>
+			<MessageSequence>
+				<Message type="LoginMessageSequenceForA" repeat="1"></Message>
+
+				<!--A requests service-->
+				<Message type="Service_C2S_MyServicesQuery" fromClient="true">		
+					<Command>0x86</Command>
+					<Data>
+						<Service_C2S_MyServicesQuery>
+							<RequestId>{{.rid31}}</RequestId>
+							<Version>0</Version>
+						</Service_C2S_MyServicesQuery>
+					</Data>
+				</Message>
+
+				<!--Server returns result-->
+				<Message type="Service_S2C_MyServicesResult" fromClient="false">		
+					<Command>0x87</Command>
+					<ForceCheck>
+						<FieldName>.Services</FieldName>
+					</ForceCheck>
+					<Data>
+						<Service_S2C_MyServicesResult>
+							<Services>
+								<ServiceId>{{.sid}}</ServiceId>
+								<ServiceName>{{.sname}}</ServiceName>
+							</Services>
+							<Version>{{.svid1}}</Version>
+							<RequestId>{{.rid31}}</RequestId>
+						</Service_S2C_MyServicesResult>
+					</Data>
+				</Message>
+			</MessageSequence>
+		</Test>
+
+		<!--A logs in and sends a chat message to the echo service, sees an echoed response-->
+		<Test>
+			<MessageSequence>
+				<Message type="LoginMessageSequenceForA" repeat="1"></Message>
+
+				<!--A send message to Server -->
+				<Message type="Auth_Buddy_C2S_ChatInfo2" fromClient="true">
+					<ByteEncoded>
+						<Var type="Auth_Buddy_Common_MultiFormatChatList">
+							<Field>.Message</Field>							<Data>
+								<Auth_Buddy_Common_MultiFormatChatList>
+									<ChatItems>
+										<Content>{{.msg1}}</Content>
+									</ChatItems>
+								</Auth_Buddy_Common_MultiFormatChatList>
+							</Data>
+						</Var>
+					</ByteEncoded>
+					<Command>0x81</Command>
+					<Data>
+						<Auth_Buddy_C2S_ChatInfo2>
+							<UserId>{{.sid}}</UserId>
+							<MsgId>{{.mid1}}</MsgId>
+							<Message>0</Message>
+						</Auth_Buddy_C2S_ChatInfo2>
+					</Data>
+				</Message>
+
+				<!--Server send ack message to A -->
+				<Message type="Auth_Buddy_S2C_Chat2Ack" fromClient="false">
+					<Command>0x83</Command>
+					<Data>
+						<Auth_Buddy_S2C_Chat2Ack>
+							<MsgId>{{.mid1}}</MsgId>
+						</Auth_Buddy_S2C_Chat2Ack>
+					</Data>
+				</Message>
+
+				<!--Server send remote ack message to A -->
+				<Message type="Auth_Buddy_S2C_RemoteChat2Ack" fromClient="false">
+					<Command>0x84</Command>
+					<Data>
+						<Auth_Buddy_S2C_RemoteChat2Ack>
+							<UserId>{{.sid}}</UserId>
+							<MsgId>{{.mid1}}</MsgId>
+						</Auth_Buddy_S2C_RemoteChat2Ack>
+					</Data>
+				</Message>
+
+
+				<!--Server echos message to A -->
+				<Message type="Auth_Buddy_S2C_ChatInfo2" fromClient="false">
+					<Command>0x82</Command>
+					<ByteEncoded>
+						<Var type="Auth_Buddy_Common_MultiFormatChatList">
+							<Field>.Message</Field>
+							<Data>
+								<Auth_Buddy_Common_MultiFormatChatList>
+									<ChatItems>
+										<Content>{{.msg1}}</Content>
+									</ChatItems>
+								</Auth_Buddy_Common_MultiFormatChatList>
+							</Data>
+						</Var>
+					</ByteEncoded>
+					<Data>
+						<Auth_Buddy_S2C_ChatInfo2>
+							<FromId>{{.sid}}</FromId>
+							<MsgId>{{.mid1}}</MsgId>
+							<Message>0</Message>
+						</Auth_Buddy_S2C_ChatInfo2>
+					</Data>
+				</Message>
+
+				<!--A acks this message to Server -->
+				<Message type="Auth_Buddy_C2S_Chat2AckRemote" fromClient="true">
+					<Command>0x82</Command>
+					<Data>
+						<Auth_Buddy_C2S_Chat2AckRemote>
+							<UserId>{{.sid}}</UserId>
+							<MsgId>{{.mid1}}</MsgId>
+						</Auth_Buddy_C2S_Chat2AckRemote>
+					</Data>
+				</Message>
+			</MessageSequence>
+		</Test>
+		
+		<!--A logs in and removes added service-->
+		<Test>
+			<MessageSequence>
+				<Message type="LoginMessageSequenceForA" repeat="1"></Message>
+
+				<!--A requests remove service-->
+				<Message type="Service_C2S_RemoveRequest" fromClient="true">		
+					<Command>0x85</Command>
+					<Data>
+						<Service_C2S_RemoveRequest>
+							<RequestId>{{.rid51}}</RequestId>
+							<ServiceId>{{.sid}}</ServiceId>
+						</Service_C2S_RemoveRequest>
+					</Data>
+				</Message>
+
+				<!--Server returns remove result-->
+				<Message type="Service_S2C_RemoteRemoveResult" fromClient="false">		
+					<Command>0x86</Command>
+					<ForceCheck>
+						<FieldName>.ErrorCode</FieldName>
+					</ForceCheck>
+					<Data>
+						<Service_S2C_RemoteRemoveResult>
+							<Sid>{{.sid}}</Sid>
+							<OldVersion>{{.svid1}}</OldVersion>
+							<Version>{{.svid2}}</Version>
+							<RequestId>{{.rid51}}</RequestId>
+						</Service_S2C_RemoteRemoveResult>
+					</Data>
+				</Message>
+			</MessageSequence>
+		</Test>
+
+		<!--A logs in and requests service list, see no service-->
+		<Test>
+			<MessageSequence>
+				<Message type="LoginMessageSequenceForA" repeat="1"></Message>
+
+				<!--A requests service-->
+				<Message type="Service_C2S_MyServicesQuery" fromClient="true">		
+					<Command>0x86</Command>
+					<Data>
+						<Service_C2S_MyServicesQuery>
+							<RequestId>{{.rid61}}</RequestId>
+							<Version>0</Version>
+						</Service_C2S_MyServicesQuery>
+					</Data>
+				</Message>
+
+				<!--Server returns result-->
+				<Message type="Service_S2C_MyServicesResult" fromClient="false">		
+					<Command>0x87</Command>
+					<ForceCheck>
+						<FieldName>.Services</FieldName>
+					</ForceCheck>
+					<Data>
+						<Service_S2C_MyServicesResult>
+							<Version>{{.svid2}}</Version>
+							<RequestId>{{.rid61}}</RequestId>
+						</Service_S2C_MyServicesResult>
+					</Data>
+				</Message>
+			</MessageSequence>
+		</Test>
+	</Tests>
+</TestSuite>

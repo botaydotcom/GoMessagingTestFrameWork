@@ -9,6 +9,8 @@ import (
 	
 	"xmltest/btalkTest/Auth_Buddy_C2S"
 	
+	"xmltest/btalkTest/Auth_Buddy_Common"
+	
 	"xmltest/btalkTest/Auth_Buddy_S2C"
 	
 	"xmltest/btalkTest/Auth_C2S"
@@ -28,6 +30,8 @@ import (
 	"xmltest/btalkTest/FSSystem"
 	
 	"xmltest/btalkTest/Notif"
+	
+	"xmltest/btalkTest/P_Common"
 	
 	"xmltest/btalkTest/Service_C2S"
 	
@@ -182,6 +186,51 @@ func init() {
 	
 	var aAuth_Buddy_C2S_RequestUserInfo Auth_Buddy_C2S.RequestUserInfo
 	Map["Auth_Buddy_C2S_RequestUserInfo"] = reflect.TypeOf(aAuth_Buddy_C2S_RequestUserInfo)
+	
+	var aAuth_Buddy_Common_AddBuddyResultCode Auth_Buddy_Common.AddBuddyResultCode
+	Map["Auth_Buddy_Common_AddBuddyResultCode"] = reflect.TypeOf(aAuth_Buddy_Common_AddBuddyResultCode)
+	
+	var aAuth_Buddy_Common_BuddyCurrChannelTag Auth_Buddy_Common.BuddyCurrChannelTag
+	Map["Auth_Buddy_Common_BuddyCurrChannelTag"] = reflect.TypeOf(aAuth_Buddy_Common_BuddyCurrChannelTag)
+	
+	var aAuth_Buddy_Common_DynamicModuleList Auth_Buddy_Common.DynamicModuleList
+	Map["Auth_Buddy_Common_DynamicModuleList"] = reflect.TypeOf(aAuth_Buddy_Common_DynamicModuleList)
+	
+	var aAuth_Buddy_Common_DynamicModuleList_DynamicModule Auth_Buddy_Common.DynamicModuleList_DynamicModule
+	Map["Auth_Buddy_Common_DynamicModuleList_DynamicModule"] = reflect.TypeOf(aAuth_Buddy_Common_DynamicModuleList_DynamicModule)
+	
+	var aAuth_Buddy_Common_MetaInfoList Auth_Buddy_Common.MetaInfoList
+	Map["Auth_Buddy_Common_MetaInfoList"] = reflect.TypeOf(aAuth_Buddy_Common_MetaInfoList)
+	
+	var aAuth_Buddy_Common_MetaInfoList_MetaInfo Auth_Buddy_Common.MetaInfoList_MetaInfo
+	Map["Auth_Buddy_Common_MetaInfoList_MetaInfo"] = reflect.TypeOf(aAuth_Buddy_Common_MetaInfoList_MetaInfo)
+	
+	var aAuth_Buddy_Common_MultiFormatChatItem Auth_Buddy_Common.MultiFormatChatItem
+	Map["Auth_Buddy_Common_MultiFormatChatItem"] = reflect.TypeOf(aAuth_Buddy_Common_MultiFormatChatItem)
+	
+	var aAuth_Buddy_Common_MultiFormatChatList Auth_Buddy_Common.MultiFormatChatList
+	Map["Auth_Buddy_Common_MultiFormatChatList"] = reflect.TypeOf(aAuth_Buddy_Common_MultiFormatChatList)
+	
+	var aAuth_Buddy_Common_RemoteInviteChannelAction Auth_Buddy_Common.RemoteInviteChannelAction
+	Map["Auth_Buddy_Common_RemoteInviteChannelAction"] = reflect.TypeOf(aAuth_Buddy_Common_RemoteInviteChannelAction)
+	
+	var aAuth_Buddy_Common_RemoteUserAction Auth_Buddy_Common.RemoteUserAction
+	Map["Auth_Buddy_Common_RemoteUserAction"] = reflect.TypeOf(aAuth_Buddy_Common_RemoteUserAction)
+	
+	var aAuth_Buddy_Common_RequestBuddyInfoType Auth_Buddy_Common.RequestBuddyInfoType
+	Map["Auth_Buddy_Common_RequestBuddyInfoType"] = reflect.TypeOf(aAuth_Buddy_Common_RequestBuddyInfoType)
+	
+	var aAuth_Buddy_Common_TcpKeepAliveInfo Auth_Buddy_Common.TcpKeepAliveInfo
+	Map["Auth_Buddy_Common_TcpKeepAliveInfo"] = reflect.TypeOf(aAuth_Buddy_Common_TcpKeepAliveInfo)
+	
+	var aAuth_Buddy_Common_UserBuddyRelationship Auth_Buddy_Common.UserBuddyRelationship
+	Map["Auth_Buddy_Common_UserBuddyRelationship"] = reflect.TypeOf(aAuth_Buddy_Common_UserBuddyRelationship)
+	
+	var aAuth_Buddy_Common_UserOnlineStatus Auth_Buddy_Common.UserOnlineStatus
+	Map["Auth_Buddy_Common_UserOnlineStatus"] = reflect.TypeOf(aAuth_Buddy_Common_UserOnlineStatus)
+	
+	var aAuth_Buddy_Common_UserOptionInfo Auth_Buddy_Common.UserOptionInfo
+	Map["Auth_Buddy_Common_UserOptionInfo"] = reflect.TypeOf(aAuth_Buddy_Common_UserOptionInfo)
 	
 	var aAuth_Buddy_S2C_BuddyCurrChannelInfo Auth_Buddy_S2C.BuddyCurrChannelInfo
 	Map["Auth_Buddy_S2C_BuddyCurrChannelInfo"] = reflect.TypeOf(aAuth_Buddy_S2C_BuddyCurrChannelInfo)
@@ -846,6 +895,42 @@ func init() {
 	var aNotif_OperationState Notif.OperationState
 	Map["Notif_OperationState"] = reflect.TypeOf(aNotif_OperationState)
 	
+	var aP_Common_ChannelMembership P_Common.ChannelMembership
+	Map["P_Common_ChannelMembership"] = reflect.TypeOf(aP_Common_ChannelMembership)
+	
+	var aP_Common_ChannelSimpleInfo P_Common.ChannelSimpleInfo
+	Map["P_Common_ChannelSimpleInfo"] = reflect.TypeOf(aP_Common_ChannelSimpleInfo)
+	
+	var aP_Common_ChannelTextControlInfo P_Common.ChannelTextControlInfo
+	Map["P_Common_ChannelTextControlInfo"] = reflect.TypeOf(aP_Common_ChannelTextControlInfo)
+	
+	var aP_Common_ChannelTextControlInfo_ControlInfoOption P_Common.ChannelTextControlInfo_ControlInfoOption
+	Map["P_Common_ChannelTextControlInfo_ControlInfoOption"] = reflect.TypeOf(aP_Common_ChannelTextControlInfo_ControlInfoOption)
+	
+	var aP_Common_FontStyleInfo P_Common.FontStyleInfo
+	Map["P_Common_FontStyleInfo"] = reflect.TypeOf(aP_Common_FontStyleInfo)
+	
+	var aP_Common_MicQueueOptions P_Common.MicQueueOptions
+	Map["P_Common_MicQueueOptions"] = reflect.TypeOf(aP_Common_MicQueueOptions)
+	
+	var aP_Common_StringMaxLen P_Common.StringMaxLen
+	Map["P_Common_StringMaxLen"] = reflect.TypeOf(aP_Common_StringMaxLen)
+	
+	var aP_Common_SubChannelControlInfo P_Common.SubChannelControlInfo
+	Map["P_Common_SubChannelControlInfo"] = reflect.TypeOf(aP_Common_SubChannelControlInfo)
+	
+	var aP_Common_UserQueueMoveAction P_Common.UserQueueMoveAction
+	Map["P_Common_UserQueueMoveAction"] = reflect.TypeOf(aP_Common_UserQueueMoveAction)
+	
+	var aP_Common_VoiceModeControl P_Common.VoiceModeControl
+	Map["P_Common_VoiceModeControl"] = reflect.TypeOf(aP_Common_VoiceModeControl)
+	
+	var aP_Common_VoiceModeControl_EnumVoiceModeControl P_Common.VoiceModeControl_EnumVoiceModeControl
+	Map["P_Common_VoiceModeControl_EnumVoiceModeControl"] = reflect.TypeOf(aP_Common_VoiceModeControl_EnumVoiceModeControl)
+	
+	var aP_Common_VoiceModeControl_MaxMicTime P_Common.VoiceModeControl_MaxMicTime
+	Map["P_Common_VoiceModeControl_MaxMicTime"] = reflect.TypeOf(aP_Common_VoiceModeControl_MaxMicTime)
+	
 	var aService_C2S_AddRequest Service_C2S.AddRequest
 	Map["Service_C2S_AddRequest"] = reflect.TypeOf(aService_C2S_AddRequest)
 	
@@ -905,6 +990,15 @@ func init() {
 	
 	var aService_S2C_UserInfoResult Service_S2C.UserInfoResult
 	Map["Service_S2C_UserInfoResult"] = reflect.TypeOf(aService_S2C_UserInfoResult)
+	
+	var aTOKEN_S_P2PServerTokenInfo TOKEN_S.P2PServerTokenInfo
+	Map["TOKEN_S_P2PServerTokenInfo"] = reflect.TypeOf(aTOKEN_S_P2PServerTokenInfo)
+	
+	var aTOKEN_S_RASATokenInfo TOKEN_S.RASATokenInfo
+	Map["TOKEN_S_RASATokenInfo"] = reflect.TypeOf(aTOKEN_S_RASATokenInfo)
+	
+	var aTOKEN_S_RawLoginTokenInfo TOKEN_S.RawLoginTokenInfo
+	Map["TOKEN_S_RawLoginTokenInfo"] = reflect.TypeOf(aTOKEN_S_RawLoginTokenInfo)
 	
 	var aTOKEN_S_UserInfo TOKEN_S.UserInfo
 	Map["TOKEN_S_UserInfo"] = reflect.TypeOf(aTOKEN_S_UserInfo)

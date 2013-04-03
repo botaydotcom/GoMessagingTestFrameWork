@@ -661,6 +661,10 @@ func compareGetValueForPointer(expPtr reflect.Value, repPtr reflect.Value,
 		}
 		// exp pointer != null. If pointer of reply value is null, return false
 		if !repPtr.Elem().IsValid() {
+			if !expPtr.Elem().IsValid() {
+				// force check return true
+				return true, nil
+			}
 			errorMsg := fmt.Sprintf("Reply has no value while expected to get a value for binding")
 			return false, errors.New(errorMsg)
 		}
@@ -1220,6 +1224,7 @@ func parseAMessage(v Message) (interface{}, int, bool, int, error) {
 			preProcess(byteEncoded.Data.Xml)
 			addedXmlMessage, err := plugValue(byteEncoded.Data.Xml)
 			if DEBUG_PARSING_MESSAGE {
+				fmt.Println("Message type: ", byteEncoded.MessageType)
 				fmt.Println("Byte encoded message: ", addedXmlMessage)
 			}
 			if err != nil {

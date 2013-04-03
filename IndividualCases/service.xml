@@ -19,7 +19,7 @@
 			<Value>13456793</Value>
 		</Var>
 		<Var name="msg1">
-			<Value>Test message</Value>
+			<Value>Test message 1234567</Value>
 		</Var>
 		<Var name="rid11" isFunc="true">
 			<Value>Helper_RequestId</Value>
@@ -100,10 +100,10 @@
 	</MessageMap>
 
 	<ListTest>
-		<TestInfo skip="true" repeat="1">
+		<TestInfo skip="false" repeat="1">
 			<Name>A logs in and requests service list, see no service</Name>
 		</TestInfo>
-		<TestInfo skip="true" repeat="1">
+		<TestInfo skip="false" repeat="1">
 			<Name>A logs in and add 1 service (echo service)</Name>
 		</TestInfo>
 		<TestInfo skip="false" repeat="1">
@@ -227,12 +227,23 @@
 
 				<!--A send message to Server -->
 				<Message type="Auth_Buddy_C2S_ChatInfo2" fromClient="true">
+					<ByteEncoded>
+						<Var type="Auth_Buddy_Common_MultiFormatChatList">
+							<Field>.Message</Field>							<Data>
+								<Auth_Buddy_Common_MultiFormatChatList>
+									<ChatItems>
+										<Content>{{.msg1}}</Content>
+									</ChatItems>
+								</Auth_Buddy_Common_MultiFormatChatList>
+							</Data>
+						</Var>
+					</ByteEncoded>
 					<Command>0x81</Command>
 					<Data>
 						<Auth_Buddy_C2S_ChatInfo2>
 							<UserId>{{.sid}}</UserId>
 							<MsgId>{{.mid1}}</MsgId>
-							<Message>{{.msg1}}</Message>
+							<Message>0</Message>
 						</Auth_Buddy_C2S_ChatInfo2>
 					</Data>
 				</Message>
@@ -262,12 +273,35 @@
 				<!--Server echos message to A -->
 				<Message type="Auth_Buddy_S2C_ChatInfo2" fromClient="false">
 					<Command>0x82</Command>
+					<ByteEncoded>
+						<Var type="Auth_Buddy_Common_MultiFormatChatList">
+							<Field>.Message</Field>
+							<Data>
+								<Auth_Buddy_Common_MultiFormatChatList>
+									<ChatItems>
+										<Content>{{.msg1}}</Content>
+									</ChatItems>
+								</Auth_Buddy_Common_MultiFormatChatList>
+							</Data>
+						</Var>
+					</ByteEncoded>
 					<Data>
 						<Auth_Buddy_S2C_ChatInfo2>
 							<FromId>{{.sid}}</FromId>
 							<MsgId>{{.mid1}}</MsgId>
-							<Message>{{.msg1}}</Message>
+							<Message>0</Message>
 						</Auth_Buddy_S2C_ChatInfo2>
+					</Data>
+				</Message>
+
+				<!--A acks this message to Server -->
+				<Message type="Auth_Buddy_C2S_Chat2AckRemote" fromClient="true">
+					<Command>0x82</Command>
+					<Data>
+						<Auth_Buddy_C2S_Chat2AckRemote>
+							<UserId>{{.sid}}</UserId>
+							<MsgId>{{.mid1}}</MsgId>
+						</Auth_Buddy_C2S_Chat2AckRemote>
 					</Data>
 				</Message>
 			</MessageSequence>
@@ -293,9 +327,7 @@
 				<Message type="Service_S2C_RemoteRemoveResult" fromClient="false">		
 					<Command>0x86</Command>
 					<ForceCheck>
-						<FieldName>
-							.ErrorCode
-						</FieldName>
+						<FieldName>.ErrorCode</FieldName>
 					</ForceCheck>
 					<Data>
 						<Service_S2C_RemoteRemoveResult>
