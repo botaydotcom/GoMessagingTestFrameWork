@@ -96,7 +96,17 @@ var DEBUG_SENDING_MESSAGE bool = false
 var DEBUG_READING_MESSAGE bool = true
 var DEBUG_IGNORING_MESSAGE bool = false
 
+var BYPASS_CONNECTION_SERVER bool = false
+
 var DEBUG_WAITING bool = false
+
+var USE_UNBOUND bool = false
+var USE_FORCE_CHECK bool = false
+var USE_BYTE_ENCODE bool = false
+var USE_PREPROCESS bool = false
+var USE_VARIABLE bool = true
+var USE_CHECK_REPLY bool = false
+var USE_FILL_SLICE bool = false
 
 type InnerXml struct {
 	Xml string `xml:",innerxml"`
@@ -222,6 +232,16 @@ type Data struct {
 	ForceCheckMap map[string]bool
 }
 var SpecialChannel chan int
+func parseAndAugmentSpecialMessage(testSuite *TestSuite) {
+	//SPECIAL MESSAGE PART
+	specialMessageMap := make(map[string]SpecialMessage)
+	// parse global special messages
+	parseGlobalSpecialMessages(testSuite.GlobalSpecicalMessages, specialMessageMap)
+	for i, _ := range testSuite.ListTestCases {
+		augmentTestCaseWithSpecialMessages(&testSuite.ListTestCases[i], specialMessageMap)
+	}
+}
+
 
 /******************* steps in test ****************************************/
 func ExecuteTestSuite(addr *net.TCPAddr, testSuite *TestSuite) (TestResult){
@@ -232,15 +252,9 @@ func ExecuteTestSuite(addr *net.TCPAddr, testSuite *TestSuite) (TestResult){
 	data.SliceKeyMap = make(map[string]string)
 	data.SliceMap = make(map[string]interface{})
 
+	parseAndAugmentSpecialMessage(testSuite)
 	
-	/*SPECIAL MESSAGE PART
-	specialMessageMap = make(map[string]SpecialMessage)
-	// parse global special messages
-	parseGlobalSpecialMessages(testSuite.GlobalSpecicalMessages, specialMessageMap)
-	for i, _ := range testSuite.ListTestCases {
-		augmentTestCaseWithSpecialMessages(&testSuite.ListTestCases[i], specialMessageMap)
-	}
-	*/
+	
 
 	// parse test-suite varmap first
 	parseVarMap(testSuite.GlobalVarMap, &data)
@@ -311,6 +325,9 @@ func PerformTestCaseOnce(addr *net.TCPAddr, testCase *TestCase, data *Data) (Tes
 			//Connection does not exist or closed, create new connection for connection 
 			
 			conn, err := net.DialTCP("tcp", nil, addr)
+			if (DEBUG_SENDING_MESSAGE) {
+				fmt.Println("TRYING TO CONNECT TO: ", addr, " PROBLEM: ", err)
+			}
 			//conn.SetLinger(0)
 			if err != nil {
 				result.IsCorrect = false
@@ -375,21 +392,25 @@ func PerformTestCaseOnce(addr *net.TCPAddr, testCase *TestCase, data *Data) (Tes
 			}
 
 			if err == nil {
-				for _, unboundDesc := range message.Unbound {
-					data.KeyMap[unboundDesc.Field] = unboundDesc.VarName
+				if (USE_VARIABLE && USE_UNBOUND) {
+					for _, unboundDesc := range message.Unbound {
+						data.KeyMap[unboundDesc.Field] = unboundDesc.VarName
+					}
 				}
 
 				// mark force check map for this message
 				//prepareForceCheckMap(message.ForceCheck, data)
 				
-				if comparedResult, err := compareGetValueForProtoMessage(protoParsedMessage, *replyMessage, data); comparedResult {
-					// CORRECT Reply message.
-				} else {
-					// INCORRECT Reply message 
-					result.IsCorrect = false
-					errMsg := fmt.Sprintf("Message %d: %s", i+1, err.Error())
-					result.Reason = errors.New(errMsg)
-					break
+				if (USE_VARIABLE || USE_CHECK_REPLY) {
+					if comparedResult, err := compareGetValueForProtoMessage(protoParsedMessage, *replyMessage, data); comparedResult {
+						// CORRECT Reply message.
+					} else {
+						// INCORRECT Reply message 
+						result.IsCorrect = false
+						errMsg := fmt.Sprintf("Message %d: %s", i+1, err.Error())
+						result.Reason = errors.New(errMsg)
+						break
+					}
 				}
 			} else {
 				// Encounter error while trying to parse reply message
@@ -434,6 +455,10 @@ func sendMsg(useBase bool, baseCmd byte, cmd byte, msg proto.Message, conn *net.
 		length = length + 1
 	}
 
+	if BYPASS_CONNECTION_SERVER {
+		length = length + 8
+	}
+
 	if DEBUG_SENDING_MESSAGE {
 		TimeEncodedPrintln("sending message base length: ", length, " command / command / message: ", baseCmd, cmd, msg)
 	}
@@ -446,14 +471,16 @@ func sendMsg(useBase bool, baseCmd byte, cmd byte, msg proto.Message, conn *net.
 	}
 
 	binary.Write(buf, binary.LittleEndian, cmd)
-	//binary.Write(buf, binary.LittleEndian, int64(0))
+	if BYPASS_CONNECTION_SERVER {
+		binary.Write(buf, binary.LittleEndian, int64(0))
+	}
 	buf.Write(data)
 	n, err := conn.Write(buf.Bytes())
 	if DEBUG_SENDING_MESSAGE {
 		fmt.Println("Sent", n, "bytes", "encounter error:", err)
 	}
 }
-
+/*
 func tryIgnoreReceivedMessage(buffer []byte, data *Data) bool {
 	if DEBUG_IGNORING_MESSAGE {
 		fmt.Println("Trying to ignore received message buffer: ", buffer)
@@ -528,6 +555,7 @@ func tryIgnoreExpectedMessage(baseCmd int, cmd int, expMsg proto.Message, data *
 	}
 	return false
 }
+*/
 
 // read a reply to a buffer based on the expected message type
 // return error if reply message has different type of command than expected
@@ -549,6 +577,15 @@ func readReply(useBase bool, expBaseCmd byte, expCmd byte, expMsg proto.Message,
 	}
 	if err != nil {
 		return nil, err
+	}
+
+	if BYPASS_CONNECTION_SERVER {
+		tempBuf := make([]byte, 8)
+		_, err = io.ReadFull(conn, tempBuf)
+		if err != nil {
+			return nil, err
+		}
+		length = length - 8
 	}
 
 	var baseCmd byte
@@ -607,25 +644,30 @@ func compareGetValueForPointer(expPtr reflect.Value, repPtr reflect.Value,
 		fmt.Println("Comparing pointers", expPtr.Elem().IsValid(), repPtr.Elem().IsValid())
 		fmt.Println("Domain name:", domainName)
 	}
+	var key string
+	var present bool
 	// Now check the current domain name of this pointer
 	// if it is marked as: expecting value, and the variable is not bound
 	// bind the value of the key
-	key, present := data.KeyMap[domainName]
-	if present {
-		if DEBUG_COMPARE_POINTER {
-			fmt.Println("Unbound pointer variable, bind value to map now")
+	// require fill unbound to be turn on
+	if (USE_UNBOUND) {	
+		key, present = data.KeyMap[domainName]
+		if present {
+			if DEBUG_COMPARE_POINTER {
+				fmt.Println("Unbound pointer variable, bind value to map now")
+			}
+			// exp pointer != null. If pointer of reply value is null, return false
+			if !repPtr.Elem().IsValid() {
+				errorMsg := fmt.Sprintf("Reply has no value while expected to get a value for binding")
+				return false, errors.New(errorMsg)
+			}
+			repValue := reflect.Indirect(reflect.ValueOf(repPtr.Interface()))
+			// bound variable to value, return true
+			data.ValueMap[key] = repValue.Interface()
+			delete(data.KeyMap, domainName)
+			// no error
+			return true, nil
 		}
-		// exp pointer != null. If pointer of reply value is null, return false
-		if !repPtr.Elem().IsValid() {
-			errorMsg := fmt.Sprintf("Reply has no value while expected to get a value for binding")
-			return false, errors.New(errorMsg)
-		}
-		repValue := reflect.Indirect(reflect.ValueOf(repPtr.Interface()))
-		// bound variable to value, return true
-		data.ValueMap[key] = repValue.Interface()
-		delete(data.KeyMap, domainName)
-		// no error
-		return true, nil
 	}
 
 	// if pointer of expected value is null, just dont compare, except when it's force check
@@ -703,19 +745,24 @@ func compareGetValueForSlice(expSlice reflect.Value, repSlice reflect.Value,
 	result := true
 	var err error
 
+	var key string
+	var present bool
 	// Now check the current domain name of this slice
 	// if it is marked as: expecting value, and the variable is not bound
 	// bind the value of the key
-	key, present := data.KeyMap[domainName]
-	if present {
-		if DEBUG_COMPARE_SLICE {
-			fmt.Println("Unbound slice variable, bind value to map now")
+	// require fill unbound to be turn on
+	if (USE_UNBOUND) {	
+		key, present = data.KeyMap[domainName]
+		if present {
+			if DEBUG_COMPARE_SLICE {
+				fmt.Println("Unbound slice variable, bind value to map now")
+			}
+			// bound variable to value, return true
+			data.ValueMap[key] = repSlice.Interface()
+			delete(data.KeyMap, domainName)
+			// no error
+			return true, nil
 		}
-		// bound variable to value, return true
-		data.ValueMap[key] = repSlice.Interface()
-		delete(data.KeyMap, domainName)
-		// no error
-		return true, nil
 	}
 
 	var errorMsg string
@@ -796,19 +843,25 @@ func compareGetValueForStruct(expStruct reflect.Value, repStruct reflect.Value,
 		fmt.Println("Domain name:", domainName)
 	}
 
+	var key string
+	var present bool
 	// Now check the current domain name of this struct
 	// if it is marked as: expecting value, and the variable is not bound
 	// bind the value of the key
-	key, present := data.KeyMap[domainName]
-	if present {
-		if DEBUG_COMPARE_STRUCT {
-			fmt.Println("Unbound struct variable, bind value to map now")
+	// require fill unbound to be turn on
+	if (USE_UNBOUND) {
+		key, present = data.KeyMap[domainName]
+		if present {
+
+			if DEBUG_COMPARE_STRUCT {
+				fmt.Println("Unbound struct variable, bind value to map now")
+			}
+			// bound variable to value, return true
+			data.ValueMap[key] = repStruct.Interface()
+			delete(data.KeyMap, domainName)
+			// no error
+			return true, nil
 		}
-		// bound variable to value, return true
-		data.ValueMap[key] = repStruct.Interface()
-		delete(data.KeyMap, domainName)
-		// no error
-		return true, nil
 	}
 
 	result := true
@@ -901,7 +954,7 @@ func parseGlobalSpecialMessages(specialMessages []SpecialMessage,
 	}
 	if DEBUG_PARSING_MESSAGE {
 		fmt.Println("SPECIAL MESSAGE MAP:")
-		fmt.Println(data.SpecialMessageMap)
+		fmt.Println(specialMessageMap)
 	}
 }
 
@@ -931,6 +984,7 @@ func calculateSignature(baseCommand int, command int) int {
 	return baseCommand*500 + command
 }
 
+/*
 // parse global ignore messages
 func parseGlobalIgnoreMessages(ignoreMessages []IgnoreMessageSignature, data *Data) {
 	for _, messageType := range ignoreMessages {
@@ -942,7 +996,7 @@ func parseGlobalIgnoreMessages(ignoreMessages []IgnoreMessageSignature, data *Da
 		signature := calculateSignature(int(baseCmd), int(cmd))
 		data.GlobalIgnoreMessages[signature] = messageType.MessageType
 	}
-}
+}*/
 
 func prepareForceCheckMap(forceCheckList []string, data *Data) {
 	data.ForceCheckMap = make(map[string]bool)
@@ -951,6 +1005,7 @@ func prepareForceCheckMap(forceCheckList []string, data *Data) {
 	}
 }
 
+/*
 func prepareCurrentIgnoreMap(ignoreMessages []IgnoreMessageSignature, data *Data) {
 	// clean the current ignore message, copy the whole global ignore map here
 	data.CurrentIgnoreMessages = make(map[int]string)
@@ -963,7 +1018,7 @@ func prepareCurrentIgnoreMap(ignoreMessages []IgnoreMessageSignature, data *Data
 		signature := calculateSignature(int(baseCmd), int(cmd))
 		data.CurrentIgnoreMessages[signature] = messageType.MessageType
 	}
-}
+}*/
 
 func plugValueForVar(message string, varName string, value interface{}) string {
 	valueToReplace := ""
@@ -1017,7 +1072,6 @@ func preProcess(rawData string, data *Data) {
 func fillSliceValueToMessage(rawMessage *interface{}, data *Data) {
 	protoMsg := (*rawMessage).(proto.Message)
 	message := reflect.ValueOf(protoMsg).Elem()
-
 	for i := 0; i < message.NumField(); i++ {
 		expStructField := message.Field(i) // pointer
 
@@ -1159,11 +1213,14 @@ func visitStructPluginByteEncoded(refStructMessage *reflect.Value, value reflect
 // parse a message from message sequence
 // return: message / command / use base command? / base command / error
 func parseAMessage(v Message, data *Data) (interface{}, int, bool, int, error) {
-	// first pass: parse the message and put new var to value map
-	preProcess(v.Data.Xml, data)
-
-	// second pass: plug all value to the var in the raw string 
-	addedXmlMessage, err := plugValue(v.Data.Xml, data)
+	addedXmlMessage := v.Data.Xml
+	var err error
+	if (USE_VARIABLE) { // optimize option
+		// first pass: parse the message and put new var to value map
+		preProcess(v.Data.Xml, data)
+		// second pass: plug all value to the var in the raw string 
+		addedXmlMessage, err = plugValue(v.Data.Xml, data)
+	}
 
 	if DEBUG_PARSING_MESSAGE {
 		fmt.Println("-------------------------------------------------")
@@ -1174,7 +1231,7 @@ func parseAMessage(v Message, data *Data) (interface{}, int, bool, int, error) {
 	message := magicVarFunc(v.MessageType)
 	err = xml.Unmarshal([]byte(addedXmlMessage), message)
 
-	if (len(v.ByteEncoded) != 0) {
+	if (USE_VARIABLE && USE_BYTE_ENCODE && len(v.ByteEncoded) != 0) {
 		for _, byteEncoded := range v.ByteEncoded {
 			preProcess(byteEncoded.Data.Xml, data)
 			addedXmlMessage, err := plugValue(byteEncoded.Data.Xml, data)
@@ -1197,8 +1254,10 @@ func parseAMessage(v Message, data *Data) (interface{}, int, bool, int, error) {
 		TimeEncodedPrintln("after unmarshal parsing, error = ", err, " message = ", message)
 	}
 
-	// run through the slice map to fill in missing value
-	fillSliceValueToMessage(&message, data)
+	if (USE_VARIABLE && USE_FILL_SLICE) {
+		// run through the slice map to fill in missing value
+		fillSliceValueToMessage(&message, data)
+	}
 
 	if DEBUG_PARSING_MESSAGE {
 		fmt.Println("After filling in slice: ", message)

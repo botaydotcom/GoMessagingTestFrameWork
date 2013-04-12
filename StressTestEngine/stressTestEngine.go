@@ -97,6 +97,7 @@ var DEBUG_READING_MESSAGE bool = true
 var DEBUG_IGNORING_MESSAGE bool = false
 
 var DEBUG_WAITING bool = false
+var BYPASS_CONNECTION_SERVER bool = false
 
 type InnerXml struct {
 	Xml string `xml:",innerxml"`
@@ -221,6 +222,11 @@ type Data struct {
 	SpecialMessageMap map[string]SpecialMessage
 }
 var SpecialChannel chan int
+
+// do any initialize if needed
+func Initialize() {
+}
+
 
 /******************* steps in test ****************************************/
 func ExecuteTestSuite(addr *net.TCPAddr, testSuite *TestSuite) (TestResult){
@@ -447,6 +453,10 @@ func sendMsg(useBase bool, baseCmd byte, cmd byte, msg proto.Message, conn *net.
 		length = length + 1
 	}
 
+	if BYPASS_CONNECTION_SERVER {
+		length = length + 8
+	}
+
 	if DEBUG_SENDING_MESSAGE {
 		TimeEncodedPrintln("sending message base length: ", length, " command / command / message: ", baseCmd, cmd, msg)
 	}
@@ -459,7 +469,9 @@ func sendMsg(useBase bool, baseCmd byte, cmd byte, msg proto.Message, conn *net.
 	}
 
 	binary.Write(buf, binary.LittleEndian, cmd)
-	//binary.Write(buf, binary.LittleEndian, int64(0))
+	if BYPASS_CONNECTION_SERVER {
+		binary.Write(buf, binary.LittleEndian, int64(0))
+	}
 	buf.Write(data)
 	n, err := conn.Write(buf.Bytes())
 	if DEBUG_SENDING_MESSAGE {
@@ -562,6 +574,15 @@ func readReply(useBase bool, expBaseCmd byte, expCmd byte, expMsg proto.Message,
 	}
 	if err != nil {
 		return nil, err
+	}
+
+	if BYPASS_CONNECTION_SERVER {
+		tempBuf := make([]byte, 8)
+		_, err = io.ReadFull(conn, tempBuf)
+		if err != nil {
+			return nil, err
+		}
+		length = length - 8
 	}
 
 	var baseCmd byte

@@ -47,7 +47,7 @@ const (
 )
 
 const (
-	NUM_MESSAGE_TO_SEND = 5
+	NUM_MESSAGE_TO_SEND = 60
 )
 
 var rate int
@@ -99,7 +99,7 @@ func main() {
 	// read the parameters:
 	flag.IntVar(&rate, "rate", 10000, "The rate (number) of requests per minute")
 	flag.IntVar(&duration, "duration", 300, "The duration (s) of the test")
-	flag.StringVar(&address, "address", "203.117.155.188:9100", "Address of test server")
+	flag.StringVar(&address, "address", "203.117.155.188:9101", "Address of test server")
 	flag.BoolVar(&startServer, "server", false, "Start webserver to monitor or not?")
 	flag.BoolVar(&DEBUG_WEB_SERVER, "web", false, "Debug web server")
 
@@ -239,22 +239,10 @@ func sendingRoutine() {
 			case connection:=<-newConnectionChan:
 				listAvailableConnection.PushBack(connection)
 				//fmt.Println("SEND, Get new connection list size: ", listAvailableConnection.Len())
-				/*if (listAvailableConnection.Len() == 1) {
+				if (listAvailableConnection.Len() == 1) {
 					selfPushChannel <- 1
-				}*/
-			case connection:=<-finishedConnectionChan:
-				if (connection.NumMessage < NUM_MESSAGE_TO_SEND) {						
-					listAvailableConnection.PushBack(connection)
-					if DEBUG_STEP {
-						fmt.Println("SEND, Get a new available connection: ", listAvailableConnection.Len())
-					}
-				} else {
-					numFinished++
-					numAlive--
-					if (finishSpawning && numFinished == numConnection) {
-						stop = true
-					}
 				}
+			
 			case <- selfPushChannel:
 				//fmt.Println("SEND: selfpush")
 				if listAvailableConnection.Len() != 0 {
@@ -262,21 +250,34 @@ func sendingRoutine() {
 						currentElement = listAvailableConnection.Front()
 					}
 					connection := currentElement.Value.(*Connection)
-					connection.SendTime = time.Now().UnixNano()
-					sendHelloMsg(connection.Conn)
-					waitingConnectionChan <- connection
+					timeNow := time.Now().UnixNano()
+					if (timeNow - connection.SendTime > 1000000000) {						
+						connection.SendTime = time.Now().UnixNano()
+						sendHelloMsg(connection.Conn)
+						waitingConnectionChan <- connection
 
-					tempCurrent := currentElement
-					currentElement = currentElement.Next()
-					listAvailableConnection.Remove(tempCurrent)
-					if (currentElement != nil) {
-						selfPushChannel <- 1
-					}
-					if DEBUG_STEP {
-						fmt.Println("SEND, Sent a message to connection: ", connection.ConnId, " - send time: ", connection.SendTime)
+						tempCurrent := currentElement
+						currentElement = currentElement.Next()
+						listAvailableConnection.Remove(tempCurrent)
+						if (currentElement != nil) {
+							selfPushChannel <- 1
+						}
+						if DEBUG_STEP {
+							fmt.Println("SEND, Sent a message to connection: ", connection.ConnId, " - send time: ", connection.SendTime)
+						}
+					} else {
+						//fmt.Println("DEFER SENDING MESSAGE FOR CONN: ", connection.ConnId)
+						tempCurrent := currentElement
+						currentElement = currentElement.Next()
+						listAvailableConnection.Remove(tempCurrent)
+						listAvailableConnection.PushBack(connection)
+						if (currentElement == nil) {
+							currentElement = listAvailableConnection.Front()
+						}
+						selfPushChannel <- 1	
 					}
 				}
-			case <- timerChannel:
+			/*case <- timerChannel:
 				//fmt.Println("SEND: timer")
 				if listAvailableConnection.Len() != 0 {
 					if (currentElement == nil) {
@@ -295,6 +296,25 @@ func sendingRoutine() {
 					}
 					if DEBUG_STEP {
 						fmt.Println("SEND, Sent a message to connection: ", connection.ConnId, " - send time: ", connection.SendTime)
+					}
+				}*/
+			case connection:=<-finishedConnectionChan:
+				if (connection.NumMessage < NUM_MESSAGE_TO_SEND) {						
+					listAvailableConnection.PushBack(connection)
+					if (listAvailableConnection.Len() == 1) {
+						selfPushChannel <- 1
+					}
+					if DEBUG_STEP {
+						fmt.Println("SEND, Get a new available connection: ", listAvailableConnection.Len())
+					}
+				} else {
+					if DEBUG_STEP {
+						TimeEncodedPrintln("CONNECTION: ", connection.ConnId, connection.NumMessage)
+					}
+					numFinished++
+					numAlive--
+					if (finishSpawning && numFinished == numConnection) {
+						stop = true
 					}
 				}
 		}
@@ -348,7 +368,7 @@ func readingRoutine() {
 							selfPushChannel <- 1
 						} 
 						if DEBUG_STEP {
-							fmt.Println("RECEIVE, Receive a REPLY: ", listWaitingConnection.Len())	
+							fmt.Println("RECEIVE, Receive a REPLY FOR: ", connection.ConnId)	
 						}
 					} else {
 						if (err != nil) {
@@ -373,7 +393,7 @@ func readingRoutine() {
 func sendHelloMsg(conn *net.TCPConn) {
 	helloInfo := &Auth_C2S.HelloInfo{
 		ClientType: proto.Int32(1),
-		Version:    proto.Uint32(1),
+		Version:    proto.Uint32(2),
 	}
 	sendMsg(conn, byte(C2S_HelloInfo_CMD), helloInfo)
 }
@@ -387,6 +407,9 @@ func sendMsg(conn *net.TCPConn, cmd byte, msg proto.Message) {
 
 	buf := new(bytes.Buffer)
 
+	if (DEBUG_STEP) {
+		fmt.Println("SENDING ROUTING: send a hello message ", length, cmd, data);
+	}
 	binary.Write(buf, binary.LittleEndian, length)
 	binary.Write(buf, binary.LittleEndian, cmd)
 	buf.Write(data)
@@ -396,7 +419,7 @@ func sendMsg(conn *net.TCPConn, cmd byte, msg proto.Message) {
 // read a reply to a buffer based on the expected message type
 // return error if reply message has different type of command than expected
 func readReply(conn *net.TCPConn) (proto.Message, error) {
-	duration := time.Millisecond * 1
+	duration := time.Millisecond *20
 	timeNow := time.Now()
 	err := conn.SetReadDeadline(timeNow.Add(duration))
 	if err != nil {
@@ -409,9 +432,19 @@ func readReply(conn *net.TCPConn) (proto.Message, error) {
 		return nil, nil
 	}
 
+	if (DEBUG_STEP) {
+		fmt.Println("RECEIVE MESSAGE LENGTH: ", length)
+	}
+	// now wait longer for the message data
+	duration = time.Millisecond *100
+	timeNow = time.Now()
+	err = conn.SetReadDeadline(timeNow.Add(duration))
+
 	rbuf := make([]byte, length)
 	io.ReadFull(conn, rbuf)
-	//TimeEncodedPrintln(rbuf)
+	if (DEBUG_STEP) {
+		fmt.Println(rbuf)
+	}
 	
 	cmd := int(rbuf[0])
 

@@ -97,6 +97,7 @@ var DEBUG_READING_MESSAGE bool = true
 var DEBUG_IGNORING_MESSAGE bool = false
 
 var DEBUG_WAITING bool = false
+var BYPASS_CONNECTION_SERVER bool = false
 
 type InnerXml struct {
 	Xml string `xml:",innerxml"`
@@ -222,6 +223,11 @@ type Data struct {
 }
 var SpecialChannel chan int
 
+// do any initialize if needed
+func Initialize() {
+}
+
+
 /******************* steps in test ****************************************/
 func ExecuteTestSuite(addr *net.TCPAddr, testSuite *TestSuite) (TestResult){
 	conn, err := net.DialTCP("tcp", nil, addr)
@@ -280,11 +286,17 @@ func sendHelloMsg(conn *net.TCPConn) {
 		log.Fatal("marchaling error: ", err)
 	}
 	length := int32(len(data)) + 1
+	if BYPASS_CONNECTION_SERVER {
+		length = length + 8
+	}
 
 	buf := new(bytes.Buffer)
 
 	binary.Write(buf, binary.LittleEndian, length)
 	binary.Write(buf, binary.LittleEndian, byte(C2S_HelloInfo_CMD))
+	if BYPASS_CONNECTION_SERVER {
+		binary.Write(buf, binary.LittleEndian, int64(0))
+	}
 	buf.Write(data)
 	conn.Write(buf.Bytes())
 }
@@ -304,6 +316,15 @@ func readHelloReply(conn *net.TCPConn) (proto.Message, error) {
 	err = binary.Read(conn, binary.LittleEndian, &length)
 	if err != nil {
 		return nil, err
+	}
+
+	if BYPASS_CONNECTION_SERVER {
+		tempBuf := make([]byte, 8)
+		_, err = io.ReadFull(conn, tempBuf)
+		if err != nil {
+			return nil, err
+		}
+		length = length - 8
 	}
 
 	rbuf := make([]byte, length)

@@ -42,16 +42,17 @@ message RemoveResult
 message RequestUserInfo
 {
 	optional int32 UserId = 2;
-	optional int64 RequestId = 3;
+	optional int32 RequestId = 3;
 }
 
 // from mobile client
-message AddRequest
+message AddRequest 
 {
-    required string ServiceName = 1;
+    optional string ServiceName = 1;
 	required int64  RequestId   = 2;
 	optional string Message     = 3;
 	optional int32  Language    = 4;
+    optional int32  Sid         = 5; //if Sid is provided, ServiceName will be ignored.
 }
 
 message RemoveRequest

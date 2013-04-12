@@ -97,6 +97,7 @@ var DEBUG_READING_MESSAGE bool = true
 var DEBUG_IGNORING_MESSAGE bool = false
 
 var DEBUG_WAITING bool = false
+var BYPASS_CONNECTION_SERVER bool = false
 
 type InnerXml struct {
 	Xml string `xml:",innerxml"`
@@ -222,10 +223,18 @@ type Data struct {
 }
 var SpecialChannel chan int
 
+// do any initialize if needed
+func Initialize() {
+}
+	
+
 /******************* steps in test ****************************************/
 func ExecuteTestSuite(addr *net.TCPAddr, testSuite *TestSuite) (TestResult){
 	conn, err := net.DialTCP("tcp", nil, addr)
-	duration, _ := time.ParseDuration("1s")
+	if (DEBUG_SENDING_MESSAGE) {
+		fmt.Println("TRYING TO CONNECT TO: ", addr, " PROBLEM: ", err)
+	}
+	duration := time.Second * 1
 	if err != nil {
 		return TestResult {
 			IsCorrect: false,
@@ -282,9 +291,18 @@ func sendHelloMsg(conn *net.TCPConn) {
 	length := int32(len(data)) + 1
 
 	buf := new(bytes.Buffer)
+	if BYPASS_CONNECTION_SERVER {
+		length = length + 8
+	}
 
 	binary.Write(buf, binary.LittleEndian, length)
 	binary.Write(buf, binary.LittleEndian, byte(C2S_HelloInfo_CMD))
+	if BYPASS_CONNECTION_SERVER {
+		if DEBUG_SENDING_MESSAGE {
+			fmt.Println("After sending length + CMD, send 8 bytes for bypassing")
+		}
+		binary.Write(buf, binary.LittleEndian, int64(0))	
+	}
 	buf.Write(data)
 	conn.Write(buf.Bytes())
 }
@@ -293,7 +311,7 @@ func sendHelloMsg(conn *net.TCPConn) {
 // read a reply to a buffer based on the expected message type
 // return error if reply message has different type of command than expected
 func readHelloReply(conn *net.TCPConn) (proto.Message, error) {
-	duration, _ := time.ParseDuration("1s")
+	duration := time.Second *10
 	timeNow := time.Now()
 	err := conn.SetReadDeadline(timeNow.Add(duration))
 	if err != nil {
@@ -302,12 +320,29 @@ func readHelloReply(conn *net.TCPConn) (proto.Message, error) {
 	}
 	length := int32(0)
 	err = binary.Read(conn, binary.LittleEndian, &length)
+	if DEBUG_READING_MESSAGE {
+		fmt.Println("TRYING TO READ MESSAGE LENGTH => ", length, " ERROR: ", err)
+	}
+
 	if err != nil {
 		return nil, err
 	}
 
+	if BYPASS_CONNECTION_SERVER {
+		tempBuf := make([]byte, 8)
+		_, err = io.ReadFull(conn, tempBuf)
+		if DEBUG_READING_MESSAGE {
+			fmt.Println("Trying to read extra 8 bytes:" , tempBuf, " PROBLEM: ", err)
+		}
+		
+		if err != nil {
+			return nil, err
+		}
+		length = length - 8
+	}
+
 	rbuf := make([]byte, length)
-	io.ReadFull(conn, rbuf)
+	n, err := io.ReadFull(conn, rbuf)
 	
 	cmd := int(rbuf[0])
 
@@ -330,7 +365,7 @@ func readHelloReply(conn *net.TCPConn) (proto.Message, error) {
 		msg := fmt.Sprint("Server returns error: ")
 		return res, errors.New(msg) 
 	default:
-		log.Fatal("Unexpected CMD: ", cmd)
+		log.Fatal("Unexpected CMD: ", cmd, "length is: ", length, " number bytes read: ", n, " error: ", err)
 	}
 	return nil, nil
 

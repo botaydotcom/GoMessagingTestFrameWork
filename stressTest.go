@@ -23,7 +23,7 @@ import (
 	// "xmltest/btalkTest/StressTestEngine" is the standard test engine 
 	// it has slow performance, but carries all functions from standard feature tests
 	
-	// "xmltest/btalkTest/StressTestEngine_hardcoded" is the hardcoded engine
+	// "xmltest/btalkTest/StressTestEngine_hardcode" is the hardcoded engine
 	// it can only perform hello test, but delivers fastest performace.
 	// serves as a reference for performance
 
@@ -33,7 +33,7 @@ import (
 	// and remove a few unnecessary calls.
 	// it is still under development, can be optimized for better performance.
 	
-	"xmltest/btalkTest/StressTestEngine"
+	StressTestEngine "xmltest/btalkTest/StressTestEngine_hardcode_login"
 
 )
 
@@ -134,6 +134,7 @@ func main() {
 	flag.BoolVar(&StressTestEngine.DEBUG_WAITING, "wait", false, "Debug waiting")
 
 	flag.StringVar(&StressTestEngine.READ_PENDING_TIMEOUT, "timeout", "10s", "Read time out")
+	flag.BoolVar(&StressTestEngine.BYPASS_CONNECTION_SERVER, "bypass", false, "Bypass connection server")
 
 	flag.Parse()
 
@@ -158,7 +159,8 @@ func main() {
 	errorAggregation = make(map[string]int)
 
 	StressTestEngine.SpecialChannel = make(chan int, 50000)
-
+	// do any initialize if needed
+	StressTestEngine.Initialize()
 	// spawn processing routing
 	go processingRoutine()
 

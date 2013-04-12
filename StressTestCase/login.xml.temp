@@ -53,7 +53,10 @@
 		</Var>
 		<Var name="SpecialMessage1">
 			<MessageSequence>
-				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="10s">
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Reuse reused="true">
+						<Name>HelloInfo</Name>
+					</Reuse>
 					<Command>0x01</Command>
 					<Data>
 						<Auth_C2S_HelloInfo>

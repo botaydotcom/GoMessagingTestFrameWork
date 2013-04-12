@@ -1,7 +1,7 @@
 <TestSuite>
 	<TestSuiteName>Login</TestSuiteName>
 	<TargetHost>203.117.155.188</TargetHost>
-	<TargetPort>9100</TargetPort>
+	<TargetPort>19000</TargetPort>
 	<VarMap>
 		<Var name="email" isFunc="true" sendBack="true">
 			<Value>Helper_GetNextUserEmail</Value>
