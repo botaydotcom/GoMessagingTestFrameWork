@@ -308,6 +308,26 @@ In that case, some states on server might have been changed, which could leave s
 
 The cleanUpFile has the CleanUpSequence, with the same meaning as the CleanUpSequence mentioned bove. 
 
+
+Message Map and Special Message:
+========================
+A new feature has been added to the test framework to simplify the process of writing test case. In a test case, when there are multiple repeatitive message, we can define special "macro message". To add this kind of message, after VarMap, we can add section: 
+
+	<MessageMap>
+		<Var name="SpecialMessage0">
+			<MessageSequence>
+				<Message></message>
+			</MessageSequence>
+		</Var>
+	</MessageMap>
+
+In this case, a marco message name = SpecialMessage0 is added. To use this macro message in the body of the test file, instead of using the normal MessageType, just use the name of the macro message as the message type. For example:
+	
+	<Message type="SpecialMessage0" (repeat="x")></Message>
+
+If we want the macro message to be repeated (for example: send a hello message and receive reply for 60 times), just use repeat tag. Default (without repeat tag) repeat = 1, so the macro message is replayed only once. 
+
+
 List of files in this directory:
 ========================
 #####Folders: 
