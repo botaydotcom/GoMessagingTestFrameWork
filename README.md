@@ -6,9 +6,47 @@ A Test framework for Btalk test server
 
 Running Test:
 ========================
-To run test:
+To run feature test (feature test is used for running individual tests):
+	
+	"xmltest.exe (-in inputfileName)"
+
+	Other flags for xmltest:
+	-bypass=(true/false) whether to bypass authentication server
+	-read=(true/false) print out debug information when reading reply from server
+	-send=(true/false) print out debug information when sending requests to server
+	read and send are the most useful/frequently used flag when debugging
+
+	-parse=(true/false) print out debug information for parsing
+	-func=(true/false) print out debug information when using function to evaluate variable value
+
+	-ignore=(true/false) print out debug information when trying to ignore message from server
+	-cmp_ptr=(true/false) print out debug information when comparing pointer value in reply from server
+	-cmp_slc=(true/false) print out debug information when comparing slice value in reply from server
+	-cmp_str=(true/false) print out debug information when comparing struct value in reply from server
+	-clean=(true/false) print out debug information when performing clean up if needed
+
+To run auto test:
 
 	"autoTest.exe (-inputDir inputDir) (-timeOut timeOutForReadOperation)"
+
+	Same debug flags as feature tests. A few more are:
+	-numItr: number of times to run the auto test. Negative = not stop
+	-sleepTime: Time(ms) to wait between 2 iteration
+	-timeOut: Time(s) before each request timeout
+
+To run stress test:
+	
+	"stressTest.exe (-inputDir inputDir) (-rate ratePerMinute) (-duration durationInSecond)"
+
+	Same debug flags as 2 tests above. A few more are:
+	-server=(true/false): whether to run a web server to produce a graph. Note: When server flag is turned on, we MUST monitor the progress using a client browser pointing to testServerAddress:3000/displayResult.html  this page will display a graph with real time information about the stress test. If the server flag is turned on, and there's no monitoring client, server will be blocked after sometime.
+	-web=(true/false): print out debug information for the web server.
+
+Inside the file: stressTest.go, we can change different engine for stress test, by changing the line:
+
+	StressTestEngine "xmltest/btalkTest/StressTestEngine"
+	For more info, refer to the file stressTest.go itself.
+
 
 Test suite description:
 ========================
@@ -251,18 +289,18 @@ Inside the raw data section, we can use {{.varname}} notion to use variable (as 
 
 The <CleanUpSequence> tag specifies the clean up message sequence for a test case. This is a sequence of messages to open up (logins) some connections for some users, and let the program perform message clean up (ack all pending offline message) for that connection.
 
-This part is retained for historical reason, but its function is better replace by using cleanUpEngine.
+This part is retained for historical reason, but its function is better replaced by using cleanUpEngine.
 
 Clean up:
 ========================
 Clean up failed test:
-The autotest program will run non-stop, repeating all test cases in the testing directory. If it encounters any error in any test case, it will stop at the test case.
+When either feature test or autoTest runs, if it encounters any error in any test case, it will stop at the test case.
 
-In that case, some connections will be left open, and some states on server can be changed. To clean up this so that we can re-run the test freshly, run: 
+In that case, some states on server might have been changed, which could leave side effects / affect the next test. To clean up this so that we can re-run the test freshly, run: 
 
 	"cleanUpEngine.exe (-in cleanUpFileName)"
 
-The cleanUpFile has the CleanUpSequence, with the same meaning as the CleanUpSequence mentioned bove.
+The cleanUpFile has the CleanUpSequence, with the same meaning as the CleanUpSequence mentioned bove. 
 
 List of files in this directory:
 ========================
@@ -294,5 +332,19 @@ stressTest.go : standard stresstest program. (spawning multiple go routines to s
 StressTestCase: folder that contains a set of test specifications that are used in the stressTest engine.
 StressTestEngine* : different stress test engine. Refer to stressTest.go for more information
 
+Steps to add a new test:
+========================
+I. If the test needs new proto file:
 
+Compile the proto file into proto.go file using protoc command. Put the file into corresponding packet folder (inside the btalkTest folder). Run generateMapCode.exe: It will traverse all sub-folder inside the btalkTest folder and put all proto-message struct it can find to a map. This map is declared in the file: GeneratedDataStructure/generatedDataStructure.go. All of the test engine can refer to this file to initialize the message. After running the generateMapCode.exe file, it will generate a fresh file: GeneratedDataStructure/generatedDataStructure.go. Therefore, we need to recompile xmltest.go, autoTest.go and stressTest.go
 
+II. Writing test specification files (the xml file - according to the documentation in the aforementioned parts).
+
+II.1. <optional> Inside the specification files, if we need to define some helper function:
+
+Write the function to file: Helper/helper.func.go - Note: function must be exportable (first letter in function name must be capitalized)
+Run generateMapFuncCode.exe: It will do something similar to generateMapCode.exe, but this time put all available helper function in a map in the file: GeneratedDataStructure/generatedDataFuncStructure.go
+
+After running generateMapFuncCode.exe, we also need to recompile: xmltest.go, autoTest.go and stressTest.go
+
+III. Run the test. Refer to previous sections on the instructions of running the tests.
