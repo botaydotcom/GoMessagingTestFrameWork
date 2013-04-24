@@ -33,7 +33,11 @@ import (
 	// and remove a few unnecessary calls.
 	// it is still under development, can be optimized for better performance.
 	
-	StressTestEngine "xmltest/btalkTest/StressTestEngine_hardcode_login"
+	// "xmltest/btalkTest/StressTestEngine_hardcode_multiple_message" is the new hard-coded engine.
+	// It can run hello / login test. It delivers performance ~ hardcode engine.
+	// Can used for hello/ login stress test. 
+	// To extend function, need to hard code more functions
+	StressTestEngine "xmltest/btalkTest/StressTestEngine_hardcode_multiple_message"
 
 )
 

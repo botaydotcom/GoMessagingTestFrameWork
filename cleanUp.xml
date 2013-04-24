@@ -115,7 +115,7 @@
 				</Auth_C2S_LoginInfo>
 			</Data>
 		</Message>
-		<!--
+
 		<Message type="Auth_C2S_LoginInfo" fromClient="true"  connection="4">		
 			<Command>0x02</Command>
 			<Data>
@@ -141,6 +141,5 @@
 				</Auth_C2S_LoginInfo>
 			</Data>
 		</Message>
-	-->
 	</CleanUpSequence>
 </CleanUpSuite>

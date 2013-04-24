@@ -19,6 +19,16 @@ const (
 
 var counter int64
 var counterTs int64
+var counterUnique int64
+
+func GetNextUniqueNumber() (int64) {
+	(&mutex).Lock()
+	result := counterUnique
+	counterUnique++
+	(&mutex).Unlock()
+	result += time.Now().Unix() << 32
+	return int64(result)
+}
 
 func RequestId() (string) {	
 	counter += 1
@@ -78,8 +88,18 @@ func GetNextUserEmail() string {
 	return user
 }
 
+func GetNextUserEmailWithParam(prefix string) string {
+	user := fmt.Sprintf("%s%d@test.com", prefix, getNextUserNumber())
+	return user
+}
+
 func GetCurrentUserName() string {
 	user := fmt.Sprintf("indotrial_user_%d", getCurrentUserNumber())
+	return user
+}
+
+func GetCurrentUserNameWithParam(prefix string) string {
+	user := fmt.Sprintf("%s%d", prefix, getCurrentUserNumber())
 	return user
 }
 

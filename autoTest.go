@@ -29,6 +29,9 @@ var DEBUG_SENDING_MESSAGE bool = false
 var DEBUG_READING_MESSAGE bool = false
 var DEBUG_IGNORING_MESSAGE bool = false
 
+var DEBUG_CALLING_FUNC bool = false
+var BYPASS_CONNECTION_SERVER bool = false
+
 var timeOut int
 
 var flagMap map[string]bool
@@ -70,6 +73,9 @@ func main() {
 	flag.BoolVar(&DEBUG_SENDING_MESSAGE, "send", false, "Debug send messages")
 	flag.BoolVar(&DEBUG_IGNORING_MESSAGE, "ignore", false, "Debug ignore messages")
 
+	flag.BoolVar(&DEBUG_CALLING_FUNC, "func", false, "Debug calling function")
+	flag.BoolVar(&BYPASS_CONNECTION_SERVER, "bypass", false, "Bypass connection server")
+
 	flag.IntVar(&timeOut, "timeOut", TIME_OUT_FOR_READ, "The time (s) to wait when trying to read from server")
 	flag.IntVar(&sleepTime, "sleepTime", SLEEP_BETWEEN_TEST, "The time (ms) to wait between subsequent iterations")
 
@@ -85,6 +91,9 @@ func main() {
 	flagMap["send"] = DEBUG_SENDING_MESSAGE
 	flagMap["read"] = DEBUG_READING_MESSAGE
 	flagMap["ignore"] = DEBUG_IGNORING_MESSAGE
+
+	flagMap["func"] = DEBUG_CALLING_FUNC
+	flagMap["bypass"] = BYPASS_CONNECTION_SERVER
 
 	fmt.Println("List of debug flag:", flagMap)
 

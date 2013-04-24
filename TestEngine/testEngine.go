@@ -98,6 +98,8 @@ var DEBUG_SENDING_MESSAGE bool = false
 var DEBUG_READING_MESSAGE bool = false
 var DEBUG_IGNORING_MESSAGE bool = false
 
+var BYPASS_CONNECTION_SERVER bool = false
+
 var DEBUG_CALLING_FUNC bool = true
 
 type InnerXml struct {
@@ -223,6 +225,9 @@ func ExecuteTest(flagMap map[string]bool, inputFile string, timeOut int) {
 	DEBUG_SENDING_MESSAGE = flagMap["send"]
 	DEBUG_READING_MESSAGE = flagMap["read"]
 	DEBUG_IGNORING_MESSAGE = flagMap["ignore"]
+
+	DEBUG_CALLING_FUNC = flagMap["func"]
+	BYPASS_CONNECTION_SERVER = flagMap["bypass"]
 
 	// open file
 	readTimeOut = fmt.Sprintf("%ds", timeOut)
@@ -457,6 +462,10 @@ func sendMsg(useBase bool, baseCmd byte, cmd byte, msg proto.Message, conn *net.
 		length = length + 1
 	}
 
+	if BYPASS_CONNECTION_SERVER {
+		length = length + 8
+	}
+
 	if DEBUG_SENDING_MESSAGE {
 		timeEncodedPrintln("sending message base length: ", length, " command / command / message: ", baseCmd, cmd, msg)
 	}
@@ -469,7 +478,9 @@ func sendMsg(useBase bool, baseCmd byte, cmd byte, msg proto.Message, conn *net.
 	}
 
 	binary.Write(buf, binary.LittleEndian, cmd)
-	//binary.Write(buf, binary.LittleEndian, int64(0))
+	if BYPASS_CONNECTION_SERVER {
+		binary.Write(buf, binary.LittleEndian, int64(0))
+	}
 	buf.Write(data)
 	conn.Write(buf.Bytes())
 }
@@ -569,6 +580,15 @@ func readReply(useBase bool, expBaseCmd byte, expCmd byte, expMsg proto.Message,
 	}
 	if err != nil {
 		return nil, err
+	}
+
+	if BYPASS_CONNECTION_SERVER {
+		tempBuf := make([]byte, 8)
+		_, err = io.ReadFull(conn, tempBuf)
+		if err != nil {
+			return nil, err
+		}
+		length = length - 8
 	}
 
 	var baseCmd byte

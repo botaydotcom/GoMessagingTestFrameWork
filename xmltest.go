@@ -98,6 +98,8 @@ var DEBUG_IGNORING_MESSAGE bool = false
 
 var DEBUG_CALLING_FUNC bool = true
 
+var BYPASS_CONNECTION_SERVER bool = false
+
 type InnerXml struct {
 	Xml string `xml:",innerxml"`
 }
@@ -226,7 +228,7 @@ func main() {
 	flag.BoolVar(&DEBUG_IGNORING_MESSAGE, "ignore", false, "Debug ignore messages")
 
 	flag.BoolVar(&DEBUG_CALLING_FUNC, "func", false, "Debug calling function")
-
+	flag.BoolVar(&BYPASS_CONNECTION_SERVER, "bypass", false, "Bypass connection server")
 	flag.Parse()
 
 	timeEncodedPrintln("List of debug flag:")
@@ -475,6 +477,10 @@ func sendMsg(useBase bool, baseCmd byte, cmd byte, msg proto.Message, conn *net.
 		length = length + 1
 	}
 
+	if BYPASS_CONNECTION_SERVER {
+		length = length + 8
+	}
+
 	if DEBUG_SENDING_MESSAGE {
 		timeEncodedPrintln("sending message base length: ", length, " command / command / message: ", baseCmd, cmd, msg)
 	}
@@ -487,7 +493,11 @@ func sendMsg(useBase bool, baseCmd byte, cmd byte, msg proto.Message, conn *net.
 	}
 
 	binary.Write(buf, binary.LittleEndian, cmd)
-	//binary.Write(buf, binary.LittleEndian, int64(0))
+	
+	if BYPASS_CONNECTION_SERVER {
+		binary.Write(buf, binary.LittleEndian, int64(0))
+	}
+
 	buf.Write(data)
 	conn.Write(buf.Bytes())
 }
@@ -587,6 +597,15 @@ func readReply(useBase bool, expBaseCmd byte, expCmd byte, expMsg proto.Message,
 	}
 	if err != nil {
 		return nil, err
+	}
+
+	if BYPASS_CONNECTION_SERVER {
+		tempBuf := make([]byte, 8)
+		_, err = io.ReadFull(conn, tempBuf)
+		if err != nil {
+			return nil, err
+		}
+		length = length - 8
 	}
 
 	var baseCmd byte

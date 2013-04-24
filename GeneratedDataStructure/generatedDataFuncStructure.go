@@ -22,7 +22,13 @@ func init() {
 	
 	FuncMap["Helper_GetCurrentUserName"] = reflect.ValueOf(Helper.GetCurrentUserName)
 	
+	FuncMap["Helper_GetCurrentUserNameWithParam"] = reflect.ValueOf(Helper.GetCurrentUserNameWithParam)
+	
+	FuncMap["Helper_GetNextUniqueNumber"] = reflect.ValueOf(Helper.GetNextUniqueNumber)
+	
 	FuncMap["Helper_GetNextUserEmail"] = reflect.ValueOf(Helper.GetNextUserEmail)
+	
+	FuncMap["Helper_GetNextUserEmailWithParam"] = reflect.ValueOf(Helper.GetNextUserEmailWithParam)
 	
 	FuncMap["Helper_GetOAuthRaw"] = reflect.ValueOf(Helper.GetOAuthRaw)
 	

@@ -1,0 +1,60 @@
+<TestSuite>
+	<TestSuiteName>Login</TestSuiteName>
+	<TargetHost>203.117.155.188</TargetHost>
+	<TargetPort>19000</TargetPort>
+	<VarMap>
+		<Var name="email" isFunc="true" sendBack="true">
+			<Value>Helper_GetNextUserEmail</Value>
+		</Var>
+		<Var name="name" isFunc="true">
+			<Value>Helper_GetCurrentUserName</Value>
+		</Var>
+		<Var name="password">
+			<Value>e10adc3949ba59abbe56e057f20f883e</Value>
+		</Var>	
+		<Var name="avatar">
+			<Value>429933266161898</Value>
+		</Var>
+		<Var name="gender">
+			<Value>0</Value>
+		</Var>
+	</VarMap>
+	<MessageMap>
+		<Var name="SpecialMessage1">
+			<MessageSequence>
+				<Message type="Auth_C2S_HelloInfo" fromClient="true" wait="1s">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_C2S_HelloInfo>
+							<ClientType>1</ClientType>
+							<Version>2</Version>
+						</Auth_C2S_HelloInfo>
+					</Data>
+				</Message>
+
+				<Message type="Auth_S2C_HelloInfoResult" fromClient="false">
+					<Command>0x01</Command>
+					<Data>
+						<Auth_S2C_HelloInfoResult>
+							<Token>hello</Token>
+						</Auth_S2C_HelloInfoResult>
+					</Data>
+				</Message>
+			</MessageSequence>
+		</Var>
+	</MessageMap>
+
+	<ListTest>
+		<TestInfo skip="false" repeat="1">
+			<Name>Login test</Name>
+		</TestInfo>
+	</ListTest>
+
+	<Tests>
+		<Test>
+			<MessageSequence>
+				<Message type="SpecialMessage1" repeat="60"></Message>
+			</MessageSequence>
+		</Test>
+	</Tests>
+</TestSuite>
