@@ -334,21 +334,17 @@ StressTestEngine* : different stress test engine. Refer to stressTest.go for mor
 
 Steps to add a new test:
 ========================
-1. If the test needs new proto file:
+I. If the test needs new proto file:
 
-Compile the proto file into proto.go file using protoc command. Put the file into corresponding packet folder (inside the btalkTest folder)
+Compile the proto file into proto.go file using protoc command. Put the file into corresponding packet folder (inside the btalkTest folder). Run generateMapCode.exe: It will traverse all sub-folder inside the btalkTest folder and put all proto-message struct it can find to a map. This map is declared in the file: GeneratedDataStructure/generatedDataStructure.go. All of the test engine can refer to this file to initialize the message. After running the generateMapCode.exe file, it will generate a fresh file: GeneratedDataStructure/generatedDataStructure.go. Therefore, we need to recompile xmltest.go, autoTest.go and stressTest.go
 
-Run generateMapCode.exe: It will traverse all sub-folder inside the btalkTest folder and put all proto-message struct it can find to a map. This map is declared in the file: GeneratedDataStructure/generatedDataStructure.go. All of the test engine can refer to this file to initialize the message. 
+II. Writing test specification files (the xml file - according to the documentation in the aforementioned parts).
 
-After running the generateMapCode.exe file, it will generate a fresh file: GeneratedDataStructure/generatedDataStructure.go. Therefore, we need to recompile xmltest.go, autoTest.go and stressTest.go
-
-2. Writing test specification files (the xml file - according to the documentation in the aforementioned parts).
-
-2.1. <optional> Inside the specification files, if we need to define some helper function:
+II.1. <optional> Inside the specification files, if we need to define some helper function:
 
 Write the function to file: Helper/helper.func.go - Note: function must be exportable (first letter in function name must be capitalized)
 Run generateMapFuncCode.exe: It will do something similar to generateMapCode.exe, but this time put all available helper function in a map in the file: GeneratedDataStructure/generatedDataFuncStructure.go
 
 After running generateMapFuncCode.exe, we also need to recompile: xmltest.go, autoTest.go and stressTest.go
 
-3. Run the test. Refer to previous sections on the instructions of running the tests.
+III. Run the test. Refer to previous sections on the instructions of running the tests.
