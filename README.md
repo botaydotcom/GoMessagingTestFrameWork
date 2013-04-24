@@ -48,6 +48,12 @@ Inside the file: stressTest.go, we can change different engine for stress test, 
 	For more info, refer to the file stressTest.go itself.
 
 
+Further documentation:
+========================
+Refer to Documentation/TestingSpecification.xlsx to get an idea of what are tested, where the specification files are.
+
+Refer to Documentation/TestingSpecification.docx to get an idea of message flow / message commands for different kinds of tests. 
+
 Test suite description:
 ========================
 
@@ -334,13 +340,17 @@ StressTestEngine* : different stress test engine. Refer to stressTest.go for mor
 
 Steps to add a new test:
 ========================
-I. If the test needs new proto file:
+I. (optional) If the test needs new proto file:
 
-Compile the proto file into proto.go file using protoc command. Put the file into corresponding packet folder (inside the btalkTest folder). Run generateMapCode.exe: It will traverse all sub-folder inside the btalkTest folder and put all proto-message struct it can find to a map. This map is declared in the file: GeneratedDataStructure/generatedDataStructure.go. All of the test engine can refer to this file to initialize the message. After running the generateMapCode.exe file, it will generate a fresh file: GeneratedDataStructure/generatedDataStructure.go. Therefore, we need to recompile xmltest.go, autoTest.go and stressTest.go
+Compile the proto file into proto.go file using protoc command. Put the file into corresponding packet folder (inside the btalkTest folder). 
+
+Run generateMapCode.exe: It will traverse all sub-folder inside the btalkTest folder and put all proto-message struct it can find to a map. This map is declared in the file: GeneratedDataStructure/generatedDataStructure.go. All of the test engine can refer to this file to initialize the message. 
+
+After running the generateMapCode.exe file, it will generate a fresh file: GeneratedDataStructure/generatedDataStructure.go. Therefore, we need to recompile xmltest.go, autoTest.go and stressTest.go
 
 II. Writing test specification files (the xml file - according to the documentation in the aforementioned parts).
 
-II.1. <optional> Inside the specification files, if we need to define some helper function:
+II.1. (optional) Inside the specification files, if we need to define some helper function:
 
 Write the function to file: Helper/helper.func.go - Note: function must be exportable (first letter in function name must be capitalized)
 Run generateMapFuncCode.exe: It will do something similar to generateMapCode.exe, but this time put all available helper function in a map in the file: GeneratedDataStructure/generatedDataFuncStructure.go
