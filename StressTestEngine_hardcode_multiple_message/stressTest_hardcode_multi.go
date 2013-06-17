@@ -508,6 +508,7 @@ func sendLogin(conn *UniqueConnection, userName string) {
 		ClientType:      proto.Int32(1),
 		MachineId:       proto.String("1"),
 		SoftwareVersion: proto.Int32(10200),
+		DeviceId: 		 []byte(userName),
 	}
 	sendMsg(false, 0, byte(C2S_LoginInfo_CMD), loginInfo, conn)
 }
@@ -584,6 +585,7 @@ func readLoginReply(conn *UniqueConnection) (int32, error){
 		loginMessage := receivedMessage.(*Auth_S2C.LoginUserInfo)
 		return *loginMessage.MyInfo.UserId, nil
 	}
+	return 0, err
 }
 
 
